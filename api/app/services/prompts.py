@@ -1,6 +1,52 @@
 """
 Collection of prompt templates for different stages of diagnosis.
-Uses the original tested prompts from the RRL document.
+"""
+
+# New summary prompts for consolidated stages
+
+CASE_ANALYSIS_SUMMARY_PROMPT = """
+Consider the following extracted factors and causal links for the patient case. 
+
+Extracted Factors:
+{extracted_factors}
+
+Causal Links:
+{causal_links}
+
+Now consider the following Validation information:
+
+Validation:
+{validation_result}
+
+Now briefly summarise the findings of extracted factors and causal links for the physician. Then in details explain the validation information and ask for questions or 
+requirements if any. Have a chat kind of conversation with the physician while asking questions. Be direct and precise. Provide response in first person or active voice.
+"""
+
+DIAGNOSIS_SUMMARY_PROMPT = """
+Provide a concise summary of the diagnosis analysis:
+
+Counterfactual Analysis:
+{counterfactual_analysis}
+
+Diagnosis:
+{diagnosis}
+
+Highlight only the most important findings that the physician needs to know.
+"""
+
+TREATMENT_SUMMARY_PROMPT = """
+Summarize the key aspects of the treatment plan:
+
+Treatment Plan:
+{treatment_plan}
+
+Patient-Specific Plan:
+{patient_specific_plan}
+
+Final Treatment Plan:
+{final_treatment_plan}
+
+Provide a concise, actionable summary for the physician.
 """
 
 
@@ -53,6 +99,9 @@ Instructions:
 Do not explain or analyze the relationships yet.
 Do not suggest next steps or treatments.
 Simply extract and categorize all relevant factors from the case.
+
+Case:
+{case_text}
 """
 # PROMPTS['NODE_EXTRACTION_PROMPT'] = NODE_EXTRACTION_PROMPT
 
@@ -578,7 +627,7 @@ Treatment Plan Predicted Outcome Complications/Risks
 [Medication Adherence]
 [Key Risk Factors to Watch]
 """
-PROMPTS['FINAL_TREATMENT_PROMPT'] = FINAL_TREATMENT_PROMPT
+# PROMPTS['FINAL_TREATMENT_PROMPT'] = FINAL_TREATMENT_PROMPT
 
 def format_prompt(prompt_template, **kwargs):
     """Format any prompt template with the given arguments."""

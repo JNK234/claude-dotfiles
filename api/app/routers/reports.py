@@ -1,0 +1,152 @@
+"""
+Report endpoints for generating and retrieving reports
+"""
+from typing import Any, Dict
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.core.security import get_current_user
+from app.models.case import Case, Report
+from app.models.user import User
+from app.schemas.case import Report as ReportSchema
+from app.services.report_service import ReportService
+
+router = APIRouter()
+
+@router.post("/{case_id}/reports", response_model=ReportSchema, status_code=status.HTTP_201_CREATED)
+def generate_report(
+    case_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Generate a report for a case
+    
+    Args:
+        case_id: Case ID
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Report: Generated report
+        
+    Raises:
+        HTTPException: If case not found or not owned by current user
+    """
+    # Get case
+    case = db.query(Case).filter(Case.id == case_id).first()
+    
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+    
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this case"
+        )
+    
+    # Initialize report service
+    report_service = ReportService(db)
+    
+    # Generate report
+    report_result = report_service.generate_report(str(case_id))
+    
+    # Check if report generation failed
+    if not report_result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate report"
+        )
+    
+    # Create and return report object for API response
+    report = Report(
+        id=UUID(report_result["id"]),
+        case_id=UUID(report_result["case_id"]),
+        file_path=report_result["file_path"],
+        created_at=report_result["created_at"]
+    )
+    
+    return report
+
+@router.get("/{case_id}/reports/{report_id}")
+def get_report(
+    case_id: UUID,
+    report_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get a report by ID
+    
+    Args:
+        case_id: Case ID
+        report_id: Report ID
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Response: Report file
+        
+    Raises:
+        HTTPException: If report not found or not owned by current user
+    """
+    # Get case
+    case = db.query(Case).filter(Case.id == case_id).first()
+    
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+    
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this case"
+        )
+    
+    # Get report
+    report = db.query(Report).filter(
+        Report.id == report_id,
+        Report.case_id == case_id
+    ).first()
+    
+    # Check if report exists
+    if not report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Report with ID {report_id} not found"
+        )
+    
+    # Initialize report service
+    report_service = ReportService(db)
+    
+    # Get report content
+    report_result = report_service.get_report(str(report_id))
+    
+    # Check if report retrieval failed
+    if not report_result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve report"
+        )
+    
+    # Return report content
+    return Response(
+        content=report_result["encoded_data"],
+        media_type=report_result["content_type"],
+        headers={
+            "Content-Disposition": f"attachment; filename=report_{report_id}.{report_result['content_type'].split('/')[-1]}"
+        }
+    )
