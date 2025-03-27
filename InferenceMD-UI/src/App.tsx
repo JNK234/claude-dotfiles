@@ -75,7 +75,8 @@ const MainApp: React.FC = () => {
     acknowledgePhiDisclaimer,
     
     // Error state
-    error
+    error,
+    setError
   } = useWorkflow();
   
   // Handle case selection
@@ -105,16 +106,44 @@ const MainApp: React.FC = () => {
   
   // Handle report download
   const handleDownloadReport = async () => {
-    if (selectedCaseId) {
-      try {
-        // Generate report
-        const report = await ReportService.generateReport(selectedCaseId);
-        
-        // Download report
-        await ReportService.downloadReport(selectedCaseId, report.id);
-      } catch (error) {
-        console.error('Error downloading report:', error);
+    if (!selectedCaseId) return;
+    
+    const button = document.querySelector('button[data-action="generate-report"]');
+    if (button) {
+      button.setAttribute('disabled', 'true');
+      button.textContent = 'Generating Report...';
+    }
+
+    try {
+      // Generate report
+      const report = await ReportService.generateReport(selectedCaseId);
+      if (!report || !report.id) {
+        throw new Error('Failed to generate report');
       }
+      
+      // Download report
+      await ReportService.downloadReport(selectedCaseId, report.id);
+      
+      // Reset button
+      if (button) {
+        button.removeAttribute('disabled');
+        button.textContent = 'Generate PDF Report';
+      }
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      // Show error in the ErrorContainer
+      if (error instanceof Error) {
+        setError(`Failed to generate report: ${error.message}`);
+      } else {
+        setError('Failed to generate report. Please try again.');
+      }
+      // Reset button
+      if (button) {
+        button.removeAttribute('disabled');
+        button.textContent = 'Generate PDF Report';
+      }
+      // Clear error after 5 seconds
+      setTimeout(() => setError(null), 5000);
     }
   };
   
@@ -145,7 +174,7 @@ const MainApp: React.FC = () => {
           </div>
         )}
         
-        {isPhiAcknowledged && (!currentStage || currentStage === 'initial' || currentStage === 'patient_case_analysis') && !selectedCaseId && (
+        {isPhiAcknowledged && (!currentStage || currentStage === 'initial' || currentStage === 'patient_case_analysis_group') && !selectedCaseId && (
           <div style={{ padding: '1rem' }}>
             <CaseInput onSubmit={handleCaseSubmit} />
           </div>
@@ -161,15 +190,27 @@ const MainApp: React.FC = () => {
               />
             </div>
             
-            {currentStage !== 'complete' && selectedCaseId && (
+            {selectedCaseId && (
               <StageControlsContainer>
-                <Button 
-                  variant="approve" 
-                  onClick={handleStageApproval}
-                  disabled={isProcessing}
-                >
-                  Approve & Continue to Next Stage
-                </Button>
+                {currentStage !== 'complete' && (
+                  <Button 
+                    variant="approve" 
+                    onClick={handleStageApproval}
+                    disabled={isProcessing}
+                  >
+                    Approve & Continue to Next Stage
+                  </Button>
+                )}
+                {(currentStage === 'complete' || currentStage === 'treatment_planning_group') && (
+                  <Button 
+                    onClick={handleDownloadReport}
+                    disabled={isProcessing}
+                    data-action="generate-report"
+                    style={{ marginLeft: currentStage !== 'complete' ? '1rem' : '0' }}
+                  >
+                    Generate PDF Report
+                  </Button>
+                )}
               </StageControlsContainer>
             )}
           </>
@@ -182,8 +223,12 @@ const MainApp: React.FC = () => {
   const renderRightPanel = () => {
     return (
       <ReasoningPanel 
-        content={reasoningContent} 
         currentStage={stages.find(s => s.id === currentStage)?.name || currentStage}
+        allStagesContent={stages.reduce((acc, stage) => {
+          acc[stage.id] = stage.reasoningContent || '';
+          return acc;
+        }, {} as Record<string, string>)}
+        caseId={selectedCaseId || ''}
       />
     );
   };

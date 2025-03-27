@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
-
 interface ReasoningPanelProps {
-  content: string;
   currentStage: string;
+  allStagesContent: Record<string, string>;
+  caseId: string;
 }
 
 const Container = styled.div`
@@ -122,21 +122,32 @@ const ContentContainer = styled.div`
 `;
 
 export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({ 
-  content, 
-  currentStage 
+  currentStage,
+  allStagesContent,
+  caseId
 }) => {
   const stageName = currentStage.charAt(0).toUpperCase() + currentStage.slice(1).replace(/_/g, ' ');
-  
   return (
     <Container>
       <Header>
-        <Title>Reasoning</Title>
+        <Title>Analysis Results</Title>
         <Subtitle>Current stage: {stageName}</Subtitle>
       </Header>
       
       <ContentContainer>
-        {content ? (
-          <ReactMarkdown>{content}</ReactMarkdown>
+        {Object.entries(allStagesContent).some(([_, content]) => content) ? (
+          Object.entries(allStagesContent)
+            .filter(([_, content]) => content)
+            .map(([stage, content], index, array) => {
+              const formattedStage = stage.charAt(0).toUpperCase() + stage.slice(1).replace(/_/g, ' ');
+              return (
+                <div key={stage}>
+                  <h2>{formattedStage}</h2>
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                  {index < array.length - 1 && <hr />}
+                </div>
+              );
+            })
         ) : (
           <p>No analysis available yet. Submit a case to begin.</p>
         )}

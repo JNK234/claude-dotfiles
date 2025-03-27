@@ -2,14 +2,15 @@
 Report generation service for creating markdown and PDF reports of diagnosis and treatment plans
 """
 import os
-import subprocess
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
 import json
 import base64
+from uuid import UUID
 
 from sqlalchemy.orm import Session
+from markdown_pdf import MarkdownPdf, Section
 
 from app.core.config import settings
 from app.models.case import Case, StageResult, Report
@@ -45,6 +46,15 @@ class ReportService:
         Returns:
             Optional[Dict[str, Any]]: Report information or None if generation fails
         """
+        
+        if case_id is None:
+            raise Exception("Case ID is required")
+        try:
+            if isinstance(case_id, str):
+                case_id = UUID(case_id)
+        except ValueError:
+            raise Exception("Case ID is invalid")
+        
         try:
             # Get case
             case = self.db.query(Case).filter(Case.id == case_id).first()
@@ -54,7 +64,7 @@ class ReportService:
             
             # Get all stage results
             stage_results = self.db.query(StageResult).filter(StageResult.case_id == case_id).all()
-            
+                        
             # Convert to dictionary
             diagnosis_results = {
                 'initial': {'case_text': case.case_text}
@@ -64,29 +74,19 @@ class ReportService:
             for result in stage_results:
                 diagnosis_results[result.stage_name] = result.result
             
-            # Generate markdown content
-            markdown_content = self._create_markdown_report(diagnosis_results)
-            
-            # Save markdown file
+            # Generate PDF directly
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            markdown_filename = f"report_{case_id}_{timestamp}.md"
-            markdown_path = os.path.join(settings.REPORTS_DIR, markdown_filename)
-            
-            with open(markdown_path, 'w') as f:
-                f.write(markdown_content)
-                
-            logger.info(f"Markdown report generated at {markdown_path}")
-            
-            # Convert markdown to PDF
             pdf_filename = f"report_{case_id}_{timestamp}.pdf"
             pdf_path = os.path.join(settings.REPORTS_DIR, pdf_filename)
             
-            success = self._convert_markdown_to_pdf(markdown_path, pdf_path)
+            success = self._generate_pdf_report(diagnosis_results, pdf_path)
+            
+            print(f"Success: {success}")
             
             # Create report record
             report = Report(
                 case_id=case_id,
-                file_path=pdf_path if success else markdown_path
+                file_path=pdf_path
             )
             
             # Save to database
@@ -98,7 +98,6 @@ class ReportService:
                 "id": str(report.id),
                 "case_id": str(report.case_id),
                 "file_path": report.file_path,
-                "markdown_path": markdown_path,
                 "pdf_path": pdf_path if success else None,
                 "created_at": report.created_at
             }
@@ -115,10 +114,11 @@ class ReportService:
             report_id: Report ID
             
         Returns:
-            Optional[Dict[str, Any]]: Report information or None if not found
+            Optional[Dict[str, Any]]: Report information or None if not found 
         """
+        
         # Get report
-        report = self.db.query(Report).filter(Report.id == report_id).first()
+        report = self.db.query(Report).filter(Report.id == UUID(report_id)).first()
         if not report:
             logger.error(f"Report not found: {report_id}")
             return None
@@ -155,188 +155,65 @@ class ReportService:
             "encoded_data": encoded_data
         }
     
-    def _create_markdown_report(self, diagnosis_results: Dict[str, Any]) -> str:
+    def _generate_pdf_report(self, diagnosis_results: Dict[str, Any], pdf_path: str) -> bool:
         """
-        Create markdown content for the report
+        Generate PDF report using markdown-pdf library with sections
         
         Args:
             diagnosis_results: Dictionary containing all diagnosis results
-            
-        Returns:
-            str: Markdown content for the report
-        """
-        # Extract data
-        case_text = diagnosis_results.get('initial', {}).get('case_text', 'No case text provided')
-        extracted_factors = diagnosis_results.get('extraction', {}).get('extracted_factors', 'No extracted factors available')
-        causal_links = diagnosis_results.get('causal_analysis', {}).get('causal_links', 'No causal links available')
-        diagnosis = diagnosis_results.get('diagnosis', {}).get('diagnosis', 'No diagnosis available')
-        treatment_plan = diagnosis_results.get('treatment_planning', {}).get('treatment_plan', 'No treatment plan available')
-        patient_specific_plan = diagnosis_results.get('patient_specific', {}).get('patient_specific_plan', 'No patient-specific plan available')
-        final_treatment_plan = diagnosis_results.get('final_plan', {}).get('final_treatment_plan', 'No final treatment plan available')
-        
-        # Create markdown content
-        content = f"""# Medical Diagnosis and Treatment Plan
-
-Generated on: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-
-## Patient Case
-
-{case_text}
-
-## Medical Factors
-
-{extracted_factors}
-
-## Causal Analysis
-
-{causal_links}
-
-## Diagnosis
-
-{diagnosis}
-
-## Treatment Plan
-
-{treatment_plan}
-
-## Patient-Specific Considerations
-
-{patient_specific_plan}
-
-## Final Treatment Recommendation
-
-{final_treatment_plan}
-
----
-
-*This report was generated using causal inference with LLMs. It is intended for informational purposes only and should be reviewed by a qualified medical professional.*
-"""
-        
-        return content
-    
-    def _convert_markdown_to_pdf(self, markdown_path: str, pdf_path: str) -> bool:
-        """
-        Convert markdown to PDF
-        
-        Args:
-            markdown_path: Path to markdown file
             pdf_path: Path to output PDF file
             
         Returns:
-            bool: True if conversion succeeded, False otherwise
+            bool: True if generation succeeded, False otherwise
         """
         try:
-            # Method 1: Try using pandoc if available
-            try:
-                subprocess.run(
-                    ["pandoc", markdown_path, "-o", pdf_path],
-                    check=True,
-                    capture_output=True
-                )
-                logger.info(f"PDF report generated at {pdf_path} using pandoc")
-                return True
-            except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                logger.warning(f"Failed to convert using pandoc: {str(e)}")
+            # Extract data
+            case_text = diagnosis_results.get('initial', {}).get('case_text', 'No case text provided')
+            extracted_factors = diagnosis_results.get('extraction', {}).get('extracted_factors', 'No extracted factors available')
+            causal_links = diagnosis_results.get('causal_analysis', {}).get('causal_links', 'No causal links available')
+            diagnosis = diagnosis_results.get('diagnosis', {}).get('diagnosis', 'No diagnosis available')
+            treatment_plan = diagnosis_results.get('treatment_planning', {}).get('treatment_plan', 'No treatment plan available')
+            patient_specific_plan = diagnosis_results.get('patient_specific', {}).get('patient_specific_plan', 'No patient-specific plan available')
+            final_treatment_plan = diagnosis_results.get('final_plan', {}).get('final_treatment_plan', 'No final treatment plan available')
             
-            # Method 2: Try using markdown-pdf if available
-            try:
-                subprocess.run(
-                    ["markdown-pdf", markdown_path, "-o", pdf_path],
-                    check=True,
-                    capture_output=True
-                )
-                logger.info(f"PDF report generated at {pdf_path} using markdown-pdf")
-                return True
-            except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                logger.warning(f"Failed to convert using markdown-pdf: {str(e)}")
+            # Initialize markdown-pdf with custom styling and TOC
+            pdf = MarkdownPdf(
+                toc_level=1,  # Include h1 and h2 in table of contents
+            )
             
-            # Method 3: Try using wkhtmltopdf directly if available
-            try:
-                # First convert markdown to HTML using a simple approach
-                with open(markdown_path, 'r') as f:
-                    markdown_content = f.read()
-                
-                html_content = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Medical Diagnosis Report</title>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }}
-                        h1, h2 {{ color: #2C3E50; }}
-                        h1 {{ border-bottom: 2px solid #3498DB; padding-bottom: 10px; }}
-                        h2 {{ margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }}
-                        pre {{ background-color: #f9f9f9; padding: 10px; border-radius: 5px; }}
-                    </style>
-                </head>
-                <body>
-                    {self._simple_markdown_to_html(markdown_content)}
-                </body>
-                </html>
-                """
-                
-                # Save HTML to temporary file
-                html_path = markdown_path.replace('.md', '.html')
-                with open(html_path, 'w') as f:
-                    f.write(html_content)
-                
-                # Convert HTML to PDF using wkhtmltopdf
-                subprocess.run(
-                    ["wkhtmltopdf", html_path, pdf_path],
-                    check=True,
-                    capture_output=True
-                )
-                
-                # Clean up temporary HTML file
-                os.unlink(html_path)
-                
-                logger.info(f"PDF report generated at {pdf_path} using wkhtmltopdf")
-                return True
-            except (subprocess.CalledProcessError, FileNotFoundError) as e:
-                logger.warning(f"Failed to convert using wkhtmltopdf: {str(e)}")
+            # Set PDF metadata
+            pdf.meta["title"] = "Medical Diagnosis and Treatment Plan"
+            pdf.meta["creator"] = "InferenceMD"
+            pdf.meta["subject"] = "Medical Report"
+            pdf.meta["keywords"] = "diagnosis,treatment,medical,report"
             
-            logger.error("All PDF conversion methods failed")
-            return False
+            # Add title section (excluded from TOC)
+            pdf.add_section(Section(
+                f"# Medical Diagnosis and Treatment Plan\n\nGenerated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n",
+                toc=False
+            ))
+            
+            # Add content sections
+            pdf.add_section(Section("## Patient Case\n\n" + case_text + "\n\n"))
+            pdf.add_section(Section("## Medical Factors\n\n" + extracted_factors + "\n\n"))
+            pdf.add_section(Section("## Causal Analysis\n\n" + causal_links + "\n\n"))
+            pdf.add_section(Section("## Diagnosis\n\n" + diagnosis + "\n\n"))
+            pdf.add_section(Section("## Treatment Plan\n\n" + treatment_plan + "\n\n"))
+            pdf.add_section(Section("## Patient-Specific Considerations\n\n" + patient_specific_plan + "\n\n"))
+            pdf.add_section(Section("## Final Treatment Recommendation\n\n" + final_treatment_plan + "\n\n"))
+            
+            # Add disclaimer (excluded from TOC)
+            pdf.add_section(Section(
+                "\n---\n\n*This report was generated using causal inference with LLMs. "
+                "It is intended for informational purposes only and should be reviewed by a qualified medical professional.*",
+                toc=False
+            ))
+            
+            # Generate PDF
+            pdf.save(pdf_path)
+            logger.info(f"PDF report generated at {pdf_path} using markdown-pdf")
+            return True
             
         except Exception as e:
-            logger.error(f"Error converting markdown to PDF: {str(e)}")
+            logger.error(f"Error generating PDF report: {str(e)}")
             return False
-    
-    def _simple_markdown_to_html(self, markdown: str) -> str:
-        """
-        Simple markdown to HTML converter
-        
-        Args:
-            markdown: Markdown content
-            
-        Returns:
-            str: HTML content
-        """
-        # This is a very simple converter for basic markdown
-        html = markdown
-        
-        # Headers
-        html = html.replace("# ", "<h1>").replace("\n## ", "</h1>\n<h2>").replace("\n### ", "</h2>\n<h3>")
-        html = html.replace("\n#### ", "</h3>\n<h4>").replace("\n##### ", "</h4>\n<h5>").replace("\n###### ", "</h5>\n<h6>")
-        html = html + "</h6>" if html.count("<h6>") > html.count("</h6>") else html
-        html = html + "</h5>" if html.count("<h5>") > html.count("</h5>") else html
-        html = html + "</h4>" if html.count("<h4>") > html.count("</h4>") else html
-        html = html + "</h3>" if html.count("<h3>") > html.count("</h3>") else html
-        html = html + "</h2>" if html.count("<h2>") > html.count("</h2>") else html
-        html = html + "</h1>" if html.count("<h1>") > html.count("</h1>") else html
-        
-        # Emphasis
-        for _ in range(html.count("**")):
-            html = html.replace("**", "<strong>", 1).replace("**", "</strong>", 1)
-        
-        for _ in range(html.count("*")):
-            html = html.replace("*", "<em>", 1).replace("*", "</em>", 1)
-        
-        # Paragraphs
-        html = html.replace("\n\n", "</p>\n<p>")
-        html = "<p>" + html + "</p>"
-        
-        # Horizontal rules
-        html = html.replace("\n---\n", "<hr>")
-        
-        return html

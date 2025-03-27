@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import ReactMarkdown from 'react-markdown';
 
 export interface MessageProps {
   content: string;
@@ -15,7 +16,8 @@ const MessageContainer = styled.div<{ sender: 'doctor' | 'assistant' }>`
   display: flex;
   flex-direction: column;
   max-width: 80%;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  margin-top: 0.5rem;
   align-self: ${props => props.sender === 'doctor' ? 'flex-end' : 'flex-start'};
 `;
 
@@ -76,8 +78,67 @@ const Timestamp = styled.span`
 const MessageContent = styled.div`
   font-size: ${props => props.theme.typography.fontSizes.body};
   line-height: ${props => props.theme.typography.lineHeights.body};
-  white-space: pre-wrap;
   word-break: break-word;
+  
+  /* Improved markdown formatting */
+  & > *:first-child {
+    margin-top: 0;
+  }
+  
+  & > *:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Better spacing for markdown elements */
+  p {
+    margin: 0.75rem 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 1.25rem 0 0.75rem;
+  }
+
+  ul, ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin: 0.5rem 0;
+  }
+
+  pre {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+
+  code {
+    font-family: monospace;
+    background: #f5f5f5;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+  }
+
+  blockquote {
+    margin: 1rem 0;
+    padding: 0.5rem 1rem;
+    border-left: 3px solid #ddd;
+    background: #f9f9f9;
+  }
+
+  table {
+    margin: 1rem 0;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th, td {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+  }
 `;
 
 const AIIcon = () => (
@@ -102,7 +163,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         <Timestamp>{timestamp}</Timestamp>
       </MessageHeader>
       <MessageBubble sender={sender}>
-        <MessageContent>{content}</MessageContent>
+        <MessageContent>
+          <ReactMarkdown>{content}</ReactMarkdown>
+        </MessageContent>
       </MessageBubble>
     </MessageContainer>
   );

@@ -13,23 +13,53 @@ class ReportService extends ApiService {
   }
 
   async getReport(caseId: string, reportId: string): Promise<Blob> {
-    const response = await this.api.get<Blob>(
-      `/cases/${caseId}/reports/${reportId}`,
-      { responseType: 'blob' }
-    );
-    return response.data;
+    try {
+      const response = await this.api.get(
+        `/cases/${caseId}/reports/${reportId}`,
+        { 
+          responseType: 'blob',
+          headers: {
+            'Accept': 'application/pdf'
+          }
+        }
+      );
+      
+      // Verify we got a PDF
+      if (response.data.type !== 'application/pdf') {
+        throw new Error('Invalid response type: expected PDF');
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching report:', error);
+      throw error;
+    }
   }
 
   async downloadReport(caseId: string, reportId: string, fileName?: string): Promise<void> {
-    const blob = await this.getReport(caseId, reportId);
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName || `report_${caseId}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    try {
+      const blob = await this.getReport(caseId, reportId);
+      
+      // Create object URL
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName || `report_${caseId}_${new Date().toISOString()}.pdf`;
+      
+      // Trigger download
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      throw error;
+    }
   }
 }
 

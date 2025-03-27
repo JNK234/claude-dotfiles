@@ -40,13 +40,13 @@ class WorkflowService extends ApiService {
   mapStageToUI(backendStage: string): {
     id: string; 
     name: string; 
-    category: 'analysis' | 'diagnosis' | 'treatment'
+    category: 'analysis' | 'diagnosis' | 'treatment' | 'report'
   } {
-    const stageMap: Record<string, { name: string, category: 'analysis' | 'diagnosis' | 'treatment' }> = {
+    const stageMap: Record<string, { name: string, category: 'analysis' | 'diagnosis' | 'treatment' | 'report' }> = {
       // Consolidated stages
-      'patient_case_analysis': { name: 'Patient Case Analysis', category: 'analysis' },
-      'diagnosis': { name: 'Diagnosis', category: 'diagnosis' },
-      'treatment_planning': { name: 'Treatment Planning', category: 'treatment' },
+      'patient_case_analysis_group': { name: 'Patient Case Analysis', category: 'analysis' },
+      'diagnosis_group': { name: 'Diagnosis', category: 'diagnosis' },
+      'treatment_planning_group': { name: 'Treatment Planning', category: 'treatment' },
       
       // Backend stages mapped to consolidated stages
       'initial': { name: 'Patient Case Analysis', category: 'analysis' },
@@ -55,7 +55,8 @@ class WorkflowService extends ApiService {
       'validation': { name: 'Patient Case Analysis', category: 'analysis' },
       'counterfactual': { name: 'Diagnosis', category: 'diagnosis' },
       'patient_specific': { name: 'Treatment Planning', category: 'treatment' },
-      'final_plan': { name: 'Treatment Planning', category: 'treatment' }
+      'final_plan': { name: 'Treatment Planning', category: 'treatment' },
+      'report_generation': { name: 'Generate Report', category: 'report' }
     };
 
     return {
@@ -68,9 +69,10 @@ class WorkflowService extends ApiService {
   // Get stages in order (consolidated stages only)
   getStagesInOrder(): string[] {
     return [
-      'patient_case_analysis',
-      'diagnosis',
-      'treatment_planning'
+      'patient_case_analysis_group',
+      'diagnosis_group',
+      'treatment_planning_group',
+      'report_generation'
     ];
   }
 }

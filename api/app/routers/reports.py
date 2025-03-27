@@ -1,10 +1,13 @@
 """
 Report endpoints for generating and retrieving reports
 """
+import base64
+import logging
 from typing import Any, Dict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+logger = logging.getLogger(__name__)
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -37,6 +40,15 @@ def generate_report(
     Raises:
         HTTPException: If case not found or not owned by current user
     """
+    if case_id is None:
+        raise Exception("Case ID is required")
+    try:
+        if isinstance(case_id, str):
+            case_id = UUID(case_id)
+    except ValueError:
+        raise Exception("Case ID is invalid")
+    
+    
     # Get case
     case = db.query(Case).filter(Case.id == case_id).first()
     
@@ -142,11 +154,22 @@ def get_report(
             detail="Failed to retrieve report"
         )
     
-    # Return report content
-    return Response(
-        content=report_result["encoded_data"],
-        media_type=report_result["content_type"],
-        headers={
-            "Content-Disposition": f"attachment; filename=report_{report_id}.{report_result['content_type'].split('/')[-1]}"
-        }
-    )
+    # Decode base64 data
+    try:
+        decoded_data = base64.b64decode(report_result["encoded_data"])
+        
+        # Return report content with proper headers
+        return Response(
+            content=decoded_data,
+            media_type=report_result["content_type"],
+            headers={
+                "Content-Disposition": f"attachment; filename=report_{report_id}.pdf",
+                "Content-Type": "application/pdf"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error decoding report data: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error processing report data"
+        )

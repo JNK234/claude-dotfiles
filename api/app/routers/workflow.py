@@ -57,11 +57,11 @@ def start_workflow(
     diagnosis_service = DiagnosisService(db)
     
     # Process the patient_case_analysis stage (which will handle initial, extraction, causal_analysis, validation)
-    patient_case_analysis_result = diagnosis_service.process_stage(str(case_id), 'patient_case_analysis')
+    patient_case_analysis_result = diagnosis_service.process_stage(str(case_id), 'patient_case_analysis_group')
     
     # Return the patient_case_analysis result
     return {
-        "stage_name": "patient_case_analysis",
+        "stage_name": "patient_case_analysis_group",
         "result": patient_case_analysis_result,
         "is_approved": False,
         "next_stage": patient_case_analysis_result.get("next_stage")

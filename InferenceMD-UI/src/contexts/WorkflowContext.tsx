@@ -14,6 +14,7 @@ export interface Stage {
   id: string;
   name: string;
   status: 'upcoming' | 'active' | 'completed';
+  reasoningContent: string;
 }
 
 // Define the shape of the message
@@ -52,6 +53,7 @@ interface WorkflowContextData {
   
   // Error state
   error: string | null;
+  setError: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const WorkflowContext = createContext<WorkflowContextData>({} as WorkflowContextData);
@@ -64,11 +66,12 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   
   // Stage state
-  const [currentStage, setCurrentStage] = useState<string>('patient_case_analysis');
+  const [currentStage, setCurrentStage] = useState<string>('patient_case_analysis_group');
   const [stages, setStages] = useState<Stage[]>(WorkflowService.getStagesInOrder().map(stage => ({
     id: stage,
     name: WorkflowService.mapStageToUI(stage).name,
     status: 'upcoming',
+    reasoningContent: '',
   })));
   
   // Message state
@@ -107,6 +110,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           id: stageId,
           name: stageInfo.name,
           status,
+          reasoningContent: stages.find(s => s.id === stageId)?.reasoningContent || '',
         };
       }));
     }
@@ -128,7 +132,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setMessages(messagesResponse.messages.map(msg => MessageService.formatMessageForUI(msg)));
       
       // If case needs to start workflow, start it
-      if (caseDetails.current_stage === 'initial' || caseDetails.current_stage === 'patient_case_analysis') {
+      if (caseDetails.current_stage === 'initial' || caseDetails.current_stage === 'patient_case_analysis_group') {
         const workflowResult = await WorkflowService.startWorkflow(caseId);
         updateReasoningContentFromWorkflowResult(workflowResult);
       }
@@ -190,7 +194,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Function to reset the case state
   const resetCase = () => {
     setSelectedCaseId(null);
-    setCurrentStage('patient_case_analysis');
+    setCurrentStage('patient_case_analysis_group');
     setMessages([]);
     setReasoningContent('');
   };
@@ -310,113 +314,113 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('Updating reasoning content with result:', result);
     
     if (result && result.result) {
-      // For the intermediate results, use backend_results to populate the reasoning panel
+      // Create formatted content for the stage
+      let stageContent = '';
+      
       if (result.result.backend_results) {
-        // This is a consolidated stage, show all intermediate outputs
         const backendResults = result.result.backend_results;
-        let combinedContent = '';
         
         // Patient case analysis stage
-        if (result.stage_name === 'patient_case_analysis') {
+        if (result.stage_name === 'patient_case_analysis_group') {
           if (backendResults.extraction && backendResults.extraction.extracted_factors) {
-            combinedContent += `## Extracted Medical Factors\n\n${backendResults.extraction.extracted_factors}\n\n`;
+            stageContent += `### Extracted Medical Factors\n\n${backendResults.extraction.extracted_factors}\n\n`;
           }
           if (backendResults.causal_analysis && backendResults.causal_analysis.causal_links) {
-            combinedContent += `## Causal Relationships\n\n${backendResults.causal_analysis.causal_links}\n\n`;
+            stageContent += `### Causal Relationships\n\n${backendResults.causal_analysis.causal_links}\n\n`;
           }
           if (backendResults.validation && backendResults.validation.validation_result) {
-            combinedContent += `## Validation\n\n${backendResults.validation.validation_result}\n\n`;
+            stageContent += `### Validation\n\n${backendResults.validation.validation_result}\n\n`;
           }
         }
         // Diagnosis stage
-        else if (result.stage_name === 'diagnosis') {
+        else if (result.stage_name === 'diagnosis_group') {
           if (backendResults.counterfactual && backendResults.counterfactual.counterfactual_analysis) {
-            combinedContent += `## Counterfactual Analysis\n\n${backendResults.counterfactual.counterfactual_analysis}\n\n`;
+            stageContent += `### Counterfactual Analysis\n\n${backendResults.counterfactual.counterfactual_analysis}\n\n`;
           }
           if (backendResults.diagnosis && backendResults.diagnosis.diagnosis) {
-            combinedContent += `## Diagnosis\n\n${backendResults.diagnosis.diagnosis}\n\n`;
+            stageContent += `### Diagnosis\n\n${backendResults.diagnosis.diagnosis}\n\n`;
           }
         }
         // Treatment planning stage
-        else if (result.stage_name === 'treatment_planning') {
+        else if (result.stage_name === 'treatment_planning_group') {
           if (backendResults.treatment_planning && backendResults.treatment_planning.treatment_plan) {
-            combinedContent += `## Treatment Options\n\n${backendResults.treatment_planning.treatment_plan}\n\n`;
+            stageContent += `### Treatment Options\n\n${backendResults.treatment_planning.treatment_plan}\n\n`;
           }
           if (backendResults.patient_specific && backendResults.patient_specific.patient_specific_plan) {
-            combinedContent += `## Patient-Specific Plan\n\n${backendResults.patient_specific.patient_specific_plan}\n\n`;
+            stageContent += `### Patient-Specific Plan\n\n${backendResults.patient_specific.patient_specific_plan}\n\n`;
           }
           if (backendResults.final_plan && backendResults.final_plan.final_treatment_plan) {
-            combinedContent += `## Final Treatment Plan\n\n${backendResults.final_plan.final_treatment_plan}\n\n`;
+            stageContent += `### Final Treatment Plan\n\n${backendResults.final_plan.final_treatment_plan}\n\n`;
           }
         }
-        
-        setReasoningContent(combinedContent);
       }
-      // For legacy backend stages, map them to the right content
+      // For legacy backend stages
       else {
-        let content = '';
-        
         switch (result.stage_name) {
           case 'extraction':
             if (result.result.extracted_factors) {
-              content = `## Extracted Medical Factors\n\n${result.result.extracted_factors}`;
+              stageContent = `### Extracted Medical Factors\n\n${result.result.extracted_factors}`;
             }
             break;
-            
           case 'causal_analysis':
             if (result.result.causal_links) {
-              content = `## Causal Relationships\n\n${result.result.causal_links}`;
+              stageContent = `### Causal Relationships\n\n${result.result.causal_links}`;
             }
             break;
-            
           case 'validation':
             if (result.result.validation_result) {
-              content = `## Validation\n\n${result.result.validation_result}`;
+              stageContent = `### Validation\n\n${result.result.validation_result}`;
             }
             break;
-            
           case 'counterfactual':
             if (result.result.counterfactual_analysis) {
-              content = `## Counterfactual Analysis\n\n${result.result.counterfactual_analysis}`;
+              stageContent = `### Counterfactual Analysis\n\n${result.result.counterfactual_analysis}`;
             }
             break;
-            
           case 'diagnosis':
             if (result.result.diagnosis) {
-              content = `## Diagnosis\n\n${result.result.diagnosis}`;
+              stageContent = `### Diagnosis\n\n${result.result.diagnosis}`;
             }
             break;
-            
           case 'treatment_planning':
             if (result.result.treatment_plan) {
-              content = `## Treatment Plan\n\n${result.result.treatment_plan}`;
+              stageContent = `### Treatment Plan\n\n${result.result.treatment_plan}`;
             }
             break;
-            
           case 'patient_specific':
             if (result.result.patient_specific_plan) {
-              content = `## Patient-Specific Plan\n\n${result.result.patient_specific_plan}`;
+              stageContent = `### Patient-Specific Plan\n\n${result.result.patient_specific_plan}`;
             }
             break;
-            
           case 'final_plan':
             if (result.result.final_treatment_plan) {
-              content = `## Final Treatment Plan\n\n${result.result.final_treatment_plan}`;
+              stageContent = `### Final Treatment Plan\n\n${result.result.final_treatment_plan}`;
             }
             break;
         }
-        
-        // Only update if we have content
-        if (content) {
-          setReasoningContent(prev => {
-            // If we already have content, append the new content
-            if (prev) {
-              return `${prev}\n\n${content}`;
-            }
-            return content;
-          });
-        }
       }
+
+      // Update the stage's reasoning content
+      setStages(prevStages => prevStages.map(stage => {
+        if (stage.id === result.stage_name) {
+          return {
+            ...stage,
+            reasoningContent: stageContent
+          };
+        }
+        return stage;
+      }));
+      
+      // Update the global reasoning content with all stages
+      const allStagesContent = stages
+        .filter(stage => stage.reasoningContent)
+        .map(stage => {
+          const formattedStage = stage.name.charAt(0).toUpperCase() + stage.name.slice(1);
+          return `## ${formattedStage}\n\n${stage.reasoningContent.trim()}`;
+        })
+        .join('\n\n---\n\n');
+      
+      setReasoningContent(allStagesContent);
     }
   };
 
@@ -454,6 +458,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         isPhiAcknowledged,
         acknowledgePhiDisclaimer,
         error,
+        setError,
       }}
     >
       {children}

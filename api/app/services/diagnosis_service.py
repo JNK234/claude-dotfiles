@@ -45,16 +45,16 @@ class DiagnosisService:
         
         # Define the new consolidated stage sequence
         self.stage_sequence = [
-            'patient_case_analysis',
-            'diagnosis',
-            'treatment_planning'
+            'patient_case_analysis_group',
+            'diagnosis_group',
+            'treatment_planning_group'
         ]
         
         # Define the backend stages that belong to each consolidated stage
         self.backend_stage_mapping = {
-            'patient_case_analysis': ['initial', 'extraction', 'causal_analysis', 'validation'],
-            'diagnosis': ['counterfactual', 'diagnosis'],
-            'treatment_planning': ['treatment_planning', 'patient_specific', 'final_plan']
+            'patient_case_analysis_group': ['initial', 'extraction', 'causal_analysis', 'validation'],
+            'diagnosis_group': ['counterfactual', 'diagnosis'],
+            'treatment_planning_group': ['treatment_planning', 'patient_specific', 'final_plan']
         }
         
         # Define which backend stage comes after each backend stage
@@ -155,33 +155,45 @@ class DiagnosisService:
     
     def generate_patient_case_analysis_summary(self, case_id: str) -> str:
         """
-        Generate a concise summary of the patient case analysis stage
+        Generate a markdown-formatted patient case analysis with questions
         
         Args:
             case_id: Case ID
             
         Returns:
-            str: Summary of the patient case analysis
+            str: Formatted analysis with key findings and questions
         """
-        # Get results from the relevant backend stages
+        # Get results from relevant stages
         extracted_factors = self.get_stage_result(case_id, 'extraction')
         causal_links = self.get_stage_result(case_id, 'causal_analysis')
         validation = self.get_stage_result(case_id, 'validation')
         
-        # Extract the content
+        # Extract content
         extracted_factors_text = extracted_factors.get('extracted_factors', '') if extracted_factors else ''
         causal_links_text = causal_links.get('causal_links', '') if causal_links else ''
         validation_text = validation.get('validation_result', '') if validation else ''
-                
-        # Generate the summary
-        prompt = CASE_ANALYSIS_SUMMARY_PROMPT
-        response = self.llm_service.generate(
-            prompt, 
-            extracted_factors=extracted_factors_text,
-            causal_links=causal_links_text,
-            validation_result=validation_text
-        )
         
+        # Generate markdown-formatted summary
+        prompt = f"""
+        Review the patient's details below, including the extracted factors, causal relationships, and validation insights.
+
+Extracted Factors:
+
+{extracted_factors_text}
+
+Causal Links:
+
+{causal_links_text}
+
+Validation Results:
+
+{validation_text}
+
+Based on the validation results above, please provide a concise response summarizing your findings clearly. If there's any missing information or uncertainty, ask specific questions to fill those gaps. If all necessary details are available, confirm clearly that no further information is required.
+
+Conclude your response by explicitly stating the current status based on the validation results, indicating if it's appropriate to proceed.
+"""
+        response = self.llm_service.generate(prompt)
         return response
     
     def generate_diagnosis_summary(self, case_id: str) -> str:
@@ -280,7 +292,7 @@ class DiagnosisService:
         # Check if this is a consolidated stage
         if stage_name in self.stage_sequence:
             # This is a consolidated stage, determine which backend stages to process
-            if stage_name == 'patient_case_analysis':
+            if stage_name == 'patient_case_analysis_group':
                 # Process initial, extraction, causal_analysis, and validation stages
                 initial_result = self._process_backend_stage(case_id, 'initial', input_text, chat_history)
                 extraction_result = self._process_backend_stage(case_id, 'extraction', input_text, chat_history)
@@ -301,11 +313,11 @@ class DiagnosisService:
                     'next_stage': 'diagnosis'
                 }
                 
-            elif stage_name == 'diagnosis':
+            elif stage_name == 'diagnosis_group':
                 # Process counterfactual and diagnosis stages
                 counterfactual_result = self._process_backend_stage(case_id, 'counterfactual', None, chat_history)
                 diagnosis_result = self._process_backend_stage(case_id, 'diagnosis', input_text, chat_history)
-                
+            
                 # Generate a concise summary for the chat panel
                 summary = self.generate_diagnosis_summary(case_id)
                 
@@ -318,7 +330,7 @@ class DiagnosisService:
                     'next_stage': 'treatment_planning'
                 }
                 
-            elif stage_name == 'treatment_planning':
+            elif stage_name == 'treatment_planning_group':
                 # Process treatment_planning, patient_specific, and final_plan stages
                 treatment_result = self._process_backend_stage(case_id, 'treatment_planning', None, chat_history)
                 patient_specific_result = self._process_backend_stage(case_id, 'patient_specific', input_text, chat_history)
@@ -360,11 +372,11 @@ class DiagnosisService:
                 consolidated_result['backend_results'][stage_name] = result
                 
                 # Generate a summary based on the consolidated stage
-                if consolidated_stage == 'patient_case_analysis':
+                if consolidated_stage == 'patient_case_analysis_group':
                     consolidated_result['summary'] = self.generate_patient_case_analysis_summary(case_id)
-                elif consolidated_stage == 'diagnosis':
+                elif consolidated_stage == 'diagnosis_group':
                     consolidated_result['summary'] = self.generate_diagnosis_summary(case_id)
-                elif consolidated_stage == 'treatment_planning':
+                elif consolidated_stage == 'treatment_planning_group':
                     consolidated_result['summary'] = self.generate_treatment_summary(case_id)
                 
                 # Determine the next stage (either the next consolidated stage or 'complete')
@@ -723,6 +735,16 @@ class DiagnosisService:
         Returns:
             Dict[str, Any]: Result with next stage information
         """
+        
+        if case_id is None:
+            raise Exception("Case ID is required")
+        try:
+            if isinstance(case_id, str):
+                case_id = uuid.UUID(case_id)
+        except ValueError:
+            raise Exception("Case ID is invalid")
+    
+        
         # Get case
         case = self.db.query(Case).filter(Case.id == case_id).first()
         if not case:

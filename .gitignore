@@ -5,3 +5,7 @@ __pycache__
 .bin
 node_modules
 *.db
+*.pdf
+*.html
+*.log
+report_*
