@@ -37,6 +37,7 @@ const StageControlsContainer = styled.div`
   background-color: white;
   display: flex;
   justify-content: flex-end;
+  gap: 1rem;
 `;
 
 // Error container for displaying API errors
@@ -127,7 +128,7 @@ const MainApp: React.FC = () => {
       // Reset button
       if (button) {
         button.removeAttribute('disabled');
-        button.textContent = 'Generate PDF Report';
+        button.textContent = 'Download Detailed Report';
       }
     } catch (error) {
       console.error('Error downloading report:', error);
@@ -140,7 +141,50 @@ const MainApp: React.FC = () => {
       // Reset button
       if (button) {
         button.removeAttribute('disabled');
-        button.textContent = 'Generate PDF Report';
+        button.textContent = 'Download Detailed Report';
+      }
+      // Clear error after 5 seconds
+      setTimeout(() => setError(null), 5000);
+    }
+  };
+
+  // Handle note generation
+  const handleGenerateNote = async () => {
+    if (!selectedCaseId) return;
+    
+    const button = document.querySelector('button[data-action="generate-note"]');
+    if (button) {
+      button.setAttribute('disabled', 'true');
+      button.textContent = 'Generating Note...';
+    }
+
+    try {
+      // Generate note
+      const note = await ReportService.generateNote(selectedCaseId);
+      if (!note || !note.id) {
+        throw new Error('Failed to generate note');
+      }
+      
+      // Download note
+      await ReportService.downloadNote(selectedCaseId, note.id);
+      
+      // Reset button
+      if (button) {
+        button.removeAttribute('disabled');
+        button.textContent = 'Generate Note';
+      }
+    } catch (error) {
+      console.error('Error generating note:', error);
+      // Show error in the ErrorContainer
+      if (error instanceof Error) {
+        setError(`Failed to generate note: ${error.message}`);
+      } else {
+        setError('Failed to generate note. Please try again.');
+      }
+      // Reset button
+      if (button) {
+        button.removeAttribute('disabled');
+        button.textContent = 'Generate Note';
       }
       // Clear error after 5 seconds
       setTimeout(() => setError(null), 5000);
@@ -192,7 +236,7 @@ const MainApp: React.FC = () => {
             
             {selectedCaseId && (
               <StageControlsContainer>
-                {currentStage !== 'complete' && (
+                {currentStage !== 'treatment_planning_group' && (
                   <Button 
                     variant="approve" 
                     onClick={handleStageApproval}
@@ -201,15 +245,23 @@ const MainApp: React.FC = () => {
                     Approve & Continue to Next Stage
                   </Button>
                 )}
-                {(currentStage === 'complete' || currentStage === 'treatment_planning_group') && (
-                  <Button 
-                    onClick={handleDownloadReport}
-                    disabled={isProcessing}
-                    data-action="generate-report"
-                    style={{ marginLeft: currentStage !== 'complete' ? '1rem' : '0' }}
-                  >
-                    Generate PDF Report
-                  </Button>
+                {currentStage === 'treatment_planning_group' && (
+                  <>
+                    <Button 
+                      onClick={handleGenerateNote}
+                      disabled={isProcessing}
+                      data-action="generate-note"
+                    >
+                      Generate Note
+                    </Button>
+                    <Button 
+                      onClick={handleDownloadReport}
+                      disabled={isProcessing}
+                      data-action="generate-report"
+                    >
+                      Download Detailed Report
+                    </Button>
+                  </>
                 )}
               </StageControlsContainer>
             )}

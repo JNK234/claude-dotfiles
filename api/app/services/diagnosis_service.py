@@ -21,7 +21,8 @@ from app.services.prompts import (
     FINAL_TREATMENT_PROMPT,
     CASE_ANALYSIS_SUMMARY_PROMPT,
     DIAGNOSIS_SUMMARY_PROMPT,
-    TREATMENT_SUMMARY_PROMPT
+    TREATMENT_SUMMARY_PROMPT,
+    NOTE_GENERATION_PROMPT
 )
 
 # Configure logging
@@ -820,3 +821,41 @@ Conclude your response by explicitly stating the current status based on the val
             "content": message.content,
             "created_at": message.created_at
         }
+
+    def generate_clinical_note(self, case_id: str) -> str:
+        """
+        Generate a clinical note based on the case analysis and diagnosis
+        
+        Args:
+            case_id: Case ID
+            
+        Returns:
+            str: Generated clinical note
+        """
+        # Get case details
+        case = self.db.query(Case).filter(Case.id == case_id).first()
+        if not case:
+            raise Exception(f"Case not found: {case_id}")
+
+        # Get results from all stages
+        extraction_result = self.get_stage_result(case_id, 'extraction')
+        diagnosis_result = self.get_stage_result(case_id, 'diagnosis')
+        treatment_result = self.get_stage_result(case_id, 'final_plan')
+
+        # Extract content
+        case_details = case.case_text
+        extracted_factors = extraction_result.get('extracted_factors', '') if extraction_result else ''
+        diagnosis_analysis = diagnosis_result.get('diagnosis', '') if diagnosis_result else ''
+        treatment_plan = treatment_result.get('final_treatment_plan', '') if treatment_result else ''
+
+        # Generate note using the prompt
+        prompt = NOTE_GENERATION_PROMPT
+        note = self.llm_service.generate(
+            prompt,
+            case_details=case_details,
+            extracted_factors=extracted_factors,
+            diagnosis_analysis=diagnosis_analysis,
+            treatment_plan=treatment_plan
+        )
+
+        return note

@@ -54,6 +54,9 @@ interface WorkflowContextData {
   // Error state
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
+  
+  // Note generation
+  generateNote: () => Promise<void>;
 }
 
 const WorkflowContext = createContext<WorkflowContextData>({} as WorkflowContextData);
@@ -439,6 +442,50 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return stages.some(stage => stage.id === stageId && stage.status === 'active');
   };
 
+  // Function to generate and download clinical note
+  const generateNote = async () => {
+    if (!selectedCaseId) return;
+    
+    try {
+      setError(null);
+      setIsProcessing(true);
+      
+      // Call API to generate note
+      const response = await fetch(`/api/cases/${selectedCaseId}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate note');
+      }
+      
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clinical_note_${selectedCaseId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setIsProcessing(false);
+    } catch (error) {
+      console.error('Error generating note:', error);
+      setError('Failed to generate clinical note. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <WorkflowContext.Provider
       value={{
@@ -459,6 +506,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         acknowledgePhiDisclaimer,
         error,
         setError,
+        generateNote,
       }}
     >
       {children}

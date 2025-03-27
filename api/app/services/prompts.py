@@ -632,3 +632,79 @@ Treatment Plan Predicted Outcome Complications/Risks
 def format_prompt(prompt_template, **kwargs):
     """Format any prompt template with the given arguments."""
     return prompt_template.format(**kwargs)
+
+# Clinical Note Generation Prompt
+NOTE_GENERATION_PROMPT = """Generate a comprehensive clinical note using the analyzed case information, strictly following this template structure:
+
+--- NOTE STARTS HERE ---
+
+Subjective
+[Patient's chief complaint and relevant history]
+The patient is a [age] year old [gender] with PMHx of [list relevant conditions] who presents with [chief complaint]. [Detailed description of symptoms including onset, duration, characteristics, associated symptoms, and relieving/aggravating factors]. 
+
+[Review of Systems - list pertinent positives and negatives]
+Patient reports: [positive symptoms]
+Patient denies: [negative symptoms]
+
+PMHx
+[All relevant past medical conditions]
+
+PSHx
+[All past surgical history]
+
+FHx
+[Relevant family history]
+
+Medications
+[Current medications]
+
+Allergies
+[Known allergies]
+
+Objective
+
+Physical Exam:
+General: [appearance, distress level]
+Vital Signs: BP [value], HR [value], Temp [value], SpO2 [value]
+[Other relevant exam findings by system]
+
+Labs
+[Relevant lab results]
+
+Imaging
+[Relevant imaging findings]
+
+Assessment
+[Concise summary of the case including:
+1. Patient presentation
+2. Key findings supporting diagnosis
+3. Differential diagnosis considered
+4. Final diagnosis with reasoning
+5. Any concerns or complications]
+
+Plan
+[Numbered list of treatment actions:
+1. Admission status (admit/discharge)
+2. Medications (new/continued/discontinued)
+3. Monitoring requirements
+4. Follow-up plans
+5. Patient instructions]
+
+--- NOTE ENDS HERE ---
+
+Required Formatting:
+- Use standard medical abbreviations (PMHx, PSHx, FHx, etc.)
+- Maintain consistent section headers and structure
+- Use bullet points for lists where appropriate
+- Keep paragraphs concise and clinically relevant
+- Include all verified information from:
+  - Case Details: {case_details}
+  - Extracted Factors: {extracted_factors} 
+  - Diagnosis Analysis: {diagnosis_analysis}
+  - Treatment Plan: {treatment_plan}
+
+Include this exact disclaimer at the end:
+"This note was generated with the assistance of InferenceMD, an AI tool utilized in data collection, analysis and diagnostic support."
+
+Output must be ready for direct use in medical records with no placeholder text remaining.
+"""

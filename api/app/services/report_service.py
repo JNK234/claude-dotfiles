@@ -14,6 +14,7 @@ from markdown_pdf import MarkdownPdf, Section
 
 from app.core.config import settings
 from app.models.case import Case, StageResult, Report
+from app.services.diagnosis_service import DiagnosisService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -105,6 +106,75 @@ class ReportService:
         except Exception as e:
             logger.error(f"Error in generate_report: {str(e)}")
             return None
+
+    def generate_note(self, case_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Generate a clinical note based on the case data and diagnosis results
+        
+        Args:
+            case_id: Case ID
+            
+        Returns:
+            Optional[Dict[str, Any]]: Note information or None if generation fails
+        """
+        if case_id is None:
+            raise Exception("Case ID is required")
+        try:
+            if isinstance(case_id, str):
+                case_id = UUID(case_id)
+        except ValueError:
+            raise Exception("Case ID is invalid")
+        
+        try:
+            # Get case
+            case = self.db.query(Case).filter(Case.id == case_id).first()
+            if not case:
+                logger.error(f"Case not found: {case_id}")
+                return None
+            
+            # Get all stage results
+            stage_results = self.db.query(StageResult).filter(StageResult.case_id == case_id).all()
+            
+            # Convert to dictionary
+            diagnosis_results = {
+                'initial': {'case_text': case.case_text}
+            }
+            
+            # Add stage results
+            for result in stage_results:
+                diagnosis_results[result.stage_name] = result.result
+            
+            # Generate note as PDF
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            note_filename = f"note_{case_id}_{timestamp}.pdf"
+            note_path = os.path.join(settings.REPORTS_DIR, note_filename)
+            
+            success = self._generate_note(case_id, diagnosis_results, note_path)
+            
+            if not success:
+                return None
+            
+            # Create report record for the note
+            report = Report(
+                case_id=case_id,
+                file_path=note_path
+            )
+            
+            # Save to database
+            self.db.add(report)
+            self.db.commit()
+            self.db.refresh(report)
+            
+            return {
+                "id": str(report.id),
+                "case_id": str(report.case_id),
+                "file_path": note_path,
+                "created_at": report.created_at
+            }
+        
+        except Exception as e:
+            logger.error(f"Error in generate_note: {str(e)}")
+            return None
     
     def get_report(self, report_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -138,8 +208,8 @@ class ReportService:
         # Determine content type
         if file_ext.lower() == '.pdf':
             content_type = "application/pdf"
-        elif file_ext.lower() == '.md':
-            content_type = "text/markdown"
+        elif file_ext.lower() == '.txt':
+            content_type = "text/plain"
         else:
             content_type = "text/plain"
         
@@ -204,8 +274,8 @@ class ReportService:
             
             # Add disclaimer (excluded from TOC)
             pdf.add_section(Section(
-                "\n---\n\n*This report was generated using causal inference with LLMs. "
-                "It is intended for informational purposes only and should be reviewed by a qualified medical professional.*",
+                "\n---\n\n*This note was generated with the assistance of InferenceMD, "
+                "an AI tool utilized in data collection, analysis and diagnostic support.*",
                 toc=False
             ))
             
@@ -216,4 +286,57 @@ class ReportService:
             
         except Exception as e:
             logger.error(f"Error generating PDF report: {str(e)}")
+            return False
+
+    def _generate_note(self, case_id, diagnosis_results: Dict[str, Any], note_path: str) -> bool:
+        """
+        Generate clinical note as PDF using markdown-pdf library
+        
+        Args:
+            diagnosis_results: Dictionary containing all diagnosis results
+            note_path: Path to output PDF file
+            
+        Returns:
+            bool: True if generation succeeded, False otherwise
+        """
+        try:
+            if not case_id:
+                logger.error("Invalid Case ID found")
+                return False
+                
+            # Get LLM-generated note from DiagnosisService
+            diagnosis_service = DiagnosisService(self.db)
+            note_content = diagnosis_service.generate_clinical_note(case_id)
+            
+            # Initialize markdown-pdf with custom styling
+            pdf = MarkdownPdf()
+            
+            # Set PDF metadata
+            pdf.meta["title"] = "Clinical Note"
+            pdf.meta["creator"] = "InferenceMD"
+            pdf.meta["subject"] = "Medical Note"
+            
+            # Add title section
+            pdf.add_section(Section(
+                f"# Clinical Note\n\nGenerated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n",
+                toc=False
+            ))
+            
+            # Add the LLM-generated note content
+            pdf.add_section(Section(note_content))
+            
+            # Add disclaimer
+            pdf.add_section(Section(
+                "\n---\n\n*This note was generated with the assistance of InferenceMD, "
+                "an AI tool utilized in data collection, analysis and diagnostic support.*",
+                toc=False
+            ))
+            
+            # Generate PDF
+            pdf.save(note_path)
+            logger.info(f"PDF clinical note generated at {note_path}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error generating clinical note: {str(e)}")
             return False

@@ -172,3 +172,57 @@ def approve_stage(
         "is_approved": True,
         "next_stage": result.get("next_stage")
     }
+
+@router.post("/{case_id}/generate-note")
+def generate_note(
+    case_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Dict[str, str]:
+    """
+    Generate a clinical note for a completed case
+    
+    Args:
+        case_id: Case ID
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Dict[str, str]: Generated clinical note
+        
+    Raises:
+        HTTPException: If case not found, not owned by current user, or not completed
+    """
+    # Get case
+    case = db.query(Case).filter(Case.id == case_id).first()
+    
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+    
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this case"
+        )
+    
+    # Check if case is completed
+    if not case.is_complete:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Case must be completed before generating note"
+        )
+    
+    # Initialize diagnosis service
+    diagnosis_service = DiagnosisService(db)
+    
+    # Generate note
+    note = diagnosis_service.generate_clinical_note(str(case_id))
+    
+    return {
+        "note": note
+    }

@@ -48,7 +48,6 @@ def generate_report(
     except ValueError:
         raise Exception("Case ID is invalid")
     
-    
     # Get case
     case = db.query(Case).filter(Case.id == case_id).first()
     
@@ -163,8 +162,8 @@ def get_report(
             content=decoded_data,
             media_type=report_result["content_type"],
             headers={
-                "Content-Disposition": f"attachment; filename=report_{report_id}.pdf",
-                "Content-Type": "application/pdf"
+                "Content-Disposition": f"attachment; filename=report_{report_id}{'.pdf' if report_result['content_type'] == 'application/pdf' else '.txt'}",
+                "Content-Type": report_result["content_type"]
             }
         )
     except Exception as e:
@@ -172,4 +171,168 @@ def get_report(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error processing report data"
+        )
+
+@router.post("/{case_id}/notes", response_model=ReportSchema, status_code=status.HTTP_201_CREATED)
+def generate_note(
+    case_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Generate a clinical note for a case
+    
+    Args:
+        case_id: Case ID
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Report: Generated note
+        
+    Raises:
+        HTTPException: If case not found or not owned by current user
+    """
+    if case_id is None:
+        raise Exception("Case ID is required")
+    try:
+        if isinstance(case_id, str):
+            case_id = UUID(case_id)
+    except ValueError:
+        raise Exception("Case ID is invalid")
+    
+    # Get case
+    case = db.query(Case).filter(Case.id == case_id).first()
+    
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+    
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this case"
+        )
+    
+    # Initialize report service
+    report_service = ReportService(db)
+    
+    # Generate note
+    note_result = report_service.generate_note(str(case_id))
+    
+    # Check if note generation failed
+    if not note_result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate note"
+        )
+    
+    # Get the note content for download
+    note_content = report_service.get_report(note_result["id"])
+    if not note_content:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve generated note"
+        )
+    
+    # Decode base64 data
+    decoded_data = base64.b64decode(note_content["encoded_data"])
+    
+    # Return both the report metadata and the file content
+    return Response(
+        content=decoded_data,
+        media_type=note_content["content_type"],
+        headers={
+            "Content-Disposition": f"attachment; filename=note_{note_result['id']}.pdf",
+            "Content-Type": "application/pdf"
+        }
+    )
+
+@router.get("/{case_id}/notes/{note_id}")
+def get_note(
+    case_id: UUID,
+    note_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get a note by ID
+    
+    Args:
+        case_id: Case ID
+        note_id: Note ID
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Response: Note file
+        
+    Raises:
+        HTTPException: If note not found or not owned by current user
+    """
+    # Get case
+    case = db.query(Case).filter(Case.id == case_id).first()
+    
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+    
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this case"
+        )
+    
+    # Get note
+    note = db.query(Report).filter(
+        Report.id == note_id,
+        Report.case_id == case_id
+    ).first()
+    
+    # Check if note exists
+    if not note:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Note with ID {note_id} not found"
+        )
+    
+    # Initialize report service
+    report_service = ReportService(db)
+    
+    # Get note content
+    note_result = report_service.get_report(str(note_id))
+    
+    # Check if note retrieval failed
+    if not note_result:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve note"
+        )
+    
+    # Decode base64 data
+    try:
+        decoded_data = base64.b64decode(note_result["encoded_data"])
+        
+        # Return note content with proper headers
+        return Response(
+            content=decoded_data,
+            media_type=note_result["content_type"],
+            headers={
+                "Content-Disposition": f"attachment; filename=note_{note_id}.pdf",
+                "Content-Type": "application/pdf"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error decoding note data: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error processing note data"
         )

@@ -40,9 +40,9 @@ class WorkflowService extends ApiService {
   mapStageToUI(backendStage: string): {
     id: string; 
     name: string; 
-    category: 'analysis' | 'diagnosis' | 'treatment' | 'report'
+    category: 'analysis' | 'diagnosis' | 'treatment'
   } {
-    const stageMap: Record<string, { name: string, category: 'analysis' | 'diagnosis' | 'treatment' | 'report' }> = {
+    const stageMap: Record<string, { name: string, category: 'analysis' | 'diagnosis' | 'treatment' }> = {
       // Consolidated stages
       'patient_case_analysis_group': { name: 'Patient Case Analysis', category: 'analysis' },
       'diagnosis_group': { name: 'Diagnosis', category: 'diagnosis' },
@@ -55,14 +55,13 @@ class WorkflowService extends ApiService {
       'validation': { name: 'Patient Case Analysis', category: 'analysis' },
       'counterfactual': { name: 'Diagnosis', category: 'diagnosis' },
       'patient_specific': { name: 'Treatment Planning', category: 'treatment' },
-      'final_plan': { name: 'Treatment Planning', category: 'treatment' },
-      'report_generation': { name: 'Generate Report', category: 'report' }
+      'final_plan': { name: 'Treatment Planning', category: 'treatment' }
     };
 
     return {
       id: backendStage,
       name: stageMap[backendStage]?.name || backendStage,
-      category: stageMap[backendStage]?.category || 'info'
+      category: stageMap[backendStage]?.category || 'analysis'
     };
   }
 
@@ -71,8 +70,7 @@ class WorkflowService extends ApiService {
     return [
       'patient_case_analysis_group',
       'diagnosis_group',
-      'treatment_planning_group',
-      'report_generation'
+      'treatment_planning_group'
     ];
   }
 }
