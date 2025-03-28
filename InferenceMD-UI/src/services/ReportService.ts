@@ -73,14 +73,14 @@ class ReportService extends ApiService {
         { 
           responseType: 'blob',
           headers: {
-            'Accept': 'text/plain'
+            'Accept': 'application/pdf'
           }
         }
       );
       
-      // Verify we got a text file
-      if (!response.data.type.includes('text')) {
-        throw new Error('Invalid response type: expected text');
+      // Verify we got a PDF file
+      if (response.data.type !== 'application/pdf') {
+        throw new Error('Invalid response type: expected PDF');
       }
       
       return response.data;
@@ -101,7 +101,7 @@ class ReportService extends ApiService {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = fileName || `note_${caseId}_${new Date().toISOString()}.txt`;
+      a.download = fileName || `note_${caseId}_${new Date().toISOString()}.pdf`;
       
       // Trigger download
       document.body.appendChild(a);

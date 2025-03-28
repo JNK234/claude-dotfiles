@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import WorkflowService, { StageResult } from '../services/WorkflowService';
 import MessageService from '../services/MessageService';
 import CaseService from '../services/CaseService';
+import ReportService from '../services/ReportService';
 import { useAuth } from './AuthContext';
 
 // Define the shape of the reasoning content
@@ -442,7 +443,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return stages.some(stage => stage.id === stageId && stage.status === 'active');
   };
 
-  // Function to generate and download clinical note
+  // Function to generate clinical note
   const generateNote = async () => {
     if (!selectedCaseId) return;
     
@@ -450,33 +451,11 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setError(null);
       setIsProcessing(true);
       
-      // Call API to generate note
-      const response = await fetch(`/api/cases/${selectedCaseId}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      // Use ReportService to generate note
+      const note = await ReportService.generateNote(selectedCaseId);
       
-      if (!response.ok) {
-        throw new Error('Failed to generate note');
-      }
-      
-      // Get the blob from response
-      const blob = await response.blob();
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `clinical_note_${selectedCaseId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Download the generated note
+      await ReportService.downloadNote(selectedCaseId, note.id, `clinical_note_${selectedCaseId}.pdf`);
       
       setIsProcessing(false);
     } catch (error) {

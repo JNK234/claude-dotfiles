@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import ThreePanelLayout from './components/layout/ThreePanelLayout';
@@ -77,7 +77,10 @@ const MainApp: React.FC = () => {
     
     // Error state
     error,
-    setError
+    setError,
+    
+    // Note generation
+    generateNote
   } = useWorkflow();
   
   // Handle case selection
@@ -159,14 +162,7 @@ const MainApp: React.FC = () => {
     }
 
     try {
-      // Generate note
-      const note = await ReportService.generateNote(selectedCaseId);
-      if (!note || !note.id) {
-        throw new Error('Failed to generate note');
-      }
-      
-      // Download note
-      await ReportService.downloadNote(selectedCaseId, note.id);
+      await generateNote(); // This uses the context's generateNote function
       
       // Reset button
       if (button) {

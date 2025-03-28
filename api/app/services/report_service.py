@@ -34,8 +34,9 @@ class ReportService:
         """
         self.db = db
         
-        # Ensure reports directory exists
+        # Ensure reports and notes directories exist
         os.makedirs(settings.REPORTS_DIR, exist_ok=True)
+        os.makedirs(settings.NOTES_DIR, exist_ok=True)
     
     def generate_report(self, case_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -147,7 +148,7 @@ class ReportService:
             # Generate note as PDF
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             note_filename = f"note_{case_id}_{timestamp}.pdf"
-            note_path = os.path.join(settings.REPORTS_DIR, note_filename)
+            note_path = os.path.join(settings.NOTES_DIR, note_filename)
             
             success = self._generate_note(case_id, diagnosis_results, note_path)
             
@@ -204,6 +205,7 @@ class ReportService:
         
         # Get file extension
         _, file_ext = os.path.splitext(report.file_path)
+        
         
         # Determine content type
         if file_ext.lower() == '.pdf':

@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     
     # File Storage
     REPORTS_DIR: str = os.getenv("REPORTS_DIR", "reports")
+    NOTES_DIR: str = os.getenv("NOTES_DIR", "notes")
     
     # Static files
     STATIC_DIR: str = os.getenv("STATIC_DIR", "static")

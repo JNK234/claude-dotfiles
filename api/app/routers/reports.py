@@ -231,26 +231,15 @@ def generate_note(
             detail="Failed to generate note"
         )
     
-    # Get the note content for download
-    note_content = report_service.get_report(note_result["id"])
-    if not note_content:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve generated note"
-        )
-    
-    # Decode base64 data
-    decoded_data = base64.b64decode(note_content["encoded_data"])
-    
-    # Return both the report metadata and the file content
-    return Response(
-        content=decoded_data,
-        media_type=note_content["content_type"],
-        headers={
-            "Content-Disposition": f"attachment; filename=note_{note_result['id']}.pdf",
-            "Content-Type": "application/pdf"
-        }
+    # Create and return report object for API response
+    report = Report(
+        id=UUID(note_result["id"]),
+        case_id=UUID(note_result["case_id"]),
+        file_path=note_result["file_path"],
+        created_at=note_result["created_at"]
     )
+    
+    return report
 
 @router.get("/{case_id}/notes/{note_id}")
 def get_note(
