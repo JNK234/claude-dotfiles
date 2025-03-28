@@ -57,6 +57,7 @@ const MainApp: React.FC = () => {
     selectCase,
     createNewCase,
     resetCase,
+    caseStatus,
     
     // Stage state
     currentStage,
@@ -277,6 +278,7 @@ const MainApp: React.FC = () => {
           return acc;
         }, {} as Record<string, string>)}
         caseId={selectedCaseId || ''}
+        caseStatus={caseStatus}
       />
     );
   };

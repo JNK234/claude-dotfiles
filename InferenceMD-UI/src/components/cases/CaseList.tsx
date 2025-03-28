@@ -113,7 +113,7 @@ export const CaseList: React.FC<CaseListProps> = ({
   return (
     <Container>
       <Header>
-        <Title>Case Management</Title>
+        <Title>Inference MD</Title>
         <Button 
           variant="primary" 
           fullWidth 

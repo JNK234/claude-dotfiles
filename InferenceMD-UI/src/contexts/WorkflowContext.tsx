@@ -18,6 +18,9 @@ export interface Stage {
   reasoningContent: string;
 }
 
+// Define the shape of the case status
+export type CaseStatus = 'in_progress' | 'completed';
+
 // Define the shape of the message
 export interface Message {
   content: string;
@@ -32,6 +35,7 @@ interface WorkflowContextData {
   selectCase: (caseId: string) => Promise<void>;
   createNewCase: (caseText: string) => Promise<void>;
   resetCase: () => void;
+  caseStatus: CaseStatus;
   
   // Stage state
   currentStage: string;
@@ -58,6 +62,10 @@ interface WorkflowContextData {
   
   // Note generation
   generateNote: () => Promise<void>;
+  
+  // Completion functions
+  isCaseCompleted: () => boolean;
+  markCaseAsCompleted: () => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextData>({} as WorkflowContextData);
@@ -68,6 +76,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   
   // Case state
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  const [caseStatus, setCaseStatus] = useState<CaseStatus>('in_progress');
   
   // Stage state
   const [currentStage, setCurrentStage] = useState<string>('patient_case_analysis_group');
@@ -90,6 +99,16 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   
   // Error state
   const [error, setError] = useState<string | null>(null);
+  
+  // Check if case is completed
+  const isCaseCompleted = (): boolean => {
+    return caseStatus === 'completed';
+  };
+  
+  // Mark case as completed
+  const markCaseAsCompleted = () => {
+    setCaseStatus('completed');
+  };
 
   // Update stages based on current stage
   useEffect(() => {
@@ -130,6 +149,13 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const caseDetails = await CaseService.getCase(caseId);
       setSelectedCaseId(caseId);
       setCurrentStage(caseDetails.current_stage);
+      
+      // Set case status based on stage
+      if (caseDetails.current_stage === 'treatment_planning_group' && caseDetails.is_complete) {
+        setCaseStatus('completed');
+      } else {
+        setCaseStatus('in_progress');
+      }
       
       // Get case messages
       const messagesResponse = await MessageService.getMessages(caseId);
@@ -201,6 +227,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCurrentStage('patient_case_analysis_group');
     setMessages([]);
     setReasoningContent('');
+    setCaseStatus('in_progress');
   };
 
   // Function to approve the current stage and move to the next stage
@@ -457,6 +484,17 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Download the generated note
       await ReportService.downloadNote(selectedCaseId, note.id, `clinical_note_${selectedCaseId}.pdf`);
       
+      // Mark case as completed after note generation
+      if (currentStage === 'treatment_planning_group') {
+        markCaseAsCompleted();
+        
+        // Update all stages to completed
+        setStages(prevStages => prevStages.map(stage => ({
+          ...stage,
+          status: 'completed'
+        })));
+      }
+      
       setIsProcessing(false);
     } catch (error) {
       console.error('Error generating note:', error);
@@ -472,6 +510,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         selectCase,
         createNewCase,
         resetCase,
+        caseStatus,
         currentStage,
         stages,
         approveStage,
@@ -486,6 +525,8 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         error,
         setError,
         generateNote,
+        isCaseCompleted,
+        markCaseAsCompleted,
       }}
     >
       {children}

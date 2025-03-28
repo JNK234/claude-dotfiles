@@ -13,10 +13,8 @@ interface StageProgressIndicatorProps {
 
 const ProgressContainer = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   width: 100%;
-  margin: 1.5rem 0;
+  margin: 2rem 0;
   position: relative;
   max-width: 600px;
   margin-left: auto;
@@ -25,12 +23,19 @@ const ProgressContainer = styled.div`
 
 const ProgressLine = styled.div`
   position: absolute;
-  top: 50%;
+  top: 12px; /* Aligned with center of dots */
   left: 0;
   right: 0;
   height: 2px;
   background-color: ${props => props.theme.colors.neutralGray};
   z-index: 1;
+`;
+
+const StageWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  position: relative;
 `;
 
 const StageNode = styled.div<{ status: 'completed' | 'active' | 'upcoming' }>`
@@ -54,7 +59,7 @@ const StageNode = styled.div<{ status: 'completed' | 'active' | 'upcoming' }>`
           : props.theme.colors.neutralGray
     };
     color: white;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     transition: all ${props => props.theme.transitions.default};
   }
 
@@ -75,7 +80,11 @@ const StageNode = styled.div<{ status: 'completed' | 'active' | 'upcoming' }>`
         : props.theme.colors.darkText
     };
     text-align: center;
-    max-width: 80px;
+    width: 100px; /* Fixed width for consistent text alignment */
+    position: absolute;
+    top: 28px; /* Position text below the dots */
+    left: 50%;
+    transform: translateX(-50%);
   }
 `;
 
@@ -90,12 +99,14 @@ export const StageProgressIndicator: React.FC<StageProgressIndicatorProps> = ({ 
     <ProgressContainer>
       <ProgressLine />
       {stages.map((stage) => (
-        <StageNode key={stage.id} status={stage.status}>
-          <div className="node">
-            {stage.status === 'completed' ? <CheckIcon /> : null}
-          </div>
-          <div className="label">{stage.name}</div>
-        </StageNode>
+        <StageWrapper key={stage.id}>
+          <StageNode status={stage.status}>
+            <div className="node">
+              {stage.status === 'completed' ? <CheckIcon /> : null}
+            </div>
+            <div className="label">{stage.name}</div>
+          </StageNode>
+        </StageWrapper>
       ))}
     </ProgressContainer>
   );

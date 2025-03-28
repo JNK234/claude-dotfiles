@@ -703,8 +703,5 @@ Required Formatting:
   - Diagnosis Analysis: {diagnosis_analysis}
   - Treatment Plan: {treatment_plan}
 
-Include this exact disclaimer at the end:
-"This note was generated with the assistance of InferenceMD, an AI tool utilized in data collection, analysis and diagnostic support."
-
 Output must be ready for direct use in medical records with no placeholder text remaining.
 """

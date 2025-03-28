@@ -5,6 +5,7 @@ interface ReasoningPanelProps {
   currentStage: string;
   allStagesContent: Record<string, string>;
   caseId: string;
+  caseStatus?: 'in_progress' | 'completed';
 }
 
 const Container = styled.div`
@@ -27,6 +28,26 @@ const Subtitle = styled.p`
   color: ${props => props.theme.colors.neutralGray};
   margin-bottom: 1rem;
   font-size: ${props => props.theme.typography.fontSizes.secondary};
+  display: flex;
+  align-items: center;
+`;
+
+const StatusIndicator = styled.span<{ status: 'in_progress' | 'completed' }>`
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+  background-color: ${props => 
+    props.status === 'completed' 
+      ? props.theme.colors.successGreen 
+      : props.theme.colors.deepMedicalBlue
+  };
+`;
+
+const StageLabel = styled.span<{ isCompleted: boolean }>`
+  color: ${props => props.isCompleted ? props.theme.colors.successGreen : 'inherit'};
+  font-weight: ${props => props.isCompleted ? 'bold' : 'normal'};
 `;
 
 const ContentContainer = styled.div`
@@ -124,14 +145,21 @@ const ContentContainer = styled.div`
 export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({ 
   currentStage,
   allStagesContent,
-  caseId
+  caseId,
+  caseStatus = 'in_progress'
 }) => {
   const stageName = currentStage.charAt(0).toUpperCase() + currentStage.slice(1).replace(/_/g, ' ');
+  const isCompleted = caseStatus === 'completed';
+  
   return (
     <Container>
       <Header>
         <Title>Analysis Results</Title>
-        <Subtitle>Current stage: {stageName}</Subtitle>
+        <Subtitle>
+          Current stage: <StageLabel isCompleted={isCompleted}>{stageName}</StageLabel>
+          <StatusIndicator status={caseStatus} />
+          {isCompleted && ' (Completed)'}
+        </Subtitle>
       </Header>
       
       <ContentContainer>
