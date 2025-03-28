@@ -124,26 +124,46 @@ def create_message(
     # Initialize diagnosis service
     diagnosis_service = DiagnosisService(db)
     
-    # Add user message
-    user_message_result = diagnosis_service.add_message(str(case_id), message_in.role, message_in.content)
-    
-    # If this is a user message, generate an assistant response
-    # For validation stage, this allows the assistant to respond to additional information
-    if message_in.role == "user" and case.current_stage == "validation":
-        # Process validation stage with the new input
-        diagnosis_service.process_stage(str(case_id), "validation", message_in.content)
-        
-        # Add assistant message
-        assistant_message = "I've processed your additional information. Let me check if we now have all the necessary data to proceed."
-        diagnosis_service.add_message(str(case_id), "assistant", assistant_message)
-    
-    # Create and return message object for API response
-    message = Message(
-        id=UUID(user_message_result["id"]),
-        case_id=UUID(user_message_result["case_id"]),
-        role=user_message_result["role"],
-        content=user_message_result["content"],
-        created_at=user_message_result["created_at"]
-    )
-    
-    return message
+    # Add user message to the session via the service
+    user_message_obj = diagnosis_service.add_message(str(case_id), message_in.role, message_in.content)
+
+    # --- Commit the user message immediately ---
+    try:
+        db.commit()
+        db.refresh(user_message_obj) # Get ID, created_at etc. from DB
+        # logger.info(f"Successfully committed user message {user_message_obj.id} for case {case_id}")
+    except Exception as e:
+        db.rollback()
+        # logger.error(f"Failed to commit user message for case {case_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save message."
+        )
+    # --- User message is now saved ---
+
+    # Now, handle subsequent logic (e.g., assistant response)
+    # Wrap this in a try/except to prevent failures here from affecting the response
+    try:
+        # If this is a user message, generate an assistant response
+        # For validation stage, this allows the assistant to respond to additional information
+        if message_in.role == "user" and case.current_stage == "validation":
+            # Process validation stage with the new input
+            # Note: process_stage might also commit, review its transaction handling if issues persist
+            diagnosis_service.process_stage(str(case_id), "validation", message_in.content)
+
+            # Add assistant message (service adds to session)
+            assistant_msg_obj = diagnosis_service.add_message(str(case_id), "assistant", "I've processed your additional information. Let me check if we now have all the necessary data to proceed.")
+            # Commit the assistant message separately
+            db.commit()
+            db.refresh(assistant_msg_obj)
+            logger.info(f"Successfully committed assistant message {assistant_msg_obj.id} for case {case_id}")
+
+    except Exception as processing_error:
+        # Log the error, but don't fail the request since the user message was saved
+        db.rollback() # Rollback any changes from the failed processing block
+        logger.error(f"Error during post-message processing for case {case_id}: {processing_error}")
+        # Optionally, you could add a generic assistant message indicating a processing issue occurred
+
+    # Return the initially saved and committed user message object
+    # FastAPI will automatically serialize this using the response_model (MessageSchema)
+    return user_message_obj

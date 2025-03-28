@@ -9,6 +9,7 @@ interface CaseListProps {
   onNewCase: () => void;
   selectedCaseId?: string;
   isLoading?: boolean;
+  onDeleteCase: (caseId: string) => Promise<void>; // Add prop for delete handler from parent
 }
 
 const Container = styled.div`
@@ -100,10 +101,34 @@ export const CaseList: React.FC<CaseListProps> = ({
   onSelectCase, 
   onNewCase,
   selectedCaseId,
-  isLoading = false
+  isLoading = false,
+  onDeleteCase // Destructure the new prop
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  
+
+  /**
+   * Handles the request to delete a case.
+   * This function calls the onDeleteCase prop provided by the parent component,
+   * which is responsible for the actual API call and state update.
+   * @param caseId - The ID of the case to be deleted.
+   */
+  const handleDeleteRequest = async (caseId: string) => {
+    // Optional: Add a confirmation dialog here for better UX
+    // if (!window.confirm('Are you sure you want to delete this case? This action cannot be undone.')) {
+    //   return;
+    // }
+    try {
+      // Call the parent's delete handler
+      await onDeleteCase(caseId);
+      // Logging confirmation. The actual list update happens in the parent component.
+      console.log(`Deletion requested and handled by parent for case ID: ${caseId}`);
+    } catch (error) {
+      // Log the error. Ideally, show a user-facing notification.
+      console.error('Error requesting case deletion:', error);
+      alert(`Failed to delete case: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   // Filter cases based on search query
   const filteredCases = cases.filter(caseItem => 
     caseItem.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -148,6 +173,7 @@ export const CaseList: React.FC<CaseListProps> = ({
               caseData={caseItem} 
               isSelected={caseItem.id === selectedCaseId}
               onClick={() => onSelectCase(caseItem)}
+              onDelete={handleDeleteRequest} // Pass the delete handler down
             />
           ))
         ) : (

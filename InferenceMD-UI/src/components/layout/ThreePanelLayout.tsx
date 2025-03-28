@@ -25,9 +25,11 @@ const LeftPanel = styled.div<PanelProps>`
   background-color: ${props => props.theme.colors.leftPanelBg};
   overflow-y: auto;
   padding: ${props => props.isVisible ? '1.5rem' : '0'};
-  border-right: 1px solid #e0e0e0;
+  border-right: 1px solid ${props => props.theme.colors.borderColor}; // Use theme border color
   transition: width 0.3s ease, padding 0.3s ease;
   overflow-x: hidden;
+  box-shadow: ${props => props.theme.shadows.medium}; // Add shadow for depth
+  z-index: 1; // Ensure shadow renders correctly
 `;
 
 const CenterPanel = styled.div`
@@ -49,10 +51,12 @@ const RightPanel = styled.div<RightPanelProps>`
   background-color: ${props => props.theme.colors.rightPanelBg};
   overflow-y: auto;
   padding: ${props => props.isVisible ? '1.5rem' : '0'};
-  border-left: 1px solid #e0e0e0;
+  border-left: 1px solid ${props => props.theme.colors.borderColor}; // Use theme border color
   transition: width 0.3s ease, padding 0.3s ease;
   position: relative;
   overflow-x: hidden;
+  box-shadow: ${props => props.theme.shadows.medium}; // Add shadow for depth
+  z-index: 1; // Ensure shadow renders correctly
 `;
 
 const ResizeHandle = styled.div`
@@ -76,7 +80,7 @@ const ToggleButton = styled.button<{ isPanelVisible: boolean }>`
   background-color: ${props => props.theme.colors.deepMedicalBlue};
   color: white;
   border: none;
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 ${props => props.theme.layout.borderRadius} ${props => props.theme.layout.borderRadius} 0; // Use theme border radius
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,10 +89,10 @@ const ToggleButton = styled.button<{ isPanelVisible: boolean }>`
   top: 50%;
   transform: translateY(-50%);
   left: ${props => props.isPanelVisible ? props.theme.layout.leftPanelWidth : '0'};
-  transition: left 0.3s ease;
+  transition: left 0.3s ease, background-color ${props => props.theme.transitions.default};
   
   &:hover {
-    background-color: ${props => props.theme.colors.medicalBlueHover};
+    background-color: ${props => props.theme.colors.calmTeal}; // Use theme color for hover
   }
   
   &:focus {

@@ -144,9 +144,19 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       setError(null);
       setIsProcessing(true);
+      console.log(`Starting to load case ${caseId}`);
+      
+      // Reset any existing data before loading the new case
+      setMessages([]);
+      setReasoningContent('');
+      setStages(prevStages => prevStages.map(stage => ({
+        ...stage,
+        reasoningContent: '',
+      })));
       
       // Get case details
       const caseDetails = await CaseService.getCase(caseId);
+      console.log('Case details loaded:', caseDetails);
       setSelectedCaseId(caseId);
       setCurrentStage(caseDetails.current_stage);
       
@@ -157,14 +167,64 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setCaseStatus('in_progress');
       }
       
-      // Get case messages
-      const messagesResponse = await MessageService.getMessages(caseId);
-      setMessages(messagesResponse.messages.map(msg => MessageService.formatMessageForUI(msg)));
+      // Load messages using MessageService
+      console.log(`Loading messages for case: ${caseId}`);
+      try {
+        const messageResponse = await MessageService.getMessages(caseId);
+        console.log('Messages data from MessageService:', messageResponse);
+
+        if (messageResponse && messageResponse.messages && Array.isArray(messageResponse.messages)) {
+          // Use the service's formatter
+          const formattedMessages = messageResponse.messages.map(
+            MessageService.formatMessageForUI
+          );
+
+          console.log(`Successfully loaded ${formattedMessages.length} messages for case ${caseId}`);
+          setMessages(formattedMessages);
+        } else {
+          console.warn('MessageService response format unexpected:', messageResponse);
+          setMessages([]); // Clear messages if response is not as expected
+        }
+      } catch (messageError) {
+        console.error('Error loading messages via MessageService:', messageError);
+        // Use a more specific error message if possible
+        if (messageError instanceof Error) {
+          setError(`Failed to load case messages: ${messageError.message}. Please try refreshing.`);
+        } else {
+          setError('Failed to load case messages. Please try refreshing the page.');
+        }
+        setMessages([]); // Ensure messages are cleared on error
+      }
       
       // If case needs to start workflow, start it
       if (caseDetails.current_stage === 'initial' || caseDetails.current_stage === 'patient_case_analysis_group') {
         const workflowResult = await WorkflowService.startWorkflow(caseId);
         updateReasoningContentFromWorkflowResult(workflowResult);
+      } 
+      // For cases in later stages, we need to load reasoning analysis data for each completed stage
+      else {
+        try {
+          // Get all ordered stages
+          const orderedStages = WorkflowService.getStagesInOrder();
+          const currentStageIndex = orderedStages.findIndex(s => s === caseDetails.current_stage);
+          
+          // Process all stages up to the current one to get their reasoning content
+          for (let i = 0; i <= currentStageIndex; i++) {
+            const stageName = orderedStages[i];
+            // Skip the current stage if it's the initial stage
+            if (stageName === 'initial') continue;
+            
+            console.log(`Loading reasoning analysis for stage: ${stageName}`);
+            // We use processStage without input to retrieve the current state
+            const stageResult = await WorkflowService.processStage(caseId, stageName);
+            if (stageResult && stageResult.result) {
+              updateReasoningContentFromWorkflowResult(stageResult);
+            }
+          }
+        } catch (reasoningError) {
+          console.error('Error loading reasoning analysis:', reasoningError);
+          setError('Failed to load case analysis data. Some information may be missing.');
+        }
       }
       
       setIsProcessing(false);
@@ -228,6 +288,12 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setMessages([]);
     setReasoningContent('');
     setCaseStatus('in_progress');
+    
+    // Also reset each stage's reasoning content
+    setStages(prevStages => prevStages.map(stage => ({
+      ...stage,
+      reasoningContent: '',
+    })));
   };
 
   // Function to approve the current stage and move to the next stage

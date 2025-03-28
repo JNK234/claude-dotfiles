@@ -15,9 +15,12 @@ export const theme = {
     darkText: '#1A2A40',
     
     // Panel background colors
-    leftPanelBg: '#F5F7F9',
-    rightPanelBg: '#F0F7FF',
+    leftPanelBg: '#FAFCFD', // Use hospitalWhite for cleaner look
+    rightPanelBg: '#EBF3FB', // Lighter blue for subtle contrast
     
+    // Border color
+    borderColor: '#E0E4E8', // Subtle border for separation
+
     // Chat message colors
     aiMessageBg: '#F0F7FF',
     doctorMessageBg: '#FFFFFF',

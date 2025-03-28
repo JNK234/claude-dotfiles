@@ -76,7 +76,7 @@ def get_case(
     case_id: UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
-) -> Any:
+) -> Any: 
     """
     Get a case by ID
     

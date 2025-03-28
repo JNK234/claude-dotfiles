@@ -295,12 +295,16 @@ const MainApp: React.FC = () => {
 // Component to connect CaseList to the API
 const CaseListConnector: React.FC<{
   onSelectCase: (caseData: { id: string }) => void;
-  onNewCase: () => void;
+  onNewCase: () => void; // This function likely resets the selected case view
   selectedCaseId?: string;
 }> = ({ onSelectCase, onNewCase, selectedCaseId }) => {
   const [cases, setCases] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
-  
+  const [deleteError, setDeleteError] = React.useState<string | null>(null); // State for delete errors
+
+  /**
+   * Fetches the list of cases from the API on component mount.
+   */
   React.useEffect(() => {
     const fetchCases = async () => {
       try {
@@ -320,15 +324,56 @@ const CaseListConnector: React.FC<{
     
     fetchCases();
   }, []);
-  
+
+  /**
+   * Handles the deletion of a case.
+   * Calls the CaseService to delete the case via API, updates the local state,
+   * and resets the view if the currently selected case is deleted.
+   * @param caseId - The ID of the case to delete.
+   */
+  const handleDeleteCase = async (caseId: string) => {
+    // Optional: Add confirmation dialog here
+    // if (!window.confirm('Are you sure you want to delete this case? This action cannot be undone.')) {
+    //   return;
+    // }
+    setDeleteError(null); // Clear previous errors
+    try {
+      setLoading(true); // Indicate loading state during deletion
+      await CaseService.deleteCase(caseId);
+
+      // Update the local state by removing the deleted case
+      setCases(prevCases => prevCases.filter(c => c.id !== caseId));
+
+      // If the deleted case was the currently selected one, reset the view
+      if (caseId === selectedCaseId) {
+        onNewCase(); // Call the handler passed from MainApp to reset the case context
+      }
+      console.log(`Case ${caseId} deleted successfully.`);
+
+    } catch (error) {
+      console.error('Error deleting case:', error);
+      const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred';
+      setDeleteError(`Failed to delete case: ${errorMsg}`);
+      // Optionally clear the error after a few seconds
+      setTimeout(() => setDeleteError(null), 5000);
+    } finally {
+      setLoading(false); // Stop loading indicator
+    }
+  };
+
   return (
-    <CaseList 
-      cases={cases}
-      onSelectCase={onSelectCase} 
-      onNewCase={onNewCase} 
-      selectedCaseId={selectedCaseId}
-      isLoading={loading}
-    />
+    <>
+      {/* Display delete error if any */}
+      {deleteError && <ErrorContainer style={{ margin: '0 0 1rem 0' }}>{deleteError}</ErrorContainer>}
+      <CaseList
+        cases={cases}
+        onSelectCase={onSelectCase}
+        onNewCase={onNewCase}
+        selectedCaseId={selectedCaseId}
+        isLoading={loading}
+        onDeleteCase={handleDeleteCase} // Pass the delete handler down
+      />
+    </>
   );
 };
 

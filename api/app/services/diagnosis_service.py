@@ -781,17 +781,17 @@ Conclude your response by explicitly stating the current status based on the val
             "message": f"Stage {stage_name} approved. Moving to {next_stage}."
         }
     
-    def add_message(self, case_id: str, role: str, content: str) -> Dict[str, Any]:
+    def add_message(self, case_id: str, role: str, content: str) -> Message: # Return the Message object
         """
-        Add a message to the case chat history
-        
+        Add a message to the case chat history (adds to session, caller must commit/refresh)
+
         Args:
             case_id: Case ID
             role: Message role ("user" or "assistant")
             content: Message content
-            
+
         Returns:
-            Dict[str, Any]: Added message
+            Message: The added Message SQLAlchemy object (uncommitted)
         """
         if case_id is None:
             raise Exception("Case ID is required")
@@ -809,18 +809,13 @@ Conclude your response by explicitly stating the current status based on the val
             content=content
         )
         
-        # Save to database
+        # Add to session (commit will be handled by caller)
         self.db.add(message)
-        self.db.commit()
-        self.db.refresh(message)
-        
-        return {
-            "id": str(message.id),
-            "case_id": str(message.case_id),
-            "role": message.role,
-            "content": message.content,
-            "created_at": message.created_at
-        }
+        self.db.flush() # Ensure the message gets an ID before returning, if needed by caller
+        # self.db.refresh(message) # Refresh might be needed after commit by caller
+
+        # Return the SQLAlchemy object itself
+        return message
 
     def generate_clinical_note(self, case_id: str) -> str:
         """

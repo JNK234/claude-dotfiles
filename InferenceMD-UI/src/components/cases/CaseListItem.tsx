@@ -13,10 +13,65 @@ interface CaseListItemProps {
   caseData: Case;
   isSelected: boolean;
   onClick: () => void;
+  onDelete: (caseId: string) => void; // Add onDelete prop
 }
 
+// --- Styled Components ---
+
+const DeleteButton = styled.button`
+  background-color: ${props => props.theme.colors.errorRed + '20'};
+  color: ${props => props.theme.colors.errorRed};
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: ${props => props.theme.layout.borderRadiusSmall};
+  cursor: pointer;
+  font-size: ${props => props.theme.typography.fontSizes.small};
+  transition: background-color ${props => props.theme.transitions.fast};
+
+  &:hover {
+    background-color: ${props => props.theme.colors.errorRed + '40'};
+  }
+`;
+
+const DeleteMenu = styled.div`
+  position: absolute;
+  right: 0;
+  top: 100%; // Position below the dots
+  background-color: ${props => props.theme.colors.backgroundLight};
+  border: 1px solid ${props => props.theme.colors.borderLight};
+  border-radius: ${props => props.theme.layout.borderRadiusSmall};
+  padding: 0.5rem;
+  box-shadow: ${props => props.theme.shadows.subtle};
+  z-index: 10;
+  display: none; // Hidden by default
+  min-width: 80px; // Ensure enough space for the button
+  text-align: center;
+`;
+
+const DotsIcon = styled.span`
+  padding: 0 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  color: ${props => props.theme.colors.neutralGray};
+  &:hover {
+    color: ${props => props.theme.colors.textPrimary};
+  }
+`;
+
+const DotsMenuContainer = styled.div`
+  position: relative; // Needed for absolute positioning of DeleteMenu
+
+  &:hover ${DeleteMenu} {
+    display: block; // Show menu on hover
+  }
+`;
+
+
 const ListItem = styled.div<{ isSelected: boolean, status: string }>`
-  padding: 1rem;
+  display: flex; // Use flexbox for layout
+  justify-content: space-between; // Space out title and dots
+  align-items: center; // Vertically align items
+  padding: 0.8rem 1rem; // Adjust padding
   background-color: ${props => props.isSelected ? props.theme.colors.deepMedicalBlue + '15' : 'transparent'};
   border-radius: ${props => props.theme.layout.borderRadius};
   border-left: 3px solid ${props => 
@@ -28,10 +83,10 @@ const ListItem = styled.div<{ isSelected: boolean, status: string }>`
           ? props.theme.colors.alertAmber 
           : 'transparent'
   };
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem; // Reduce margin slightly
   cursor: pointer;
-  transition: all ${props => props.theme.transitions.default};
-  
+  transition: background-color ${props => props.theme.transitions.default}; // Only transition background
+
   &:hover {
     background-color: ${props => props.isSelected ? props.theme.colors.deepMedicalBlue + '15' : props.theme.colors.deepMedicalBlue + '05'};
   }
@@ -39,63 +94,52 @@ const ListItem = styled.div<{ isSelected: boolean, status: string }>`
 
 const PatientName = styled.h3`
   font-size: ${props => props.theme.typography.fontSizes.body};
-  margin: 0 0 0.25rem 0;
-  font-weight: ${props => props.theme.typography.fontWeights.semibold};
-`;
-
-const CaseDate = styled.div`
-  font-size: ${props => props.theme.typography.fontSizes.small};
-  color: ${props => props.theme.colors.neutralGray};
-  margin-bottom: 0.5rem;
-`;
-
-const SummaryText = styled.p`
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-  margin: 0;
+  margin: 0; // Remove bottom margin
+  font-weight: ${props => props.theme.typography.fontWeights.medium}; // Slightly less bold
+  // Ensure text doesn't wrap excessively and truncate if needed
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  flex-grow: 1; // Allow title to take available space
+  margin-right: 0.5rem; // Add space between title and dots
 `;
 
-const StatusBadge = styled.span<{ status: string }>`
-  display: inline-block;
-  font-size: ${props => props.theme.typography.fontSizes.small};
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  background-color: ${props => 
-    props.status === 'completed' 
-      ? props.theme.colors.successGreen + '20' 
-      : props.status === 'in-progress' 
-        ? props.theme.colors.alertAmber + '20' 
-        : props.theme.colors.deepMedicalBlue + '20'
-  };
-  color: ${props => 
-    props.status === 'completed' 
-      ? props.theme.colors.successGreen 
-      : props.status === 'in-progress' 
-        ? props.theme.colors.alertAmber 
-        : props.theme.colors.deepMedicalBlue
-  };
-  margin-top: 0.5rem;
-`;
 
-export const CaseListItem: React.FC<CaseListItemProps> = ({ 
-  caseData, 
-  isSelected, 
-  onClick 
+// --- Component Implementation ---
+
+export const CaseListItem: React.FC<CaseListItemProps> = ({
+  caseData,
+  isSelected,
+  onClick,
+  onDelete // Destructure onDelete
 }) => {
-  const { patientName, date, summary, status } = caseData;
-  
+  const { id, patientName, status } = caseData; // Only need id, patientName, status
+
+  // Prevent click propagation when interacting with the menu/delete button
+  const handleMenuInteraction = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the main item onClick from firing
+    onDelete(id); // Call the passed-in delete handler
+  };
+
   return (
-    <ListItem isSelected={isSelected} status={status} onClick={onClick}>
+    // Pass status to ListItem for potential future styling, though it's not used visually now
+    <ListItem isSelected={isSelected} status={status} onClick={onClick} title={patientName}>
+      {/* Case Title */}
       <PatientName>{patientName}</PatientName>
-      <CaseDate>{date}</CaseDate>
-      <SummaryText>{summary}</SummaryText>
-      <StatusBadge status={status}>
-        {status === 'completed' ? 'Completed' : status === 'in-progress' ? 'In Progress' : 'New'}
-      </StatusBadge>
+
+      {/* Dots Menu */}
+      <DotsMenuContainer onClick={handleMenuInteraction}>
+        <DotsIcon>...</DotsIcon>
+        <DeleteMenu>
+          <DeleteButton onClick={handleDeleteClick}>
+            Delete
+          </DeleteButton>
+        </DeleteMenu>
+      </DotsMenuContainer>
     </ListItem>
   );
 };

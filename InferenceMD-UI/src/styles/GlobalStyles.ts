@@ -18,7 +18,7 @@ export const GlobalStyles = createGlobalStyle`
     font-size: ${theme.typography.fontSizes.body};
     line-height: ${theme.typography.lineHeights.body};
     color: ${theme.colors.darkText};
-    background-color: ${theme.colors.hospitalWhite};
+    background-color: #F8F9FA; // Use a light gray for overall background
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

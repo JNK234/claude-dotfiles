@@ -17,15 +17,16 @@ const getButtonStyles = (variant: ButtonVariant) => {
         color: white;
         border: none;
         
-        &:hover {
-          background-color: #22538C; /* Slightly darker blue */
+        &:hover:not(:disabled) {
+          background-color: ${props => props.theme.colors.calmTeal}; // Use theme accent for hover
+          box-shadow: ${props => props.theme.shadows.small}; // Add subtle lift
         }
         
-        &:active {
-          background-color: #1B4370; /* Even darker blue */
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        &:active:not(:disabled) {
+          background-color: #1F7C7A; // Slightly darker teal for active
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); // Subtle inset shadow
         }
-        
+
         &:disabled {
           background-color: ${props => props.theme.colors.neutralGray};
           opacity: 0.7;
@@ -38,14 +39,15 @@ const getButtonStyles = (variant: ButtonVariant) => {
         color: ${props => props.theme.colors.deepMedicalBlue};
         border: 1px solid ${props => props.theme.colors.deepMedicalBlue};
         
-        &:hover {
-          background-color: #F0F7FF;
+        &:hover:not(:disabled) {
+          background-color: ${props => props.theme.colors.rightPanelBg}; // Use light blue from theme
+          border-color: ${props => props.theme.colors.calmTeal}; // Accent border on hover
         }
         
-        &:active {
-          background-color: #E1EFFF;
+        &:active:not(:disabled) {
+          background-color: #DDEAF8; // Slightly darker light blue
         }
-        
+
         &:disabled {
           color: ${props => props.theme.colors.neutralGray};
           border-color: ${props => props.theme.colors.neutralGray};
@@ -59,15 +61,17 @@ const getButtonStyles = (variant: ButtonVariant) => {
         color: ${props => props.theme.colors.deepMedicalBlue};
         border: none;
         text-decoration: none;
-        
-        &:hover {
-          text-decoration: underline;
+        padding: 0.75rem 0.5rem; // Reduce padding for tertiary
+
+        &:hover:not(:disabled) {
+          color: ${props => props.theme.colors.calmTeal};
+          background-color: rgba(0,0,0,0.03); // Subtle background on hover
         }
         
-        &:active {
-          color: #1B4370; /* Darker blue */
+        &:active:not(:disabled) {
+          color: #1F7C7A; // Darker teal
         }
-        
+
         &:disabled {
           color: ${props => props.theme.colors.neutralGray};
           opacity: 0.7;
@@ -81,15 +85,16 @@ const getButtonStyles = (variant: ButtonVariant) => {
         color: white;
         border: none;
         
-        &:hover {
-          background-color: #27A067; /* Slightly darker green */
+        &:hover:not(:disabled) {
+          background-color: #2AAD6F; // Slightly darker green
+          box-shadow: ${props => props.theme.shadows.small}; // Add subtle lift
         }
         
-        &:active {
-          background-color: #1D8954; /* Even darker green */
-          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        &:active:not(:disabled) {
+          background-color: #239360; // Even darker green
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); // Subtle inset shadow
         }
-        
+
         &:disabled {
           background-color: ${props => props.theme.colors.neutralGray};
           opacity: 0.7;
@@ -102,14 +107,15 @@ const getButtonStyles = (variant: ButtonVariant) => {
         color: ${props => props.theme.colors.alertAmber};
         border: 1px solid ${props => props.theme.colors.alertAmber};
         
-        &:hover {
-          background-color: #FEF9C3;
+        &:hover:not(:disabled) {
+          background-color: ${props => props.theme.colors.disclaimerBg}; // Use theme yellow
+          border-color: #EAA008; // Darker amber border
         }
         
-        &:active {
-          background-color: #FEF3B4;
+        &:active:not(:disabled) {
+          background-color: #FDF1B6; // Slightly darker yellow
         }
-        
+
         &:disabled {
           color: ${props => props.theme.colors.neutralGray};
           border-color: ${props => props.theme.colors.neutralGray};
@@ -132,8 +138,13 @@ const StyledButton = styled.button<ButtonProps>`
   font-weight: ${props => props.theme.typography.fontWeights.medium};
   border-radius: ${props => props.theme.layout.borderRadius};
   cursor: pointer;
-  transition: all ${props => props.theme.transitions.default};
+  transition: background-color ${props => props.theme.transitions.default}, 
+              color ${props => props.theme.transitions.default},
+              border-color ${props => props.theme.transitions.default},
+              box-shadow ${props => props.theme.transitions.default},
+              opacity ${props => props.theme.transitions.default};
   width: ${props => props.fullWidth ? '100%' : 'auto'};
+  line-height: 1.2; // Ensure text aligns well vertically
   
   ${props => getButtonStyles(props.variant || 'primary')}
   
