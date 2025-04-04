@@ -1,0 +1,73 @@
+Here is a sample note. Anything in brackets [ ] represent a description of what goes into each section but they do not have to be displayed - this is just for us to reference and for all to understand. 
+
+Abbreviations:
+PMHx  = past medical history 
+PSHx = past surgical history
+FHx = family history 
+ED = emergency department 
+BP: Blood pressure
+HR = heart rate
+SPO2 = oxygen saturation
+Temp = temperature 
+NPO = nothing per os (nothing to eat)
+
+—--------------------------- NOTE STARTS HERE —-------------------
+
+Subjective 
+[This section outlines the patients symptoms - anything they said about their condition limiting it to relevant information that confirms or denies the diagnosis] 
+
+The patient is a 45 year old woman with PMHx of diverticulosis, hypertension, type 2 diabetes who presents to the ED with abdominal pain [this is the main complaint that the patient has and why they came to see the doctor]. Her pain started 2 days ago and has continued to worsen since then, prompting a visit to the ED. The pain is associated with nausea, and 2 episodes of non-bloody, non-bilious emesis. The pain is located in the left lower quadrant of the abdomen and radiates to the groin. She has had diarrhea for the past day. [This is more information that was collected from the patient that  helps rule in and rule out conditions - an opportunity here to summarize casual inference and counter casual inference some way]. She denies any fevers, chills, chest pain, shortness of breath, changes in her urine, weight loss or loss of appetite [ this is called a review of systems ROS, which is basically a part of the history where you ask a lot of questions for yes or no answers]. 
+
+On arrival to the ED her vital signs are as follows: BP 120/40, HR 100, SPO2 100% Temp 98.7 and complains of left lower quadrant pain. She is stable but appears uncomfortable [this comes from physical exam – which idk if we have a mechanism for in our current system - but this is good perhaps this is the only thing physicians could fill out since we need them to make a physical assessment ]. 
+
+PMHx
+Diverticulosis
+Hypertension 
+Type 2 diabetes
+
+PSHx
+Right knee replacement [as you can see sometimes the information you get is not relevant to the diagnosis but must still be included in a note in some way]
+
+FHx
+None
+
+Medications 
+Hydrochlorothiazide 
+Metformin 
+
+Allergies
+None
+
+Objective 
+
+Physical Exam: 
+General:
+Head and Neck: 
+Chest:
+Lungs: 
+Abdomen:
+Extremities: 
+Neuro:
+Psych:
+
+Labs
+
+
+Imaging 
+
+
+Assessment [here you summarize the encounter including presentation and data that has evidence of why you arrived at a most likely diagnosis as well as why you dont think is something else - basically summarizing your thinking process] 
+The patient is a 45 year old female with hx of diverticulosis and hypertension who presented to the ED with 2 days of abdominal pain, nausea and emesis. Her clinical presentation, including history, physical exam, laboratory findings and imaging studies are most consistent with diverticulitis [final diagnosis here]. Given her clinical stability and imaging findings, it is unlikely that the patient has perforated diverticulitis at this time [here you may list other diagnoses that you are ruling out and concerned about and why]. We have the following recommendations: 
+
+Plans [ here you give a bullet list of plans that need to happen to treat the patient] 
+Admit to medicine  [this should come first - it is what you do with the patient from that point onward : admit to hospital, admit to intensive care unit, discharge home]
+Start ceftriaxone/ flagyl
+NPO 
+Serial abdominal exams
+Continue home medications: hydrochlorothiazide
+Pause home medications: metformin 
+Daily lab draw to assess clearance of infection
+Will continue to monitor 
+
+
+Disclaimer: this note was generated with the assistance of InferenceMD, an AI tool utilized in data collection, analysis and diagnostic support. 

@@ -2,3 +2,10 @@
 __pycache__
 .env
 .DS_Store
+.bin
+node_modules
+*.db
+*.pdf
+*.html
+*.log
+report_*

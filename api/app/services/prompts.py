@@ -1,6 +1,52 @@
 """
 Collection of prompt templates for different stages of diagnosis.
-Uses the original tested prompts from the RRL document.
+"""
+
+# New summary prompts for consolidated stages
+
+CASE_ANALYSIS_SUMMARY_PROMPT = """
+Consider the following extracted factors and causal links for the patient case. 
+
+Extracted Factors:
+{extracted_factors}
+
+Causal Links:
+{causal_links}
+
+Now consider the following Validation information:
+
+Validation:
+{validation_result}
+
+Now briefly summarise the findings of extracted factors and causal links for the physician. Then in details explain the validation information and ask for questions or 
+requirements if any. Have a chat kind of conversation with the physician while asking questions. Be direct and precise. Provide response in first person or active voice.
+"""
+
+DIAGNOSIS_SUMMARY_PROMPT = """
+Provide a concise summary of the diagnosis analysis:
+
+Counterfactual Analysis:
+{counterfactual_analysis}
+
+Diagnosis:
+{diagnosis}
+
+Highlight only the most important findings that the physician needs to know.
+"""
+
+TREATMENT_SUMMARY_PROMPT = """
+Summarize the key aspects of the treatment plan:
+
+Treatment Plan:
+{treatment_plan}
+
+Patient-Specific Plan:
+{patient_specific_plan}
+
+Final Treatment Plan:
+{final_treatment_plan}
+
+Provide a concise, actionable summary for the physician.
 """
 
 
@@ -53,6 +99,9 @@ Instructions:
 Do not explain or analyze the relationships yet.
 Do not suggest next steps or treatments.
 Simply extract and categorize all relevant factors from the case.
+
+Case:
+{case_text}
 """
 # PROMPTS['NODE_EXTRACTION_PROMPT'] = NODE_EXTRACTION_PROMPT
 
@@ -578,8 +627,81 @@ Treatment Plan Predicted Outcome Complications/Risks
 [Medication Adherence]
 [Key Risk Factors to Watch]
 """
-PROMPTS['FINAL_TREATMENT_PROMPT'] = FINAL_TREATMENT_PROMPT
+# PROMPTS['FINAL_TREATMENT_PROMPT'] = FINAL_TREATMENT_PROMPT
 
 def format_prompt(prompt_template, **kwargs):
     """Format any prompt template with the given arguments."""
     return prompt_template.format(**kwargs)
+
+# Clinical Note Generation Prompt
+NOTE_GENERATION_PROMPT = """Generate a comprehensive clinical note using the analyzed case information, strictly following this template structure:
+
+--- NOTE STARTS HERE ---
+
+Subjective
+[Patient's chief complaint and relevant history]
+The patient is a [age] year old [gender] with PMHx of [list relevant conditions] who presents with [chief complaint]. [Detailed description of symptoms including onset, duration, characteristics, associated symptoms, and relieving/aggravating factors]. 
+
+[Review of Systems - list pertinent positives and negatives]
+Patient reports: [positive symptoms]
+Patient denies: [negative symptoms]
+
+PMHx
+[All relevant past medical conditions]
+
+PSHx
+[All past surgical history]
+
+FHx
+[Relevant family history]
+
+Medications
+[Current medications]
+
+Allergies
+[Known allergies]
+
+Objective
+
+Physical Exam:
+General: [appearance, distress level]
+Vital Signs: BP [value], HR [value], Temp [value], SpO2 [value]
+[Other relevant exam findings by system]
+
+Labs
+[Relevant lab results]
+
+Imaging
+[Relevant imaging findings]
+
+Assessment
+[Concise summary of the case including:
+1. Patient presentation
+2. Key findings supporting diagnosis
+3. Differential diagnosis considered
+4. Final diagnosis with reasoning
+5. Any concerns or complications]
+
+Plan
+[Numbered list of treatment actions:
+1. Admission status (admit/discharge)
+2. Medications (new/continued/discontinued)
+3. Monitoring requirements
+4. Follow-up plans
+5. Patient instructions]
+
+--- NOTE ENDS HERE ---
+
+Required Formatting:
+- Use standard medical abbreviations (PMHx, PSHx, FHx, etc.)
+- Maintain consistent section headers and structure
+- Use bullet points for lists where appropriate
+- Keep paragraphs concise and clinically relevant
+- Include all verified information from:
+  - Case Details: {case_details}
+  - Extracted Factors: {extracted_factors} 
+  - Diagnosis Analysis: {diagnosis_analysis}
+  - Treatment Plan: {treatment_plan}
+
+Output must be ready for direct use in medical records with no placeholder text remaining.
+"""
