@@ -33,6 +33,11 @@ class Case(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+    # Relationships with cascade delete
+    stage_results = relationship("StageResult", back_populates="case", cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="case", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="case", cascade="all, delete-orphan")
+
 class StageResult(Base):
     """
     StageResult model for storing results of each diagnosis stage
@@ -44,8 +49,8 @@ class StageResult(Base):
     
     # Foreign key to case
     case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False)
-    case = relationship("Case", backref="stage_results")
-    
+    case = relationship("Case", back_populates="stage_results") # Use back_populates
+
     # Stage information
     stage_name = Column(String, nullable=False)
     result = Column(JSON, nullable=False, default={})
@@ -66,8 +71,8 @@ class Message(Base):
     
     # Foreign key to case
     case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False)
-    case = relationship("Case", backref="messages")
-    
+    case = relationship("Case", back_populates="messages") # Use back_populates
+
     # Message content
     role = Column(String, nullable=False)  # "user" or "assistant"
     content = Column(Text, nullable=False)
@@ -86,8 +91,8 @@ class Report(Base):
     
     # Foreign key to case
     case_id = Column(UUID(as_uuid=True), ForeignKey("cases.id"), nullable=False)
-    case = relationship("Case", backref="reports")
-    
+    case = relationship("Case", back_populates="reports") # Use back_populates
+
     # Report information
     file_path = Column(String, nullable=False)
     

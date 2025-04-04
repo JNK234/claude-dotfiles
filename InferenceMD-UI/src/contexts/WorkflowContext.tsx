@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import WorkflowService, { StageResult } from '../services/WorkflowService';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react'; // Added useCallback
+import WorkflowService, { StageResult as WorkflowStageResult } from '../services/WorkflowService'; // Renamed StageResult import
 import MessageService from '../services/MessageService';
-import CaseService from '../services/CaseService';
+import CaseService, { CaseDetails, Message as CaseMessage, StageResult as CaseStageResult } from '../services/CaseService'; // Import new types
 import ReportService from '../services/ReportService';
 import { useAuth } from './AuthContext';
 
@@ -21,8 +21,8 @@ export interface Stage {
 // Define the shape of the case status
 export type CaseStatus = 'in_progress' | 'completed';
 
-// Define the shape of the message
-export interface Message {
+// Define the shape of the message (using CaseMessage now for consistency, but keeping UI shape)
+export interface UIMessage {
   content: string;
   sender: 'doctor' | 'assistant';
   timestamp: string;
@@ -43,12 +43,12 @@ interface WorkflowContextData {
   approveStage: () => Promise<void>;
   isStageCompleted: (stageId: string) => boolean;
   isStageActive: (stageId: string) => boolean;
-  
+
   // Message state
-  messages: Message[];
+  messages: UIMessage[]; // Use UIMessage
   sendMessage: (content: string) => Promise<void>;
   isProcessing: boolean;
-  
+
   // Reasoning state
   reasoningContent: string;
   
@@ -86,11 +86,11 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     status: 'upcoming',
     reasoningContent: '',
   })));
-  
+
   // Message state
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<UIMessage[]>([]); // Use UIMessage
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  
+
   // Reasoning state
   const [reasoningContent, setReasoningContent] = useState<string>('');
   
@@ -110,14 +110,98 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCaseStatus('completed');
   };
 
+  // --- Helper function to update reasoning content based on stage result data ---
+  // Adapt to accept both CaseStageResult (from getCaseDetails) and WorkflowStageResult (from processStage/startWorkflow)
+  // Using useCallback to memoize the function
+  const updateReasoningForStage = useCallback((stageResult: CaseStageResult | WorkflowStageResult) => {
+    // Ensure we have the necessary properties, adapting for potential differences if any
+    const stageName = stageResult.stage_name;
+    const resultData = stageResult.result; // Assuming 'result' structure is consistent enough
+
+    if (!stageName || !resultData) {
+      console.warn("Cannot update reasoning, missing stage_name or result in:", stageResult);
+      return;
+    }
+
+    console.log('Updating reasoning content for stage:', stageName, 'with result:', resultData);
+
+    // Create formatted content for the stage based on its name and result structure
+    let stageContent = '';
+    // Check if the resultData contains the nested 'backend_results' structure
+    const resultsSource = resultData?.backend_results ? resultData.backend_results : resultData;
+
+    console.log(`[updateReasoningForStage] Using resultsSource:`, resultsSource); // Log which part of the data is being used
+
+    // Patient case analysis group stages
+    if (stageName === 'patient_case_analysis_group') {
+      // Access data within resultsSource (which might be resultData.backend_results)
+      if (resultsSource?.extraction?.extracted_factors) {
+        stageContent += `### Extracted Medical Factors\n\n${resultsSource.extraction.extracted_factors}\n\n`;
+      }
+      if (resultsSource?.causal_analysis?.causal_links) {
+        stageContent += `### Causal Relationships\n\n${resultsSource.causal_analysis.causal_links}\n\n`;
+      }
+      if (resultsSource?.validation?.validation_result) {
+        stageContent += `### Validation\n\n${resultsSource.validation.validation_result}\n\n`;
+      }
+    }
+    // Diagnosis group stages
+    else if (stageName === 'diagnosis_group') {
+      if (resultsSource?.counterfactual?.counterfactual_analysis) {
+        stageContent += `### Counterfactual Analysis\n\n${resultsSource.counterfactual.counterfactual_analysis}\n\n`;
+      }
+      if (resultsSource?.diagnosis?.diagnosis) {
+        stageContent += `### Diagnosis\n\n${resultsSource.diagnosis.diagnosis}\n\n`;
+      }
+    }
+    // Treatment planning group stages
+    else if (stageName === 'treatment_planning_group') {
+      if (resultsSource?.treatment_planning?.treatment_plan) {
+        stageContent += `### Treatment Options\n\n${resultsSource.treatment_planning.treatment_plan}\n\n`;
+      }
+      if (resultsSource?.patient_specific?.patient_specific_plan) {
+        stageContent += `### Patient-Specific Plan\n\n${resultsSource.patient_specific.patient_specific_plan}\n\n`;
+      }
+      if (resultsSource?.final_plan?.final_treatment_plan) {
+        stageContent += `### Final Treatment Plan\n\n${resultsSource.final_plan.final_treatment_plan}\n\n`;
+      }
+    }
+     // Handle legacy/individual stage names if necessary (accessing directly from resultsSource)
+     else {
+        switch (stageName) {
+          case 'extraction': stageContent = `### Extracted Medical Factors\n\n${resultsSource?.extracted_factors || 'N/A'}`; break;
+          case 'causal_analysis': stageContent = `### Causal Relationships\n\n${resultsSource?.causal_links || 'N/A'}`; break;
+          case 'validation': stageContent = `### Validation\n\n${resultsSource?.validation_result || 'N/A'}`; break;
+          case 'counterfactual': stageContent = `### Counterfactual Analysis\n\n${resultsSource?.counterfactual_analysis || 'N/A'}`; break;
+          case 'diagnosis': stageContent = `### Diagnosis\n\n${resultsSource?.diagnosis || 'N/A'}`; break;
+          case 'treatment_planning': stageContent = `### Treatment Plan\n\n${resultsSource?.treatment_plan || 'N/A'}`; break;
+          case 'patient_specific': stageContent = `### Patient-Specific Plan\n\n${resultsSource?.patient_specific_plan || 'N/A'}`; break;
+          case 'final_plan': stageContent = `### Final Treatment Plan\n\n${resultsSource?.final_treatment_plan || 'N/A'}`; break;
+          default: console.warn(`Unknown stage name for reasoning update: ${stageName}`);
+        }
+     }
+
+
+    // Update the specific stage's reasoning content in the stages state
+    setStages(prevStages => prevStages.map(stage => {
+      if (stage.id === stageName) { // Use stageName variable
+        console.log(`Setting reasoning for ${stage.id}: ${stageContent.substring(0, 100)}...`);
+        return { ...stage, reasoningContent: stageContent };
+      }
+      return stage;
+    }));
+
+  }, [setStages]); // Dependency: setStages
+
+
   // Update stages based on current stage
   useEffect(() => {
     if (currentStage) {
       // Get all stages in order
       const orderedStages = WorkflowService.getStagesInOrder();
       
-      // Update stage status based on current stage
-      setStages(orderedStages.map(stageId => {
+      // Update stage status based on current stage using functional update
+      setStages(prevStages => orderedStages.map(stageId => {
         const stageInfo = WorkflowService.mapStageToUI(stageId);
         const currentIndex = orderedStages.findIndex(s => s === currentStage);
         const stageIndex = orderedStages.findIndex(s => s === stageId);
@@ -133,7 +217,8 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           id: stageId,
           name: stageInfo.name,
           status,
-          reasoningContent: stages.find(s => s.id === stageId)?.reasoningContent || '',
+          // Read reasoningContent from the *previous* state (prevStages) to avoid race condition
+          reasoningContent: prevStages.find(s => s.id === stageId)?.reasoningContent || '', 
         };
       }));
     }
@@ -144,96 +229,96 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       setError(null);
       setIsProcessing(true);
-      console.log(`Starting to load case ${caseId}`);
-      
-      // Reset any existing data before loading the new case
+      console.log(`Starting to load case details for ${caseId}`);
+
+      // Reset existing data
       setMessages([]);
       setReasoningContent('');
+      // Reset reasoning content for all stages before loading new data
       setStages(prevStages => prevStages.map(stage => ({
         ...stage,
         reasoningContent: '',
       })));
-      
-      // Get case details
-      const caseDetails = await CaseService.getCase(caseId);
+
+      // Get *all* case details using the new service method
+      const caseDetails = await CaseService.getCaseDetails(caseId);
       console.log('Case details loaded:', caseDetails);
+
+      // Set basic case info
       setSelectedCaseId(caseId);
       setCurrentStage(caseDetails.current_stage);
-      
-      // Set case status based on stage
-      if (caseDetails.current_stage === 'treatment_planning_group' && caseDetails.is_complete) {
+
+      // Set case status
+      if (caseDetails.is_complete) { // Use is_complete directly from details
         setCaseStatus('completed');
       } else {
         setCaseStatus('in_progress');
       }
-      
-      // Load messages using MessageService
-      console.log(`Loading messages for case: ${caseId}`);
-      try {
-        const messageResponse = await MessageService.getMessages(caseId);
-        console.log('Messages data from MessageService:', messageResponse);
 
-        if (messageResponse && messageResponse.messages && Array.isArray(messageResponse.messages)) {
-          // Use the service's formatter
-          const formattedMessages = messageResponse.messages.map(
-            MessageService.formatMessageForUI
-          );
+      // Set messages from the response
+      if (caseDetails.messages && Array.isArray(caseDetails.messages)) {
+        // Format messages using the existing MessageService formatter
+        const formattedMessages = caseDetails.messages.map(
+          MessageService.formatMessageForUI // Assuming this formatter works with the Message interface
+        );
+        console.log(`Successfully loaded ${formattedMessages.length} messages for case ${caseId}`);
+        setMessages(formattedMessages);
+      } else {
+        console.warn('CaseDetails response format unexpected or missing messages:', caseDetails);
+        setMessages([]); // Clear messages if response is not as expected
+      }
 
-          console.log(`Successfully loaded ${formattedMessages.length} messages for case ${caseId}`);
-          setMessages(formattedMessages);
-        } else {
-          console.warn('MessageService response format unexpected:', messageResponse);
-          setMessages([]); // Clear messages if response is not as expected
-        }
-      } catch (messageError) {
-        console.error('Error loading messages via MessageService:', messageError);
-        // Use a more specific error message if possible
-        if (messageError instanceof Error) {
-          setError(`Failed to load case messages: ${messageError.message}. Please try refreshing.`);
-        } else {
-          setError('Failed to load case messages. Please try refreshing the page.');
-        }
-        setMessages([]); // Ensure messages are cleared on error
+      // Process stage results from the response to populate reasoning content
+      if (caseDetails.stage_results && Array.isArray(caseDetails.stage_results)) {
+        console.log(`Processing ${caseDetails.stage_results.length} stage results...`);
+        // Use Promise.all to potentially update reasoning content in parallel if needed,
+        // or simply loop if sequential updates are fine.
+        // Using a simple loop here for clarity.
+        caseDetails.stage_results.forEach(stageResult => {
+          // Call the helper function to update reasoning for this specific stage
+          updateReasoningForStage(stageResult);
+        });
+
+        // After processing all individual stages, update the combined reasoning content
+        // Need to wait for state updates from updateReasoningForStage to propagate.
+        // Using useEffect triggered by 'stages' state change might be more robust here.
+        // For simplicity now, we'll try to build it directly, but this might have timing issues.
+        // Consider moving the combined reasoning update logic to a separate useEffect hook.
+
+      } else {
+         console.warn('CaseDetails response format unexpected or missing stage results:', caseDetails);
       }
-      
-      // If case needs to start workflow, start it
-      if (caseDetails.current_stage === 'initial' || caseDetails.current_stage === 'patient_case_analysis_group') {
-        const workflowResult = await WorkflowService.startWorkflow(caseId);
-        updateReasoningContentFromWorkflowResult(workflowResult);
-      } 
-      // For cases in later stages, we need to load reasoning analysis data for each completed stage
-      else {
-        try {
-          // Get all ordered stages
-          const orderedStages = WorkflowService.getStagesInOrder();
-          const currentStageIndex = orderedStages.findIndex(s => s === caseDetails.current_stage);
-          
-          // Process all stages up to the current one to get their reasoning content
-          for (let i = 0; i <= currentStageIndex; i++) {
-            const stageName = orderedStages[i];
-            // Skip the current stage if it's the initial stage
-            if (stageName === 'initial') continue;
-            
-            console.log(`Loading reasoning analysis for stage: ${stageName}`);
-            // We use processStage without input to retrieve the current state
-            const stageResult = await WorkflowService.processStage(caseId, stageName);
-            if (stageResult && stageResult.result) {
-              updateReasoningContentFromWorkflowResult(stageResult);
-            }
-          }
-        } catch (reasoningError) {
-          console.error('Error loading reasoning analysis:', reasoningError);
-          setError('Failed to load case analysis data. Some information may be missing.');
-        }
-      }
-      
+
+
       setIsProcessing(false);
+      console.log(`Finished loading case ${caseId}`);
     } catch (error) {
       console.error('Error selecting case:', error);
       setError('Failed to load case data. Please try again.');
       setIsProcessing(false);
     }
   };
+
+  // --- Effect to update combined reasoning content whenever stages state changes ---
+  useEffect(() => {
+    // This effect runs after the stages state (including reasoningContent) has been updated
+    // by the loop in selectCase or other functions.
+    console.log("Stages updated, recalculating combined reasoning content.");
+    const allStagesContent = stages
+      .filter(stage => stage.reasoningContent && stage.reasoningContent.trim() !== '') // Ensure content exists
+      .sort((a, b) => WorkflowService.getStagesInOrder().indexOf(a.id) - WorkflowService.getStagesInOrder().indexOf(b.id)) // Sort based on defined order
+      .map(stage => {
+        // Use the stage name from the stages state which should be correctly mapped
+        const formattedStageName = stage.name.charAt(0).toUpperCase() + stage.name.slice(1);
+        return `## ${formattedStageName}\n\n${stage.reasoningContent.trim()}`;
+      })
+      .join('\n\n---\n\n');
+
+    console.log(`Combined reasoning content updated: ${allStagesContent.substring(0, 100)}...`);
+    setReasoningContent(allStagesContent);
+
+  }, [stages]); // Dependency: run whenever the stages array changes
+
 
   // Function to create a new case
   const createNewCase = async (caseText: string) => {
@@ -258,7 +343,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // to show the loading indicator
       const workflowResult = await WorkflowService.startWorkflow(newCase.id);
       console.log('Workflow result:', workflowResult);
-      updateReasoningContentFromWorkflowResult(workflowResult);
+      updateReasoningForStage(workflowResult); // Use the correct function name
       
       // Add assistant response with summary
       let assistantContent = 'I\'ve analyzed the case.';
@@ -288,7 +373,8 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setMessages([]);
     setReasoningContent('');
     setCaseStatus('in_progress');
-    
+    setIsPhiAcknowledged(false); // Reset PHI acknowledgment for new cases
+
     // Also reset each stage's reasoning content
     setStages(prevStages => prevStages.map(stage => ({
       ...stage,
@@ -327,7 +413,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setMessages(prev => [...prev, tempMessage]);
         
         const nextStageResult = await WorkflowService.processStage(selectedCaseId, approvalResult.next_stage);
-        updateReasoningContentFromWorkflowResult(nextStageResult);
+        updateReasoningForStage(nextStageResult); // Use the correct function name
         
         // Remove the temporary message
         setMessages(prev => prev.filter(msg => msg.content !== "Processing next stage..."));
@@ -357,8 +443,14 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Function to send a message
   const sendMessage = async (content: string) => {
-    if (!selectedCaseId) return;
-    
+    // Prevent sending messages or processing if the case is already completed
+    if (!selectedCaseId || caseStatus === 'completed') {
+      console.log("sendMessage blocked: Case is completed or no case selected.");
+      // Optionally provide user feedback here if needed, e.g., set an error message
+      // setError("Cannot send messages or perform actions on a completed case.");
+      return;
+    }
+
     try {
       setError(null);
       setIsProcessing(true);
@@ -381,7 +473,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       // Process the current stage with the message as input
       const stageResult = await WorkflowService.processStage(selectedCaseId, currentStage, content);
-      updateReasoningContentFromWorkflowResult(stageResult);
+      updateReasoningForStage(stageResult); // Use the correct function name
       
       // Remove the temporary message
       setMessages(prev => prev.filter(msg => msg.content !== "Processing your input..."));
@@ -406,120 +498,9 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Helper function to update reasoning content based on workflow result
-  const updateReasoningContentFromWorkflowResult = (result: StageResult) => {
-    console.log('Updating reasoning content with result:', result);
-    
-    if (result && result.result) {
-      // Create formatted content for the stage
-      let stageContent = '';
-      
-      if (result.result.backend_results) {
-        const backendResults = result.result.backend_results;
-        
-        // Patient case analysis stage
-        if (result.stage_name === 'patient_case_analysis_group') {
-          if (backendResults.extraction && backendResults.extraction.extracted_factors) {
-            stageContent += `### Extracted Medical Factors\n\n${backendResults.extraction.extracted_factors}\n\n`;
-          }
-          if (backendResults.causal_analysis && backendResults.causal_analysis.causal_links) {
-            stageContent += `### Causal Relationships\n\n${backendResults.causal_analysis.causal_links}\n\n`;
-          }
-          if (backendResults.validation && backendResults.validation.validation_result) {
-            stageContent += `### Validation\n\n${backendResults.validation.validation_result}\n\n`;
-          }
-        }
-        // Diagnosis stage
-        else if (result.stage_name === 'diagnosis_group') {
-          if (backendResults.counterfactual && backendResults.counterfactual.counterfactual_analysis) {
-            stageContent += `### Counterfactual Analysis\n\n${backendResults.counterfactual.counterfactual_analysis}\n\n`;
-          }
-          if (backendResults.diagnosis && backendResults.diagnosis.diagnosis) {
-            stageContent += `### Diagnosis\n\n${backendResults.diagnosis.diagnosis}\n\n`;
-          }
-        }
-        // Treatment planning stage
-        else if (result.stage_name === 'treatment_planning_group') {
-          if (backendResults.treatment_planning && backendResults.treatment_planning.treatment_plan) {
-            stageContent += `### Treatment Options\n\n${backendResults.treatment_planning.treatment_plan}\n\n`;
-          }
-          if (backendResults.patient_specific && backendResults.patient_specific.patient_specific_plan) {
-            stageContent += `### Patient-Specific Plan\n\n${backendResults.patient_specific.patient_specific_plan}\n\n`;
-          }
-          if (backendResults.final_plan && backendResults.final_plan.final_treatment_plan) {
-            stageContent += `### Final Treatment Plan\n\n${backendResults.final_plan.final_treatment_plan}\n\n`;
-          }
-        }
-      }
-      // For legacy backend stages
-      else {
-        switch (result.stage_name) {
-          case 'extraction':
-            if (result.result.extracted_factors) {
-              stageContent = `### Extracted Medical Factors\n\n${result.result.extracted_factors}`;
-            }
-            break;
-          case 'causal_analysis':
-            if (result.result.causal_links) {
-              stageContent = `### Causal Relationships\n\n${result.result.causal_links}`;
-            }
-            break;
-          case 'validation':
-            if (result.result.validation_result) {
-              stageContent = `### Validation\n\n${result.result.validation_result}`;
-            }
-            break;
-          case 'counterfactual':
-            if (result.result.counterfactual_analysis) {
-              stageContent = `### Counterfactual Analysis\n\n${result.result.counterfactual_analysis}`;
-            }
-            break;
-          case 'diagnosis':
-            if (result.result.diagnosis) {
-              stageContent = `### Diagnosis\n\n${result.result.diagnosis}`;
-            }
-            break;
-          case 'treatment_planning':
-            if (result.result.treatment_plan) {
-              stageContent = `### Treatment Plan\n\n${result.result.treatment_plan}`;
-            }
-            break;
-          case 'patient_specific':
-            if (result.result.patient_specific_plan) {
-              stageContent = `### Patient-Specific Plan\n\n${result.result.patient_specific_plan}`;
-            }
-            break;
-          case 'final_plan':
-            if (result.result.final_treatment_plan) {
-              stageContent = `### Final Treatment Plan\n\n${result.result.final_treatment_plan}`;
-            }
-            break;
-        }
-      }
-
-      // Update the stage's reasoning content
-      setStages(prevStages => prevStages.map(stage => {
-        if (stage.id === result.stage_name) {
-          return {
-            ...stage,
-            reasoningContent: stageContent
-          };
-        }
-        return stage;
-      }));
-      
-      // Update the global reasoning content with all stages
-      const allStagesContent = stages
-        .filter(stage => stage.reasoningContent)
-        .map(stage => {
-          const formattedStage = stage.name.charAt(0).toUpperCase() + stage.name.slice(1);
-          return `## ${formattedStage}\n\n${stage.reasoningContent.trim()}`;
-        })
-        .join('\n\n---\n\n');
-      
-      setReasoningContent(allStagesContent);
-    }
-  };
+  // NOTE: The old `updateReasoningContentFromWorkflowResult` function is removed.
+  // Its logic is now partially incorporated into `updateReasoningForStage`
+  // and the useEffect hook that updates the combined `reasoningContent`.
 
   // Function to acknowledge the PHI disclaimer
   const acknowledgePhiDisclaimer = () => {

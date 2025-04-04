@@ -107,3 +107,13 @@ class WorkflowStageResponse(BaseModel):
     result: Dict[str, Any]
     is_approved: bool
     next_stage: Optional[str] = None
+
+
+# Combined schema for detailed case view
+class CaseDetails(Case):
+    """Schema for detailed case view including messages and stage results"""
+    messages: List[Message] = []
+    stage_results: List[StageResult] = []
+
+    class Config:
+        from_attributes = True # Ensure it works with ORM models

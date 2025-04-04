@@ -9,9 +9,10 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.case import Case
+from app.models.case import Case, Message, StageResult # Added Message, StageResult
 from app.models.user import User
-from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList
+from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList, CaseDetails # Added CaseDetails
+from sqlalchemy.orm import joinedload # To eagerly load relationships
 
 router = APIRouter()
 
@@ -109,6 +110,71 @@ def get_case(
         )
     
     return case
+
+
+# Add the new endpoint function
+@router.get("/{case_id}/details", response_model=CaseDetails)
+def get_case_details(
+    case_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Get detailed information for a specific case, including messages and stage results.
+    This endpoint is optimized for loading past cases efficiently.
+
+    Args:
+        case_id: The ID of the case to retrieve.
+        db: Database session dependency.
+        current_user: The currently authenticated user.
+
+    Returns:
+        CaseDetails: Detailed case information.
+
+    Raises:
+        HTTPException: 404 if the case is not found.
+        HTTPException: 403 if the user is not authorized to access the case.
+    """
+    # Query for the case and eagerly load messages and stage_results
+    # Order messages and stage_results by creation time for consistency
+    case = (
+        db.query(Case)
+        .options(
+            joinedload(Case.messages), # Eager load messages
+            joinedload(Case.stage_results) # Eager load stage results
+        )
+        .filter(Case.id == case_id)
+        .first()
+    )
+
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access this case"
+        )
+
+    # Sort messages and stage results in Python if needed (SQLAlchemy might handle order)
+    # Pydantic will automatically serialize the loaded relationships
+    # Ensure messages and stage_results are sorted if not handled by relationship loading
+    # Note: Accessing case.messages and case.stage_results triggers the load if not already loaded
+    # Sorting them here ensures they are in order before returning.
+    sorted_messages = sorted(case.messages, key=lambda m: m.created_at)
+    sorted_stage_results = sorted(case.stage_results, key=lambda sr: sr.created_at)
+    
+    # Assign sorted lists back for Pydantic serialization
+    case.messages = sorted_messages
+    case.stage_results = sorted_stage_results
+
+    return case
+
 
 @router.delete("/{case_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 def delete_case(
