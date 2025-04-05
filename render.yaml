@@ -17,6 +17,7 @@ services:
     name: inferencemd-backend
     # region: frankfurt # Optional: Match the database region
     runtime: docker # Specifies that we are using a Dockerfile
+    plan: free
     dockerfilePath: ./backend/Dockerfile # Path to the Dockerfile relative to the repo root
     dockerContext: ./backend # Build context for Docker
     healthCheckPath: /api/health # Optional: Add a health check endpoint to FastAPI
