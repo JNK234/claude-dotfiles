@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.security import get_current_user
-from app.models.case import Case, Report
-from app.models.user import User
-from app.schemas.case import Report as ReportSchema
-from app.services.report_service import ReportService
+from backend.app.core.database import get_db
+from backend.app.core.security import get_current_user
+from backend.app.models.case import Case, Report
+from backend.app.models.user import User
+from backend.app.schemas.case import Report as ReportSchema
+from backend.app.services.report_service import ReportService
 
 router = APIRouter()
 
