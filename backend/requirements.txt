@@ -9,6 +9,8 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.6
 python-dotenv>=1.0.0
+pydantic[email]
+email-validator
 
 # LLM Service dependencies
 langchain-openai>=0.0.5 # For Azure OpenAI, OpenAI, and potentially DeepSeek
