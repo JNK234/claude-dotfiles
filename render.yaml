@@ -16,7 +16,6 @@ services:
   - type: web
     name: inferencemd-backend
     # region: frankfurt # Optional: Match the database region
-    plan: free # Or choose a paid plan (e.g., 'starter') for production
     runtime: docker # Specifies that we are using a Dockerfile
     dockerfilePath: ./backend/Dockerfile # Path to the Dockerfile relative to the repo root
     dockerContext: ./backend # Build context for Docker
@@ -54,7 +53,6 @@ services:
   - type: web
     name: inferencemd-frontend
     # region: frankfurt # Optional: Match other services
-    plan: free # Static sites are often free
     runtime: static # Required for static sites
     buildCommand: npm install && npm run build # Commands to build the site
     staticPublishPath: build # Directory containing the built static assets (relative to rootDir)
