@@ -55,7 +55,7 @@ services:
 
   # 3. Frontend Static Site (React)
   # Builds and serves the static React application.
-  - type: static
+  - type: static_site # Correct type for static web applications
     name: inferencemd-frontend
     # region: frankfurt # Optional: Match other services
     plan: free # Static sites are often free
