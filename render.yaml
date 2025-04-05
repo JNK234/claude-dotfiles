@@ -2,16 +2,18 @@
 # Defines the services needed to run the application on Render.
 # Documentation: https://render.com/docs/blueprint-spec
 
-services:
-  # 1. PostgreSQL Database
-  # Provides the database for the FastAPI backend.
-  - type: pserv # PostgreSQL Service
-    name: inferencemd-db
+
+databases:
+
+  # Database service for the FastAPI backend
+  - name: inferencemd-db
     # region: frankfurt # Optional: Choose a region close to you/your users
     plan: free # Or choose a paid plan for production needs
     postgresMajorVersion: 14 # Specify PostgreSQL version
     ipAllowList: [] # Allows connections from Render services by default
 
+services:
+  
   # 2. Backend Web Service (FastAPI)
   # Runs the Python backend application using the Dockerfile.
   - type: web
