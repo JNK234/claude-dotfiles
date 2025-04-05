@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 from app.core.database import Base, get_db
 from app.core.security import get_password_hash
 from app.models.user import User
-from app.main import app
+from backend.app.main import app
 
 # Test client
 @pytest.fixture
