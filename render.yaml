@@ -59,9 +59,9 @@ services:
     name: inferencemd-frontend
     # region: frankfurt # Optional: Match other services
     plan: free # Static sites are often free
-    rootDir: ./frontend # Root directory for the frontend code
+    rootDir: frontend # Root directory for the frontend code (relative to repo root)
     buildCommand: npm install && npm run build # Commands to build the site
-    publishDir: ./frontend/build # Directory containing the built static assets
+    publishDir: frontend/build # Directory containing the built static assets (relative to repo root)
     # Optional: Add rewrite rules for single-page applications (SPA) like React Router
     routes:
       - type: rewrite
