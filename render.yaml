@@ -50,10 +50,10 @@ services:
         value: /data/persistence/reports
       - key: NOTES_DIR # Point to the mounted disk path
         value: /data/persistence/notes
-    disk:
-      name: inferencemd-data # Name for the persistent disk
-      mountPath: /data/persistence # Mount point inside the container
-      sizeGB: 1 # Size of the disk (adjust as needed)
+    # disk:
+    #   name: inferencemd-data # Name for the persistent disk
+    #   mountPath: /data/persistence # Mount point inside the container
+    #   sizeGB: 1 # Size of the disk (adjust as needed)
 
   # 3. Frontend Static Site (React)
   # Builds and serves the static React application.
@@ -75,8 +75,4 @@ services:
         fromService:
           type: web # Service type
           name: inferencemd-backend # Name of the backend service
-          property: url # Get the deployed URL of the backend
-      # Add any other build-time environment variables needed by React here
-      # Example:
-      # - key: REACT_APP_SOME_CONFIG
-      #   value: some_value
+          property: connectionString 
