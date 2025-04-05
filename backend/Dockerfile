@@ -31,5 +31,9 @@ ENV PORT=8001
 # Expose port
 EXPOSE ${PORT}
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run the application using Gunicorn with Uvicorn workers
+# Gunicorn will automatically bind to 0.0.0.0 and the PORT environment variable provided by Render (default 10000)
+# -w 4: Number of worker processes (adjust based on Render plan resources)
+# -k uvicorn.workers.UvicornWorker: Use Uvicorn for ASGI compatibility
+# app.main:app: Path to the FastAPI application instance
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app"]
