@@ -44,29 +44,27 @@ services:
       #   value: YOUR_AZURE_DEPLOYMENT
       # --- Persistent Storage Configuration ---
       - key: REPORTS_DIR # Point to the mounted disk path
-        value: /data/persistence/reports
+        value: /tmp/reports
       - key: NOTES_DIR # Point to the mounted disk path
-        value: /data/persistence/notes
-    disk:
-      name: inferencemd-data # Name for the persistent disk
-      mountPath: /data/persistence # Mount point inside the container
-      sizeGB: 1 # Size of the disk (adjust as needed)
+        value: /tmp/notes
+    # Disk configuration removed as it's not supported in free tier
 
   # Frontend Static Site (React)
   # Builds and serves the static React application.
-  - type: web # Correct type for static web applications
+  - type: web
     name: inferencemd-frontend
     # region: frankfurt # Optional: Match other services
     plan: free # Static sites are often free
+    runtime: static # Required for static sites
     buildCommand: npm install && npm run build # Commands to build the site
-    staticPublishPath: ./build # Directory containing the built static assets (relative to rootDir)
+    staticPublishPath: build # Directory containing the built static assets (relative to rootDir)
     rootDir: frontend # Root directory for the frontend code (relative to repo root)
     envVars:
       - key: REACT_APP_API_BASE_URL # Pass backend URL to frontend
         fromService:
           type: web # Service type
           name: inferencemd-backend # Name of the backend service
-          property: url
+          property: host # Use valid property
     routes:
       - type: rewrite
         source: /*
