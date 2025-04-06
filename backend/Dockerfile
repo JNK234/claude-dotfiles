@@ -19,21 +19,17 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY ./app ./app
+COPY . .
 
-# Create folders
-RUN mkdir -p reports static
+# Create necessary directories
+RUN mkdir -p /tmp/reports /tmp/notes /app/static
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV PORT=8001
+ENV PORT=8000
 
 # Expose port
 EXPOSE ${PORT}
 
-# Run the application using Gunicorn with Uvicorn workers
-# Gunicorn will automatically bind to 0.0.0.0 and the PORT environment variable provided by Render (default 10000)
-# -w 4: Number of worker processes (adjust based on Render plan resources)
-# -k uvicorn.workers.UvicornWorker: Use Uvicorn for ASGI compatibility
-# app.main:app: Path to the FastAPI application instance
+# Run the application
 CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app"]
