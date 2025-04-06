@@ -15,13 +15,10 @@ services:
   # Runs the Python backend application using the Dockerfile.
   - type: web
     name: inferencemd-backend
-    runtime: python
+    runtime: docker
     plan: free
-    pythonVersion: "3.10.13"
-    buildCommand: |
-      pip install -r backend/requirements.txt
-      cd backend && alembic upgrade head
-    startCommand: cd backend && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     healthCheckPath: /api/health
     envVars:
       # Database and Core Settings
@@ -63,7 +60,10 @@ services:
       - key: NOTES_DIR
         value: "/tmp/notes"
       - key: STATIC_DIR
-        value: "/opt/render/project/src/backend/static"
+        value: "/app/static"
+    buildCommand: |
+      pip install -r requirements.txt
+      alembic upgrade head
 
   # Frontend Static Site (React)
   - type: web

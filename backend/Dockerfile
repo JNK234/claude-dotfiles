@@ -1,8 +1,15 @@
-FROM python:3.10-slim
+# Use a specific version for better reproducibility
+FROM python:3.10.13-slim
+
+# Set environment variables
+ENV PYTHONPATH=/app \
+    PORT=8000 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies in a single layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -10,26 +17,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pandoc \
     wkhtmltopdf \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements
-COPY requirements.txt .
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /tmp/reports /tmp/notes /app/static
 
 # Install Python dependencies
+# Copy only requirements first to leverage Docker cache
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
+# Use .dockerignore to exclude unnecessary files
 COPY . .
-
-# Create necessary directories
-RUN mkdir -p /tmp/reports /tmp/notes /app/static
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV PORT=8000
 
 # Expose port
 EXPOSE ${PORT}
 
-# Run the application
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app"]
+# Run the application with optimized settings
+CMD ["gunicorn", \
+     "--workers", "4", \
+     "--worker-class", "uvicorn.workers.UvicornWorker", \
+     "--bind", "0.0.0.0:${PORT}", \
+     "--timeout", "120", \
+     "--keep-alive", "5", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-", \
+     "app.main:app"]

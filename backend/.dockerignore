@@ -8,6 +8,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -26,8 +27,8 @@ wheels/
 
 # Virtual Environment
 venv/
-env/
 ENV/
+.env
 
 # IDE
 .idea/
@@ -35,12 +36,33 @@ ENV/
 *.swp
 *.swo
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Logs
-logs/
 *.log
+logs/
+
+# Local development
+.DS_Store
+node_modules/
+npm-debug.log*
+
+# Temporary files
+/tmp/*
+!/tmp/reports
+!/tmp/notes
+
+# Documentation
+docs/
+*.md
+!README.md
 
 # Database
 *.db
+*.sqlite3
 
 # Environment variables
 .env
