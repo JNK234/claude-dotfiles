@@ -31,7 +31,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.10.13"
       - key: CORS_ORIGINS
-        value: '["https://inferencemd-frontend.onrender.com"]'
+        value: "https://inferencemd-frontend.onrender.com"
       
       # LLM Provider Configuration
       # Set this to one of: "azure", "openai", "gemini", "deepseek"
