@@ -84,7 +84,6 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       alembic upgrade head
-    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
 
   # Frontend Static Site (React)
   # Builds and serves the static React application.
