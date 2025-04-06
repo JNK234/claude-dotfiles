@@ -31,7 +31,8 @@ services:
       - key: PYTHON_VERSION # Specify Python version used in Dockerfile
         value: "3.10.13" # Match the version used in python:3.10-slim or update Dockerfile
       - key: CORS_ORIGINS # Allow frontend origin (Update with your frontend URL)
-        value: "https://inferencemd-frontend.onrender.com" # Example, replace with actual frontend URL after deployment
+        # Format as a JSON string list to ensure correct parsing by Pydantic Settings validator
+        value: '["https://inferencemd-frontend.onrender.com"]'
       - key: LLM_PROVIDER
         value: "azure" # Default, override in Render UI if needed
       # --- Add ALL other required LLM and API keys here ---
