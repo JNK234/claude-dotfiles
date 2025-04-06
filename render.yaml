@@ -70,7 +70,7 @@ services:
     name: inferencemd-frontend
     runtime: static
     buildCommand: cd frontend && npm ci && npm run build
-    staticPublishPath: frontend/build
+    staticPublishPath: ./frontend/build
     envVars:
       - key: CI
         value: "false"
