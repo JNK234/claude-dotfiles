@@ -39,10 +39,11 @@ services:
         value: "gemini"
       
       # Google Gemini Settings (when LLM_PROVIDER="gemini")
+      # Note: Add your API key in the Render dashboard instead of here
       - key: GOOGLE_API_KEY
-        value: AIzaSyCBDfjaUW19EffSNoaBlRIZt3zx-FonLyQ
+        sync: false # This will be set in the Render dashboard
       - key: LLM_MODEL_NAME
-        value: gemini-2.5-pro-preview-03-25
+        value: "gemini-1.5-pro"
       
       # Common LLM Parameters (apply to all providers)
       - key: LLM_TEMPERATURE
@@ -61,18 +62,20 @@ services:
         value: "/tmp/notes"
       - key: STATIC_DIR
         value: "/app/static"
-    buildCommand: |
-      pip install -r requirements.txt
-      alembic upgrade head
+    # Skip the build command since migrations will be handled in the startup script
+    # Database migrations should happen at runtime, not build time
 
   # Frontend Static Site (React)
   - type: web
     name: inferencemd-frontend
     runtime: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    rootDir: frontend
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/build
     envVars:
+      - key: CI
+        value: "false"
+      - key: NODE_VERSION
+        value: "18"
       - key: REACT_APP_API_BASE_URL
         fromService:
           type: web
