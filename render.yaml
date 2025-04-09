@@ -48,11 +48,11 @@ services:
       # Google Gemini Settings (when LLM_PROVIDER="gemini")
       # IMPORTANT: Store sensitive keys like API keys as Render Secret Files or in Environment Groups
       # See: https://render.com/docs/configure-environment-variables#secret-files
-      # Example using a secret key named 'google_api_key':
+      # Example using a standard environment variable:
+      # IMPORTANT: Paste your actual Google API Key into the 'Value' field 
+      # for GOOGLE_API_KEY in the Render dashboard environment settings.
       - key: GOOGLE_API_KEY
-        fromSecretKeyRef:
-          name: google_api_key # Name of the secret key you create in Render dashboard
-          key: GOOGLE_API_KEY # The specific key within the secret (if using env group)
+        value: "" # PASTE YOUR KEY HERE IN RENDER DASHBOARD
       - key: LLM_MODEL_NAME
         value: gemini-2.5-pro-preview-03-25 # Example: Use a specific model version
       
