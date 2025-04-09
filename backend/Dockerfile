@@ -21,6 +21,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
+# This ensures the application code is properly placed for Python module imports
 COPY . .
 
 # Create necessary directories
