@@ -20,7 +20,7 @@ services:
     plan: free
     # Docker specific settings
     dockerfilePath: ./backend/Dockerfile # Path to the Dockerfile relative to repo root
-    dockerContext: ./backend # Build context directory relative to repo root
+    dockerContext: . # Build context directory is the repository root
     # buildCommand and startCommand are now handled by the Dockerfile's build process and CMD/ENTRYPOINT
     healthCheckPath: / # Use the root path for health checks. Ensure the container exposes the app on $PORT and this path returns 2xx without auth.
     envVars:
