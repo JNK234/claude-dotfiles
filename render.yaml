@@ -38,7 +38,7 @@ services:
         fromService:
           type: web
           name: inferencemd-frontend
-          property: url # Get the full URL string
+          property: host # Use 'host' instead of 'url'
       
       # LLM Provider Configuration
       # Set this to one of: "azure", "openai", "gemini", "deepseek"
@@ -52,13 +52,14 @@ services:
       - key: GOOGLE_API_KEY
         fromSecretKeyRef:
           name: google_api_key # Name of the secret key you create in Render dashboard
-          key: GOOGLE_API_KEY # The specific key within the secret (if using env group)
+          # Removed inner 'key' assuming 'google_api_key' is a single secret file/value
       - key: LLM_MODEL_NAME
         value: gemini-2.5-pro-preview-03-25 # Example: Use a specific model version
       
       # Common LLM Parameters (apply to all providers)
       - key: LLM_TEMPERATURE
         value: "0.5"
+        
       - key: LLM_MAX_TOKENS
         value: "4096"
       - key: LLM_TIMEOUT
