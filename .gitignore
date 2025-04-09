@@ -6,7 +6,6 @@ __pycache__
 node_modules
 *.db
 *.pdf
-*.html
 *.log
 report_*
 .pytest_cache
