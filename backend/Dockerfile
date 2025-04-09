@@ -3,14 +3,16 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Use -qq for quieter output, ensure update runs before install
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     wget \
     pandoc \
-    wkhtmltopdf \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    wkhtmltopdf && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
 COPY requirements.txt .
