@@ -15,14 +15,19 @@ services:
   # Runs the Python backend application using the Dockerfile.
   - type: web
     name: inferencemd-backend
-    runtime: docker
+    # Switch to native Python runtime for faster deployments
+    runtime: python 
     plan: free
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    # The actual command to start the service, overriding Dockerfile CMD/ENTRYPOINT
-    # Runs Alembic migrations first, then starts Gunicorn
-    startCommand: "alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app"
-    healthCheckPath: / # Use the root path for health checks as /api/health is not defined
+    # Specify Python version (matching Dockerfile)
+    pythonVersion: "3.10" 
+    # Command to install dependencies (runs before startCommand)
+    # Note: Installs from the backend directory relative to the repo root
+    buildCommand: "pip install -r backend/requirements.txt" 
+    # Command to run migrations and start the server (same as before)
+    startCommand: "alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.app.main:app" 
+    healthCheckPath: / # Use the root path for health checks
+    # NOTE: System dependencies like wkhtmltopdf/pandoc are NOT available 
+    # in the native Python runtime. PDF generation will likely fail.
     envVars:
       # Database and Core Settings
       - key: DATABASE_URL
@@ -72,15 +77,16 @@ services:
       - key: NOTES_DIR
         value: "/tmp/notes"
       - key: STATIC_DIR
-        value: "/app/static"
-    # buildCommand is removed for Docker runtime as build steps should be in Dockerfile
-    # startCommand is used instead to run migrations before server start
+        # Native runtime doesn't use /app, adjust path if needed, but /tmp is usually fine
+        value: "/tmp/static" # Or keep /app/static if Gunicorn serves it relative to CWD
+    # Removed Docker-specific fields (dockerfilePath, dockerContext)
 
   # Frontend Static Site (React)
   - type: web
     name: inferencemd-frontend
     runtime: static
-    buildCommand: cd frontend && npm ci && npm run build
+    # Ensure frontend build command still works relative to repo root
+    buildCommand: "cd frontend && npm ci && npm run build"
     staticPublishPath: ./frontend/build
     envVars:
       - key: CI
