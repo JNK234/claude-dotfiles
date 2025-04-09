@@ -19,7 +19,10 @@ services:
     plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    healthCheckPath: /api/health
+    # The actual command to start the service, overriding Dockerfile CMD/ENTRYPOINT
+    # Runs Alembic migrations first, then starts Gunicorn
+    startCommand: "alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app"
+    healthCheckPath: / # Use the root path for health checks as /api/health is not defined
     envVars:
       # Database and Core Settings
       - key: DATABASE_URL
@@ -30,8 +33,11 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.10.13"
-      - key: CORS_ORIGINS
-        value: "https://inferencemd-frontend.onrender.com"
+      - key: CORS_ORIGINS # Dynamically set based on the frontend service URL
+        fromService:
+          type: web
+          name: inferencemd-frontend
+          property: host # Use 'host' for the base URL (e.g., your-app.onrender.com) or 'url' for the full URL (https://...)
       
       # LLM Provider Configuration
       # Set this to one of: "azure", "openai", "gemini", "deepseek"
@@ -39,10 +45,15 @@ services:
         value: "gemini"
       
       # Google Gemini Settings (when LLM_PROVIDER="gemini")
+      # IMPORTANT: Store sensitive keys like API keys as Render Secret Files or in Environment Groups
+      # See: https://render.com/docs/configure-environment-variables#secret-files
+      # Example using a secret key named 'google_api_key':
       - key: GOOGLE_API_KEY
-        value: AIzaSyCBDfjaUW19EffSNoaBlRIZt3zx-FonLyQ
+        fromSecretKeyRef:
+          name: google_api_key # Name of the secret key you create in Render dashboard
+          key: GOOGLE_API_KEY # The specific key within the secret (if using env group)
       - key: LLM_MODEL_NAME
-        value: gemini-2.5-pro-preview-03-25
+        value: gemini-2.5-pro-preview-03-25 # Example: Use a specific model version
       
       # Common LLM Parameters (apply to all providers)
       - key: LLM_TEMPERATURE
@@ -61,9 +72,8 @@ services:
         value: "/tmp/notes"
       - key: STATIC_DIR
         value: "/app/static"
-    buildCommand: |
-      pip install -r requirements.txt
-      alembic upgrade head
+    # buildCommand is removed for Docker runtime as build steps should be in Dockerfile
+    # startCommand is used instead to run migrations before server start
 
   # Frontend Static Site (React)
   - type: web
