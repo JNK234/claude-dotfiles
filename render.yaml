@@ -37,7 +37,10 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: "3.10.13"
+        value: "3.10.13" # Note: pythonVersion field above is preferred for setting runtime version
+      # Set PYTHONPATH so imports like 'from app...' work correctly from the repo root
+      - key: PYTHONPATH 
+        value: backend
       # CORS_ORIGINS will be constructed in config.py using RENDER_FRONTEND_URL
       - key: RENDER_FRONTEND_URL # New variable to hold the raw URL from Render
         fromService:
