@@ -15,7 +15,7 @@ services:
   # Runs the Python backend application using Render's native Python runtime.
   - type: web
     name: inferencemd-backend
-    # Switched to native Python runtime
+    # Using native Python runtime
     runtime: python
     plan: free
     # Python specific settings
