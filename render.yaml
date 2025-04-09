@@ -33,11 +33,12 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: "3.10.13"
-      - key: CORS_ORIGINS # Dynamically set based on the frontend service URL
+      # CORS_ORIGINS will be constructed in config.py using RENDER_FRONTEND_URL
+      - key: RENDER_FRONTEND_URL # New variable to hold the raw URL from Render
         fromService:
           type: web
           name: inferencemd-frontend
-          property: url # Use 'url' to get the full URL (e.g., https://your-app.onrender.com)
+          property: url # Get the full URL string
       
       # LLM Provider Configuration
       # Set this to one of: "azure", "openai", "gemini", "deepseek"

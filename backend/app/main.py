@@ -21,10 +21,11 @@ app = FastAPI(
     redoc_url=None
 )
 
-# Add CORS middleware with more permissive settings for development
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"] if not settings.CORS_ORIGINS else settings.CORS_ORIGINS,
+    # Use the renamed setting field from config.py
+    allow_origins=settings.ALLOWED_CORS_ORIGINS, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

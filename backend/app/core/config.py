@@ -2,10 +2,11 @@
 Configuration settings for the FastAPI application
 """
 import os
+import os
 import secrets
-from typing import List, Optional
+from typing import List, Optional, Self # Import Self for Python 3.11+, use typing_extensions for older
 
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import AnyHttpUrl, model_validator # Import model_validator
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -26,27 +27,45 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./inferenceMD.db")
     
-    # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    # CORS - Renamed field to avoid auto-parsing conflicts
+    # Default CORS origins (used if RENDER_FRONTEND_URL is not set)
+    ALLOWED_CORS_ORIGINS: List[str] = ["http://localhost:3000"] 
+    # Field to capture the frontend URL from Render environment variable (set via render.yaml)
+    RENDER_FRONTEND_URL: Optional[str] = None 
+    # Field to capture the custom frontend URL (set manually in Render Env Vars)
+    CUSTOM_FRONTEND_URL: Optional[str] = None 
     
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
+    @model_validator(mode='after')
+    def set_allowed_cors_origins(self) -> Self:
         """
-        Accepts a list of origins or a single origin string (e.g., from Render env var).
+        Constructs the ALLOWED_CORS_ORIGINS list based on Render-provided
+        and custom URLs from environment variables.
         """
-        if isinstance(v, list):
-            # Already a list, return directly
-            return v
-        if isinstance(v, str):
-            # Assume it's a single URL string (e.g., from Render's 'property: url')
-            # Strip potential whitespace and return as a single-element list
-            origin = v.strip()
-            # Return the single origin in a list if it's not empty, otherwise default
-            return [origin] if origin else ["http://localhost:3000"]
-        # Default fallback if input is neither string nor list
-        return ["http://localhost:3000"]
-    
+        origins = set() # Use a set to avoid duplicates
+        
+        # Add default localhost for local development (optional, can be removed if not needed)
+        # origins.add("http://localhost:3000") 
+
+        # Add Render's dynamic URL if available
+        if self.RENDER_FRONTEND_URL:
+            cleaned_render_url = self.RENDER_FRONTEND_URL.strip()
+            if cleaned_render_url:
+                origins.add(cleaned_render_url)
+        
+        # Add the custom domain URL if available
+        if self.CUSTOM_FRONTEND_URL:
+            cleaned_custom_url = self.CUSTOM_FRONTEND_URL.strip()
+            if cleaned_custom_url:
+                origins.add(cleaned_custom_url)
+
+        # If any origins were added, use them. Otherwise, keep the default.
+        if origins:
+            self.ALLOWED_CORS_ORIGINS = list(origins)
+        # If neither RENDER_FRONTEND_URL nor CUSTOM_FRONTEND_URL were set, 
+        # ALLOWED_CORS_ORIGINS will retain its class-level default ["http://localhost:3000"]
+            
+        return self
+
     # LLM Service
     # --- Existing Azure OpenAI Settings (Unchanged) ---
     AZURE_OPENAI_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY", "")
