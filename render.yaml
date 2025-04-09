@@ -15,19 +15,15 @@ services:
   # Runs the Python backend application using the Dockerfile.
   - type: web
     name: inferencemd-backend
-    # Switch to native Python runtime for faster deployments
-    runtime: python 
+    # Reverted to Docker runtime
+    runtime: docker 
     plan: free
-    # Specify Python version (matching Dockerfile)
-    pythonVersion: "3.10" 
-    # Command to install dependencies (runs before startCommand)
-    # Note: Installs from the backend directory relative to the repo root
-    buildCommand: "pip install -r backend/requirements.txt" 
-    # Command to run migrations and start the server (same as before)
-    startCommand: "alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker backend.app.main:app" 
+    # Docker build settings
+    dockerfilePath: ./backend/Dockerfile 
+    dockerContext: ./backend 
+    # Command to run migrations and start the server inside the container
+    startCommand: "alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app" 
     healthCheckPath: / # Use the root path for health checks
-    # NOTE: System dependencies like wkhtmltopdf/pandoc are NOT available 
-    # in the native Python runtime. PDF generation will likely fail.
     envVars:
       # Database and Core Settings
       - key: DATABASE_URL
@@ -37,12 +33,10 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: "3.10.13" # Note: pythonVersion field above is preferred for setting runtime version
-      # Set PYTHONPATH so imports like 'from app...' work correctly from the repo root
-      - key: PYTHONPATH 
-        value: backend
+        value: "3.10.13" 
+      # PYTHONPATH is handled by Dockerfile WORKDIR/ENV
       # CORS_ORIGINS will be constructed in config.py using RENDER_FRONTEND_URL
-      - key: RENDER_FRONTEND_URL # New variable to hold the raw URL from Render
+      - key: RENDER_FRONTEND_URL # Variable to hold the raw URL from Render
         fromService:
           type: web
           name: inferencemd-frontend
@@ -80,9 +74,9 @@ services:
       - key: NOTES_DIR
         value: "/tmp/notes"
       - key: STATIC_DIR
-        # Native runtime doesn't use /app, adjust path if needed, but /tmp is usually fine
-        value: "/tmp/static" # Or keep /app/static if Gunicorn serves it relative to CWD
-    # Removed Docker-specific fields (dockerfilePath, dockerContext)
+        # Path inside the Docker container
+        value: "/app/static" 
+    # Removed native Python runtime fields (pythonVersion, buildCommand)
 
   # Frontend Static Site (React)
   - type: web
