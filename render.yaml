@@ -12,20 +12,17 @@ databases:
 
 services:
   # Backend Web Service (FastAPI)
-  # Runs the Python backend application using Render's native Python runtime.
+  # Runs the Python backend application using Docker.
   - type: web
     name: inferencemd-backend
-    # Using native Python runtime
-    runtime: python
+    # Using Docker runtime
+    runtime: docker
     plan: free
-    # Python specific settings
-    pythonVersion: "3.10.13" # Specify Python version
-    # Build command to install dependencies (relative to repo root)
-    buildCommand: "pip install -r backend/requirements.txt"
-    # Command to change directory, create runtime dirs, run migrations, and start the server
-    # Explicitly binds Gunicorn to 0.0.0.0 and the port provided by Render ($PORT)
-    startCommand: "cd backend && mkdir -p reports notes && alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT app.main:app"
-    healthCheckPath: / # Use the root path for health checks. Ensure this path returns 2xx without auth.
+    # Docker specific settings
+    dockerfilePath: ./backend/Dockerfile # Path to the Dockerfile relative to repo root
+    dockerContext: ./backend # Build context directory relative to repo root
+    # buildCommand and startCommand are now handled by the Dockerfile's build process and CMD/ENTRYPOINT
+    healthCheckPath: / # Use the root path for health checks. Ensure the container exposes the app on $PORT and this path returns 2xx without auth.
     envVars:
       # Database and Core Settings
       - key: DATABASE_URL
