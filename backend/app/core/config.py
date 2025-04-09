@@ -2,9 +2,8 @@
 Configuration settings for the FastAPI application
 """
 import os
-import os
 import secrets
-from typing import List, Optional, Self # Import Self for Python 3.11+, use typing_extensions for older
+from typing import List, Optional # Remove Self import
 
 from pydantic import AnyHttpUrl, model_validator # Import model_validator
 from pydantic_settings import BaseSettings
@@ -36,7 +35,7 @@ class Settings(BaseSettings):
     CUSTOM_FRONTEND_URL: Optional[str] = None 
     
     @model_validator(mode='after')
-    def set_allowed_cors_origins(self) -> Self:
+    def set_allowed_cors_origins(self) -> 'Settings': # Use string literal for forward reference
         """
         Constructs the ALLOWED_CORS_ORIGINS list based on Render-provided
         and custom URLs from environment variables.
