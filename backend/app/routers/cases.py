@@ -5,6 +5,7 @@ from typing import Any, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import desc # Add this import
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -35,10 +36,10 @@ def list_cases(
     Returns:
         CaseList: List of cases
     """
-    # Get cases for current user
-    cases = db.query(Case).filter(Case.user_id == current_user.id).offset(skip).limit(limit).all()
+    # Get cases for current user, sorted by last updated time (descending)
+    cases = db.query(Case).filter(Case.user_id == current_user.id).order_by(desc(Case.updated_at)).offset(skip).limit(limit).all()
     total = db.query(Case).filter(Case.user_id == current_user.id).count()
-    
+
     return {"cases": cases, "total": total}
 
 @router.post("", response_model=CaseSchema, status_code=status.HTTP_201_CREATED)
