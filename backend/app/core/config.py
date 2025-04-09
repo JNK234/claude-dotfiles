@@ -33,30 +33,17 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
         """
-        Parse CORS origins list from string (for environment variables) or list.
-        Handles JSON list string, comma-separated string, or single URL string.
+        Accepts a list of origins or a single origin string (e.g., from Render env var).
         """
         if isinstance(v, list):
             # Already a list, return directly
             return v
         if isinstance(v, str):
-            # Try parsing as JSON list first
-            if v.startswith("[") and v.endswith("]"):
-                import json
-                try:
-                    parsed_list = json.loads(v)
-                    if isinstance(parsed_list, list):
-                        return parsed_list
-                except json.JSONDecodeError:
-                    # If JSON parsing fails, fall through to treat as potential single/comma-separated string
-                    pass # Fall through to comma splitting
-
-            # Handle comma-separated strings OR a single string URL
-            # Split by comma, strip whitespace, and filter out empty strings
-            origins = [item.strip() for item in v.split(",") if item.strip()]
-            # Ensure we return at least the default if splitting results in empty list or invalid input
-            return origins if origins else ["http://localhost:3000"] # Return parsed origins or default
-
+            # Assume it's a single URL string (e.g., from Render's 'property: url')
+            # Strip potential whitespace and return as a single-element list
+            origin = v.strip()
+            # Return the single origin in a list if it's not empty, otherwise default
+            return [origin] if origin else ["http://localhost:3000"]
         # Default fallback if input is neither string nor list
         return ["http://localhost:3000"]
     

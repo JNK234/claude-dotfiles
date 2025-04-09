@@ -37,7 +37,7 @@ services:
         fromService:
           type: web
           name: inferencemd-frontend
-          property: host # Use 'host' for the base URL (e.g., your-app.onrender.com) or 'url' for the full URL (https://...)
+          property: url # Use 'url' to get the full URL (e.g., https://your-app.onrender.com)
       
       # LLM Provider Configuration
       # Set this to one of: "azure", "openai", "gemini", "deepseek"
