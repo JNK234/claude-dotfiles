@@ -9,3 +9,4 @@ node_modules
 *.html
 *.log
 report_*
+.pytest_cache

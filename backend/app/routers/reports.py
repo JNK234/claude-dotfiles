@@ -17,6 +17,7 @@ from app.models.case import Case, Report
 from app.models.user import User
 from app.schemas.case import Report as ReportSchema
 from app.services.report_service import ReportService
+from app.services.report_service import ReportService
 
 router = APIRouter()
 

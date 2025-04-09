@@ -1,10 +1,10 @@
-# InferenceMD
+# Second OpniAIon: Medical Diagnosis with Causal Inference
 
 A sophisticated medical diagnosis system that leverages causal inference and large language models to provide comprehensive medical analysis, diagnosis, and treatment recommendations.
 
 ## 🏥 Overview
 
-InferenceMD is an advanced medical diagnosis assistant that helps healthcare professionals analyze patient cases through a causal inference approach. The system extracts medical factors from patient cases, identifies causal relationships between symptoms and conditions, performs counterfactual analysis, and generates evidence-based diagnoses and treatment plans.
+Second OpniAIon is an advanced medical diagnosis assistant that helps healthcare professionals analyze patient cases through a causal inference approach. The system extracts medical factors from patient cases, identifies causal relationships between symptoms and conditions, performs counterfactual analysis, and generates evidence-based diagnoses and treatment plans.
 
 ### Key Features
 

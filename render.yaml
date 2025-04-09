@@ -1,0 +1,78 @@
+# Render Deployment Configuration for InferenceMD
+# Defines the services needed to run the application on Render.
+# Documentation: https://render.com/docs/blueprint-spec
+
+
+databases:
+
+  # Database service for the FastAPI backend
+  - name: inferencemd-db
+    # region: frankfurt # Optional: Choose a region close to you/your users
+    plan: free # Or choose a paid plan for production needs
+    postgresMajorVersion: 14 # Specify PostgreSQL version
+    ipAllowList: [] # Allows connections from Render services by default
+
+services:
+  
+  # 2. Backend Web Service (FastAPI)
+  # Runs the Python backend application using the Dockerfile.
+  - type: web
+    name: inferencemd-backend
+    # region: frankfurt # Optional: Match the database region
+    plan: free # Or choose a paid plan (e.g., 'starter') for production
+    runtime: docker # Specifies that we are using a Dockerfile
+    dockerfilePath: ./backend/Dockerfile # Path to the Dockerfile relative to the repo root
+    dockerContext: ./backend # Build context for Docker
+    healthCheckPath: /api/health # Optional: Add a health check endpoint to FastAPI
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: inferencemd-db # Name of the database service defined above
+          property: connectionString # Get the connection string
+      - key: SECRET_KEY
+        generateValue: true # Let Render generate a secure secret key
+      - key: PYTHON_VERSION # Specify Python version used in Dockerfile
+        value: 3.10.13 # Match the version used in python:3.10-slim or update Dockerfile
+      - key: CORS_ORIGINS # Allow frontend origin (Update with your frontend URL)
+        value: "https://inferencemd-frontend.onrender.com" # Example, replace with actual frontend URL after deployment
+      - key: LLM_PROVIDER
+        value: azure # Default, override in Render UI if needed
+      # --- Add ALL other required LLM and API keys here ---
+      # Example (set actual values in Render UI Secret Files or Env Vars):
+      # - key: AZURE_OPENAI_API_KEY
+      #   value: YOUR_AZURE_KEY
+      # - key: AZURE_OPENAI_API_BASE
+      #   value: YOUR_AZURE_ENDPOINT
+      # - key: AZURE_OPENAI_DEPLOYMENT_NAME
+      #   value: YOUR_AZURE_DEPLOYMENT
+      # --- Persistent Storage Configuration ---
+      - key: REPORTS_DIR # Point to the mounted disk path
+        value: /data/persistence/reports
+      - key: NOTES_DIR # Point to the mounted disk path
+        value: /data/persistence/notes
+    # disk:
+    #   name: inferencemd-data # Name for the persistent disk
+    #   mountPath: /data/persistence # Mount point inside the container
+    #   sizeGB: 1 # Size of the disk (adjust as needed)
+
+  # 3. Frontend Static Site (React)
+  # Builds and serves the static React application.
+  - type: web # Correct type for static web applications
+    runtime: static # Indicates a static site
+    name: inferencemd-frontend
+    # region: frankfurt # Optional: Match other services
+    plan: free # Static sites are often free
+    rootDir: frontend # Root directory for the frontend code (relative to repo root)
+    buildCommand: npm install && npm run build # Commands to build the site
+    staticPublishPath: frontend/build # Directory containing the built static assets (relative to repo root)
+    # Optional: Add rewrite rules for single-page applications (SPA) like React Router
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: REACT_APP_API_BASE_URL # Pass backend URL to frontend
+        fromService:
+          type: web # Service type
+          name: inferencemd-backend # Name of the backend service
+          property: connectionString 

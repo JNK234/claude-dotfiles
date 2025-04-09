@@ -6,7 +6,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.core.security import get_password_hash
-from app.main import app
+from backend.app.main import app
 from app.models.user import User
 
 class TestAuthenticationFlow:
