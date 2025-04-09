@@ -21,8 +21,7 @@ services:
     # Docker build settings
     dockerfilePath: ./backend/Dockerfile 
     dockerContext: .
-    # Command to run migrations and start the server inside the container
-    startCommand: "cd /app && alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app" 
+    # startCommand is removed - rely on Dockerfile CMD
     healthCheckPath: / # Use the root path for health checks
     envVars:
       # Database and Core Settings
