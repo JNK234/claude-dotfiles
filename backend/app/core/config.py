@@ -33,21 +33,32 @@ class Settings(BaseSettings):
     @classmethod
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
         """
-        Parse CORS origins list from string (for environment variables) or list
+        Parse CORS origins list from string (for environment variables) or list.
+        Handles JSON list string, comma-separated string, or single URL string.
         """
+        if isinstance(v, list):
+            # Already a list, return directly
+            return v
         if isinstance(v, str):
+            # Try parsing as JSON list first
             if v.startswith("[") and v.endswith("]"):
-                # Try to parse as JSON
                 import json
                 try:
-                    return json.loads(v)
-                except:
-                    pass
-            # Simple string case
-            return [item.strip() for item in v.split(",")]
-        elif isinstance(v, list):
-            return v
-        return ["http://localhost:3000"]  # Default fallback
+                    parsed_list = json.loads(v)
+                    if isinstance(parsed_list, list):
+                        return parsed_list
+                except json.JSONDecodeError:
+                    # If JSON parsing fails, fall through to treat as potential single/comma-separated string
+                    pass # Fall through to comma splitting
+
+            # Handle comma-separated strings OR a single string URL
+            # Split by comma, strip whitespace, and filter out empty strings
+            origins = [item.strip() for item in v.split(",") if item.strip()]
+            # Ensure we return at least the default if splitting results in empty list or invalid input
+            return origins if origins else ["http://localhost:3000"] # Return parsed origins or default
+
+        # Default fallback if input is neither string nor list
+        return ["http://localhost:3000"]
     
     # LLM Service
     # --- Existing Azure OpenAI Settings (Unchanged) ---
