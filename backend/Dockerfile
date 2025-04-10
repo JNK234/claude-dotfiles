@@ -29,14 +29,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire backend directory content
 COPY ./backend /app
 
-# Ensure alembic.ini has correct permissions and migrations directory exists
-RUN chmod 644 /app/alembic.ini && \
+# Set correct permissions for all files and directories
+RUN chmod -R 755 /app && \
+    find /app -type f -name "*.py" -exec chmod 644 {} \; && \
+    find /app -type f -name "*.ini" -exec chmod 644 {} \; && \
     mkdir -p /app/app/migrations/versions && \
-    chmod -R 755 /app/app/migrations
-
-# Create necessary directories for runtime data
-RUN mkdir -p /tmp/reports /tmp/notes ./static && \
-    chown -R nobody:nogroup /tmp/reports /tmp/notes ./static
+    mkdir -p /tmp/reports /tmp/notes ./static && \
+    chown -R nobody:nogroup /app /tmp/reports /tmp/notes ./static
 
 # Switch to non-root user for better security
 USER nobody
@@ -48,7 +47,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 # Expose the port
 EXPOSE ${PORT}
 
-# Create Gunicorn config
+# Create Gunicorn config with proper permissions
 RUN echo 'import multiprocessing\n\
 workers = multiprocessing.cpu_count() * 2 + 1\n\
 bind = "0.0.0.0:" + str(PORT)\n\
