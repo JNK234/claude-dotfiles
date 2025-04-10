@@ -364,7 +364,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
       
       setMessages(prev => [...prev, MessageService.formatMessageForUI(assistantMessage)]);
-      setCurrentStage(workflowResult.stage_name);
+      // setCurrentStage(workflowResult.stage_name); // Removed: Redundant and potentially sets undefined if workflowResult is invalid
       setIsProcessing(false);
     } catch (error) {
       console.error('Error creating case:', error);
