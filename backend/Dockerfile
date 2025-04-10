@@ -1,10 +1,15 @@
 FROM python:3.10-slim
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    PORT=8000
+
 # Set the working directory inside the container
 WORKDIR /app
 
-# Install system dependencies needed for report generation (pandoc, wkhtmltopdf)
-# and potentially other build tools.
+# Install system dependencies needed for report generation and build tools
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -16,39 +21,45 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy only the requirements file first to leverage Docker cache
-# Assumes Docker context is the repository root '.'
 COPY ./backend/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire backend directory content into the /app working directory
-# This makes the structure inside the container /app/app, /app/tests, etc.
+# Copy the entire backend directory content
 COPY ./backend /app
 
-# Ensure alembic.ini is in the correct location and has correct permissions
+# Ensure alembic.ini has correct permissions and migrations directory exists
 RUN chmod 644 /app/alembic.ini && \
     mkdir -p /app/app/migrations/versions && \
     chmod -R 755 /app/app/migrations
 
-# Debug - show directory structure after copy
-RUN echo "===== Directory Structure in /app =====" && \
-    find /app -maxdepth 2 -type d | sort && \
-    echo "===== Files in /app/app/services =====" && \
-    find /app/app/services -type f 2>/dev/null || echo "Directory /app/app/services not found or empty"
+# Create necessary directories for runtime data
+RUN mkdir -p /tmp/reports /tmp/notes ./static && \
+    chown -R nobody:nogroup /tmp/reports /tmp/notes ./static
 
-# Create necessary directories for runtime data (reports, notes)
-# Static directory is now relative to /app (i.e., /app/static)
-RUN mkdir -p /tmp/reports /tmp/notes ./static
+# Switch to non-root user for better security
+USER nobody
 
-# Set environment variables
-# PYTHONPATH should point to the directory containing the top-level 'app' package, which is /app
-ENV PYTHONPATH=/app
-ENV PORT=8000
+# Add container health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# Expose the port the app runs on
+# Expose the port
 EXPOSE ${PORT}
 
-# Command to run migrations and start the application using Gunicorn
-# No 'cd' needed as WORKDIR is already /app. Chain commands correctly.
-CMD alembic upgrade head && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
+# Create Gunicorn config
+RUN echo 'import multiprocessing\n\
+workers = multiprocessing.cpu_count() * 2 + 1\n\
+bind = "0.0.0.0:" + str(PORT)\n\
+timeout = 120\n\
+keepalive = 5\n\
+worker_class = "uvicorn.workers.UvicornWorker"\n\
+max_requests = 1000\n\
+max_requests_jitter = 50\n\
+graceful_timeout = 30\n\
+forwarded_allow_ips = "*"' > /app/gunicorn.conf.py
+
+# Command to run migrations and start the application
+CMD alembic upgrade head && \
+    gunicorn app.main:app -c /app/gunicorn.conf.py

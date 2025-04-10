@@ -9,6 +9,8 @@ databases:
     plan: free # Or choose a paid plan for production needs
     postgresMajorVersion: 14 # Specify PostgreSQL version
     ipAllowList: [] # Allows connections from Render services by default
+    # Add SSL mode for better security
+    sslmode: require
 
 services:
   # Backend Web Service (FastAPI)
@@ -21,8 +23,8 @@ services:
     # Docker specific settings
     dockerfilePath: ./backend/Dockerfile # Path to the Dockerfile relative to repo root
     dockerContext: . # Build context directory is the repository root
-    # buildCommand and startCommand are now handled by the Dockerfile's build process and CMD/ENTRYPOINT
-    healthCheckPath: / # Use the root path for health checks. Ensure the container exposes the app on $PORT and this path returns 2xx without auth.
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
       # Database and Core Settings
       - key: DATABASE_URL
@@ -71,6 +73,7 @@ services:
     # Ensure frontend build command still works relative to repo root
     buildCommand: "cd frontend && npm ci && npm run build"
     staticPublishPath: ./frontend/build
+    autoDeploy: true
     envVars:
       - key: CI
         value: "false"

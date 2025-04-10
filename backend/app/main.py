@@ -2,9 +2,10 @@
 InferenceMD FastAPI Application
 Main application entry point
 """
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
+from sqlalchemy.sql import text
 
 from app.core.config import settings
 from app.core.database import get_db
@@ -31,6 +32,23 @@ app.add_middleware(
     expose_headers=["Content-Length"],
     max_age=600,  # Cache preflight requests for 10 minutes
 )
+
+# Add health check endpoint
+@app.get("/health", tags=["Health"])
+async def health_check(db=Depends(get_db)):
+    """
+    Health check endpoint that verifies database connectivity
+    """
+    try:
+        # Test database connection
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "version": settings.VERSION
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="Database connection failed")
 
 # Include routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
