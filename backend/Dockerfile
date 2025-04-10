@@ -49,8 +49,9 @@ EXPOSE ${PORT}
 
 # Create Gunicorn config with proper permissions
 RUN echo 'import multiprocessing\n\
+import os\n\
 workers = multiprocessing.cpu_count() * 2 + 1\n\
-bind = "0.0.0.0:" + str(PORT)\n\
+bind = f"0.0.0.0:{os.environ.get(\"PORT\", \"8000\")}" \n\
 timeout = 120\n\
 keepalive = 5\n\
 worker_class = "uvicorn.workers.UvicornWorker"\n\
