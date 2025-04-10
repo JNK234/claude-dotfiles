@@ -34,11 +34,8 @@ services:
       # PYTHON_VERSION is handled by pythonVersion field above
       # PYTHONPATH is not typically needed when running from the correct directory
       # CORS_ORIGINS will be constructed in config.py using RENDER_FRONTEND_URL
-      - key: RENDER_FRONTEND_URL # Variable to hold the raw URL from Render
-        fromService:
-          type: web
-          name: inferencemd-frontend
-          property: host # Use 'host' instead of 'url'
+      - key: RENDER_FRONTEND_URL
+        value: https://inferencemd-frontend.onrender.com # Replace with your actual frontend URL
       
       # LLM Provider Configuration
       # Set this to one of: "azure", "openai", "gemini", "deepseek"
