@@ -336,7 +336,19 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Create the case
       const newCase = await CaseService.createCase({ case_text: caseText });
       setSelectedCaseId(newCase.id);
-      setCurrentStage(newCase.current_stage);
+      
+      // --- Add check before setting currentStage ---
+      if (newCase.current_stage && typeof newCase.current_stage === 'string') {
+        setCurrentStage(newCase.current_stage);
+        console.log(`Set currentStage from newCase: ${newCase.current_stage}`);
+      } else {
+        // Fallback or error handling if newCase.current_stage is invalid
+        console.error("Invalid current_stage received from CaseService.createCase:", newCase.current_stage);
+        // Fallback to the default initial stage
+        setCurrentStage('patient_case_analysis_group'); 
+        console.log("Fell back to default stage: patient_case_analysis_group");
+      }
+      // --- End check ---
       
       // Add initial patient case as a message
       const patientCaseMessage = await MessageService.createMessage(newCase.id, {
