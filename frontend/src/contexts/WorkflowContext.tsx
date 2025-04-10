@@ -114,18 +114,14 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Adapt to accept both CaseStageResult (from getCaseDetails) and WorkflowStageResult (from processStage/startWorkflow)
   // Using useCallback to memoize the function
   const updateReasoningForStage = useCallback((stageResult: CaseStageResult | WorkflowStageResult) => {
-    // --- Robust check for valid stageResult ---
-    if (!stageResult || typeof stageResult !== 'object' || !stageResult.stage_name || !stageResult.result) {
-      console.error("Invalid stageResult received in updateReasoningForStage:", stageResult);
-      // Optionally set an error state here if needed
-      // setError("Received invalid data while processing workflow stage.");
-      return; // Stop processing if data is invalid
-    }
+    // Ensure we have the necessary properties, adapting for potential differences if any
     const stageName = stageResult.stage_name;
-    const resultData = stageResult.result;
-    // --- End robust check ---
+    const resultData = stageResult.result; // Assuming 'result' structure is consistent enough
 
-    console.log('Updating reasoning content for stage:', stageName, 'with result:', resultData);
+    if (!stageName || !resultData) {
+      console.warn("Cannot update reasoning, missing stage_name or result in:", stageResult);
+      return;
+    }
 
     console.log('Updating reasoning content for stage:', stageName, 'with result:', resultData);
 
@@ -312,12 +308,9 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       .filter(stage => stage.reasoningContent && stage.reasoningContent.trim() !== '') // Ensure content exists
       .sort((a, b) => WorkflowService.getStagesInOrder().indexOf(a.id) - WorkflowService.getStagesInOrder().indexOf(b.id)) // Sort based on defined order
       .map(stage => {
-        // --- Add check for stage.name before using charAt ---
-        const stageTitle = stage.name && typeof stage.name === 'string' 
-          ? stage.name.charAt(0).toUpperCase() + stage.name.slice(1) 
-          : `Stage: ${stage.id}`; // Fallback title if name is missing
-        // --- End check ---
-        return `## ${stageTitle}\n\n${stage.reasoningContent.trim()}`;
+        // Use the stage name from the stages state which should be correctly mapped
+        const formattedStageName = stage.name.charAt(0).toUpperCase() + stage.name.slice(1);
+        return `## ${formattedStageName}\n\n${stage.reasoningContent.trim()}`;
       })
       .join('\n\n---\n\n');
 
@@ -364,7 +357,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
       
       setMessages(prev => [...prev, MessageService.formatMessageForUI(assistantMessage)]);
-      // setCurrentStage(workflowResult.stage_name); // Removed: Redundant and potentially sets undefined if workflowResult is invalid
+      setCurrentStage(workflowResult.stage_name);
       setIsProcessing(false);
     } catch (error) {
       console.error('Error creating case:', error);
