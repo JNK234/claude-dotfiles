@@ -35,4 +35,4 @@ services:
     # with the proxy rewrite rule below.
     rewrites:
       - source: /api/* # Match any request starting with /api/
-        destination: ${inferencemd-backend.url}/api/* # Forward to the backend service
+        destination: https://inferencemd-backend.onrender.com/api/* # Forward to the backend service URL
