@@ -32,8 +32,9 @@ services:
     buildCommand: "cd frontend && npm ci && npm run build"
     staticPublishPath: ./frontend/build
     envVars:
-      - key: REACT_APP_API_BASE_URL
-        fromService:
-          type: web
-          name: inferencemd-backend
-          property: host
+      # Correct environment variable name expected by ApiService.ts
+      - key: REACT_APP_API_URL 
+        # Construct the full URL including the /api path prefix
+        # Assuming 'url' property provides the full base URL (e.g., https://service.onrender.com)
+        # We append '/api' to it. Adjust if Render uses a different property name.
+        value: ${inferencemd-backend.url}/api
