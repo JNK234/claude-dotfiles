@@ -1,39 +1,44 @@
 FROM python:3.10-slim
 
+# Essential environment variables only
+ENV PYTHONPATH=/app \
+    PORT=8000 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install dependencies needed for report generation
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     wget \
     pandoc \
-    wkhtmltopdf \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    wkhtmltopdf && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
-
-# Install Python dependencies
+# Copy requirements first for caching
+COPY ./backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY ./app ./app
+COPY ./backend /app
 
-# Create folders
-RUN mkdir -p reports static
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV PORT=8001
+# Create directories
+RUN mkdir -p /tmp/reports /tmp/notes ./static ./app/migrations/versions && \
+    find /app -type d | sort && \
+    ls -la /app/app/services
 
 # Expose port
-EXPOSE ${PORT}
+EXPOSE 8000
 
-# Run the application using Gunicorn with Uvicorn workers
-# Gunicorn will automatically bind to 0.0.0.0 and the PORT environment variable provided by Render (default 10000)
-# -w 4: Number of worker processes (adjust based on Render plan resources)
-# -k uvicorn.workers.UvicornWorker: Use Uvicorn for ASGI compatibility
-# app.main:app: Path to the FastAPI application instance
-CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.main:app"]
+# Simple direct start with debug output
+CMD echo "Current directory: $(pwd)" && \
+    echo "Directory listing:" && \
+    ls -la && \
+    echo "Python path: $PYTHONPATH" && \
+    echo "App services directory:" && \
+    ls -la app/services && \
+    echo "Starting server..." && \
+    python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT

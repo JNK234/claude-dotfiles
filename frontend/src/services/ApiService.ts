@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+// Use relative path for API requests, relying on Render's rewrite rule for proxying
+const API_URL = '/api'; 
 
 class ApiService {
   protected api: AxiosInstance;
