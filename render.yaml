@@ -31,10 +31,8 @@ services:
     runtime: static
     buildCommand: "cd frontend && npm ci && npm run build"
     staticPublishPath: ./frontend/build
-    envVars:
-      # Correct environment variable name expected by ApiService.ts
-      - key: REACT_APP_API_URL 
-        # Construct the full URL including the /api path prefix
-        # Assuming 'url' property provides the full base URL (e.g., https://service.onrender.com)
-        # We append '/api' to it. Adjust if Render uses a different property name.
-        value: ${inferencemd-backend.url}/api
+    # envVars section removed as REACT_APP_API_URL is no longer needed at build time
+    # with the proxy rewrite rule below.
+    rewrites:
+      - source: /api/* # Match any request starting with /api/
+        destination: ${inferencemd-backend.url}/api/* # Forward to the backend service
