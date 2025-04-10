@@ -29,10 +29,25 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire backend directory content
 COPY ./backend /app
 
+# Create Gunicorn config file (BEFORE changing permissions)
+RUN echo 'import multiprocessing\n\
+import os\n\
+workers = multiprocessing.cpu_count() * 2 + 1\n\
+port = os.environ.get("PORT", "8000")\n\
+bind = f"0.0.0.0:{port}"\n\
+timeout = 120\n\
+keepalive = 5\n\
+worker_class = "uvicorn.workers.UvicornWorker"\n\
+max_requests = 1000\n\
+max_requests_jitter = 50\n\
+graceful_timeout = 30\n\
+forwarded_allow_ips = "*"' > /app/gunicorn.conf.py
+
 # Set correct permissions for all files and directories
 RUN chmod -R 755 /app && \
     find /app -type f -name "*.py" -exec chmod 644 {} \; && \
     find /app -type f -name "*.ini" -exec chmod 644 {} \; && \
+    chmod 644 /app/gunicorn.conf.py && \
     mkdir -p /app/app/migrations/versions && \
     mkdir -p /tmp/reports /tmp/notes ./static && \
     chown -R nobody:nogroup /app /tmp/reports /tmp/notes ./static
@@ -46,19 +61,6 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 
 # Expose the port
 EXPOSE ${PORT}
-
-# Create Gunicorn config with proper permissions
-RUN echo 'import multiprocessing\n\
-import os\n\
-workers = multiprocessing.cpu_count() * 2 + 1\n\
-bind = f"0.0.0.0:{os.environ.get(\"PORT\", \"8000\")}" \n\
-timeout = 120\n\
-keepalive = 5\n\
-worker_class = "uvicorn.workers.UvicornWorker"\n\
-max_requests = 1000\n\
-max_requests_jitter = 50\n\
-graceful_timeout = 30\n\
-forwarded_allow_ips = "*"' > /app/gunicorn.conf.py
 
 # Command to run migrations and start the application
 CMD alembic upgrade head && \
