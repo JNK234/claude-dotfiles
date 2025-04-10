@@ -26,6 +26,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # This makes the structure inside the container /app/app, /app/tests, etc.
 COPY ./backend /app
 
+# Ensure alembic.ini is in the correct location and has correct permissions
+RUN chmod 644 /app/alembic.ini && \
+    mkdir -p /app/app/migrations/versions && \
+    chmod -R 755 /app/app/migrations
+
 # Debug - show directory structure after copy
 RUN echo "===== Directory Structure in /app =====" && \
     find /app -maxdepth 2 -type d | sort && \

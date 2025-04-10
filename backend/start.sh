@@ -15,10 +15,30 @@ pip list
 echo "Ensuring critical packages are installed..."
 pip install --no-cache-dir uvicorn==0.34.0 gunicorn==22.0.0
 
-# Run database migrations
+# Run database migrations with proper error handling
 echo "Running database migrations..."
 cd /app
-python -m alembic upgrade head || echo "Warning: Migration failed, but continuing..."
+
+# Attempt migrations with retries
+MAX_RETRIES=3
+RETRY_COUNT=0
+MIGRATION_SUCCESS=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$MIGRATION_SUCCESS" = false ]; do
+    if alembic upgrade head; then
+        MIGRATION_SUCCESS=true
+        echo "Database migrations completed successfully!"
+    else
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            echo "Migration attempt $RETRY_COUNT failed. Retrying in 5 seconds..."
+            sleep 5
+        else
+            echo "ERROR: Database migrations failed after $MAX_RETRIES attempts!"
+            exit 1
+        fi
+    fi
+done
 
 # Get port from environment or default to 8000
 PORT=${PORT:-8000}
