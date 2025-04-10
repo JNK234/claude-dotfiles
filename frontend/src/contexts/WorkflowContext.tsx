@@ -125,91 +125,66 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const resultData = stageResult.result;
     // --- End robust check ---
 
-    // --- Enhanced Logging ---
-    console.log(`[updateReasoningForStage] Processing stage: '${stageName}'`);
-    console.log(`[updateReasoningForStage] Full stageResult.result (resultData):`, JSON.stringify(resultData, null, 2)); // Log the raw result data structure
-    // --- End Enhanced Logging ---
+    console.log('Updating reasoning content for stage:', stageName, 'with result:', resultData);
+
+    console.log('Updating reasoning content for stage:', stageName, 'with result:', resultData);
 
     // Create formatted content for the stage based on its name and result structure
     let stageContent = '';
-    // --- Determine the source of the actual results data ---
+    // Check if the resultData contains the nested 'backend_results' structure
     const resultsSource = resultData?.backend_results ? resultData.backend_results : resultData;
-    console.log(`[updateReasoningForStage] Determined resultsSource:`, JSON.stringify(resultsSource, null, 2)); // Log the determined source structure
-    // --- End source determination ---
 
-    // --- Check if resultsSource is valid before proceeding ---
-    if (!resultsSource || typeof resultsSource !== 'object') {
-        console.warn(`[updateReasoningForStage] Invalid or missing resultsSource for stage '${stageName}'. Skipping content generation.`);
-        stageContent = `Error: Could not process results for stage ${stageName}. Invalid data structure received.`;
-    } else {
-        // --- Generate content based on stage name ---
-        try { // Add try-catch for safety when accessing potentially missing properties
-            if (stageName === 'patient_case_analysis_group') {
-                if (resultsSource.extraction && resultsSource.extraction.extracted_factors) {
-                    stageContent += `### Extracted Medical Factors\n\n${resultsSource.extraction.extracted_factors}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing extraction.extracted_factors for ${stageName}`); }
+    console.log(`[updateReasoningForStage] Using resultsSource:`, resultsSource); // Log which part of the data is being used
 
-                if (resultsSource.causal_analysis && resultsSource.causal_analysis.causal_links) {
-                    stageContent += `### Causal Relationships\n\n${resultsSource.causal_analysis.causal_links}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing causal_analysis.causal_links for ${stageName}`); }
-
-                if (resultsSource.validation && resultsSource.validation.validation_result) {
-                    stageContent += `### Validation\n\n${resultsSource.validation.validation_result}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing validation.validation_result for ${stageName}`); }
-            }
-            else if (stageName === 'diagnosis_group') {
-                if (resultsSource.counterfactual && resultsSource.counterfactual.counterfactual_analysis) {
-                    stageContent += `### Counterfactual Analysis\n\n${resultsSource.counterfactual.counterfactual_analysis}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing counterfactual.counterfactual_analysis for ${stageName}`); }
-
-                if (resultsSource.diagnosis && resultsSource.diagnosis.diagnosis) {
-                    stageContent += `### Diagnosis\n\n${resultsSource.diagnosis.diagnosis}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing diagnosis.diagnosis for ${stageName}`); }
-            }
-            else if (stageName === 'treatment_planning_group') {
-                if (resultsSource.treatment_planning && resultsSource.treatment_planning.treatment_plan) {
-                    stageContent += `### Treatment Options\n\n${resultsSource.treatment_planning.treatment_plan}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing treatment_planning.treatment_plan for ${stageName}`); }
-
-                if (resultsSource.patient_specific && resultsSource.patient_specific.patient_specific_plan) {
-                    stageContent += `### Patient-Specific Plan\n\n${resultsSource.patient_specific.patient_specific_plan}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing patient_specific.patient_specific_plan for ${stageName}`); }
-
-                if (resultsSource.final_plan && resultsSource.final_plan.final_treatment_plan) {
-                    stageContent += `### Final Treatment Plan\n\n${resultsSource.final_plan.final_treatment_plan}\n\n`;
-                } else { console.warn(`[updateReasoningForStage] Missing final_plan.final_treatment_plan for ${stageName}`); }
-            }
-             // Handle legacy/individual stage names if necessary (accessing directly from resultsSource)
-             // Consider if this 'else' block is still needed if backend always uses group names.
-             else {
-                console.warn(`[updateReasoningForStage] Attempting to handle potential legacy stage name: ${stageName}`);
-                switch (stageName) {
-                  case 'extraction': stageContent = `### Extracted Medical Factors\n\n${resultsSource?.extracted_factors || 'N/A'}`; break;
-                  case 'causal_analysis': stageContent = `### Causal Relationships\n\n${resultsSource?.causal_links || 'N/A'}`; break;
-                  case 'validation': stageContent = `### Validation\n\n${resultsSource?.validation_result || 'N/A'}`; break;
-                  case 'counterfactual': stageContent = `### Counterfactual Analysis\n\n${resultsSource?.counterfactual_analysis || 'N/A'}`; break;
-                  case 'diagnosis': stageContent = `### Diagnosis\n\n${resultsSource?.diagnosis || 'N/A'}`; break;
-                  case 'treatment_planning': stageContent = `### Treatment Plan\n\n${resultsSource?.treatment_plan || 'N/A'}`; break;
-                  case 'patient_specific': stageContent = `### Patient-Specific Plan\n\n${resultsSource?.patient_specific_plan || 'N/A'}`; break;
-                  case 'final_plan': stageContent = `### Final Treatment Plan\n\n${resultsSource?.final_treatment_plan || 'N/A'}`; break;
-                  default: console.warn(`[updateReasoningForStage] Unknown stage name encountered: ${stageName}`);
-                         stageContent = `Error: Received results for an unknown stage type '${stageName}'.`;
-                }
-             }
-
-             // If no specific content was added, provide a default message
-             if (stageContent.trim() === '') {
-                 console.warn(`[updateReasoningForStage] No specific content generated for stage '${stageName}'. Using default message.`);
-                 stageContent = `Analysis results for stage '${stageName}' are available but could not be formatted for display. Please check console logs.`;
-             }
-
-        } catch (e) {
-            console.error(`[updateReasoningForStage] Error accessing properties within resultsSource for stage '${stageName}':`, e);
-            stageContent = `Error: Failed to process results for stage ${stageName}. Check console logs for details.`;
-        }
-        // --- End content generation ---
+    // Patient case analysis group stages
+    if (stageName === 'patient_case_analysis_group') {
+      // Access data within resultsSource (which might be resultData.backend_results)
+      if (resultsSource?.extraction?.extracted_factors) {
+        stageContent += `### Extracted Medical Factors\n\n${resultsSource.extraction.extracted_factors}\n\n`;
+      }
+      if (resultsSource?.causal_analysis?.causal_links) {
+        stageContent += `### Causal Relationships\n\n${resultsSource.causal_analysis.causal_links}\n\n`;
+      }
+      if (resultsSource?.validation?.validation_result) {
+        stageContent += `### Validation\n\n${resultsSource.validation.validation_result}\n\n`;
+      }
     }
-    // --- End check for valid resultsSource ---
+    // Diagnosis group stages
+    else if (stageName === 'diagnosis_group') {
+      if (resultsSource?.counterfactual?.counterfactual_analysis) {
+        stageContent += `### Counterfactual Analysis\n\n${resultsSource.counterfactual.counterfactual_analysis}\n\n`;
+      }
+      if (resultsSource?.diagnosis?.diagnosis) {
+        stageContent += `### Diagnosis\n\n${resultsSource.diagnosis.diagnosis}\n\n`;
+      }
+    }
+    // Treatment planning group stages
+    else if (stageName === 'treatment_planning_group') {
+      if (resultsSource?.treatment_planning?.treatment_plan) {
+        stageContent += `### Treatment Options\n\n${resultsSource.treatment_planning.treatment_plan}\n\n`;
+      }
+      if (resultsSource?.patient_specific?.patient_specific_plan) {
+        stageContent += `### Patient-Specific Plan\n\n${resultsSource.patient_specific.patient_specific_plan}\n\n`;
+      }
+      if (resultsSource?.final_plan?.final_treatment_plan) {
+        stageContent += `### Final Treatment Plan\n\n${resultsSource.final_plan.final_treatment_plan}\n\n`;
+      }
+    }
+     // Handle legacy/individual stage names if necessary (accessing directly from resultsSource)
+     else {
+        switch (stageName) {
+          case 'extraction': stageContent = `### Extracted Medical Factors\n\n${resultsSource?.extracted_factors || 'N/A'}`; break;
+          case 'causal_analysis': stageContent = `### Causal Relationships\n\n${resultsSource?.causal_links || 'N/A'}`; break;
+          case 'validation': stageContent = `### Validation\n\n${resultsSource?.validation_result || 'N/A'}`; break;
+          case 'counterfactual': stageContent = `### Counterfactual Analysis\n\n${resultsSource?.counterfactual_analysis || 'N/A'}`; break;
+          case 'diagnosis': stageContent = `### Diagnosis\n\n${resultsSource?.diagnosis || 'N/A'}`; break;
+          case 'treatment_planning': stageContent = `### Treatment Plan\n\n${resultsSource?.treatment_plan || 'N/A'}`; break;
+          case 'patient_specific': stageContent = `### Patient-Specific Plan\n\n${resultsSource?.patient_specific_plan || 'N/A'}`; break;
+          case 'final_plan': stageContent = `### Final Treatment Plan\n\n${resultsSource?.final_treatment_plan || 'N/A'}`; break;
+          default: console.warn(`Unknown stage name for reasoning update: ${stageName}`);
+        }
+     }
+
 
     // Update the specific stage's reasoning content in the stages state
     setStages(prevStages => prevStages.map(stage => {
@@ -361,19 +336,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Create the case
       const newCase = await CaseService.createCase({ case_text: caseText });
       setSelectedCaseId(newCase.id);
-      
-      // --- Add check before setting currentStage ---
-      if (newCase.current_stage && typeof newCase.current_stage === 'string') {
-        setCurrentStage(newCase.current_stage);
-        console.log(`Set currentStage from newCase: ${newCase.current_stage}`);
-      } else {
-        // Fallback or error handling if newCase.current_stage is invalid
-        console.error("Invalid current_stage received from CaseService.createCase:", newCase.current_stage);
-        // Fallback to the default initial stage
-        setCurrentStage('patient_case_analysis_group'); 
-        console.log("Fell back to default stage: patient_case_analysis_group");
-      }
-      // --- End check ---
+      setCurrentStage(newCase.current_stage);
       
       // Add initial patient case as a message
       const patientCaseMessage = await MessageService.createMessage(newCase.id, {
@@ -447,11 +410,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       // Process the next stage - this will take some time, so we keep isProcessing true
       // to show the loading indicator
-      // --- FIX: Check the nested result object for the next_stage ---
-      const nextStageId = approvalResult.result?.next_stage;
-      console.log(`[approveStage] Determined next stage ID: '${nextStageId}' from approvalResult.result.next_stage`);
-
-      if (nextStageId) { // Check if a valid next stage ID was found
+      if (approvalResult.next_stage) {
         // Add a temporary message to show the assistant is working
         const tempMessage = {
           content: "Processing next stage...",
@@ -459,17 +418,15 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, tempMessage]);
-
-        // --- FIX: Use the determined nextStageId ---
-        const nextStageResult = await WorkflowService.processStage(selectedCaseId, nextStageId);
+        
+        const nextStageResult = await WorkflowService.processStage(selectedCaseId, approvalResult.next_stage);
         updateReasoningForStage(nextStageResult); // Use the correct function name
-
+        
         // Remove the temporary message
         setMessages(prev => prev.filter(msg => msg.content !== "Processing next stage..."));
-
+        
         // Add assistant message with the summary
-        // --- FIX: Use the determined nextStageId for UI mapping ---
-        let assistantContent = `I'll now proceed with the ${WorkflowService.mapStageToUI(nextStageId).name} stage.`;
+        let assistantContent = `I'll now proceed with the ${WorkflowService.mapStageToUI(approvalResult.next_stage).name} stage.`;
         if (nextStageResult.result && nextStageResult.result.summary) {
           assistantContent = nextStageResult.result.summary;
         }
@@ -478,23 +435,11 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           role: 'assistant',
           content: assistantContent,
         });
-
+        
         setMessages(prev => [...prev, MessageService.formatMessageForUI(assistantMessage)]);
-        // --- FIX: Use the determined nextStageId to update context state ---
-        setCurrentStage(nextStageId);
-      } else {
-         // Handle case where there is no next stage (workflow complete?)
-         console.log("[approveStage] Approval result indicates no next stage (nextStageId is falsy). Workflow might be complete.");
-         // Consider setting caseStatus or currentStage appropriately
-         // Example: Check if the current stage was the last one
-         const orderedStages = WorkflowService.getStagesInOrder();
-         if (currentStage === orderedStages[orderedStages.length - 1]) {
-            console.log("[approveStage] Current stage was the last stage. Marking case as potentially complete.");
-            // You might want to confirm completion via API or just update UI state
-            // markCaseAsCompleted(); // Uncomment if appropriate
-         }
+        setCurrentStage(approvalResult.next_stage);
       }
-
+      
       setIsProcessing(false);
     } catch (error) {
       console.error('Error approving stage:', error);
