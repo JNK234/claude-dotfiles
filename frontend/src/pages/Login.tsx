@@ -13,8 +13,20 @@ const LoginContainer = styled.div`
   background-color: #f5f8fa;
 `;
 
-const Logo = styled.div`
+const LogoContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 2rem;
+`;
+
+const LogoImage = styled.img`
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+`;
+
+const LogoText = styled.div`
   font-size: 2rem;
   font-weight: bold;
   color: #171848;
@@ -111,7 +123,10 @@ const Login: React.FC = () => {
   
   return (
     <LoginContainer>
-      <Logo>Medhastra</Logo>
+      <LogoContainer>
+        <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
+        <LogoText>Medhastra</LogoText>
+      </LogoContainer>
       <LoginForm onSubmit={handleSubmit}>
         <FormTitle>Log in to your account</FormTitle>
         
