@@ -1,33 +1,33 @@
 # Simplified Render Deployment Configuration
 databases:
-  - name: inferencemd-db
+  - name: medhastra-db
     plan: free
     postgresMajorVersion: 14
 
 services:
   # Backend Web Service (FastAPI)
   - type: web
-    name: inferencemd-backend
+    name: medhastra-backend
     runtime: docker
-    plan: standard
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
     envVars:
       # Essential variables only
       - key: DATABASE_URL
         fromDatabase:
-          name: inferencemd-db
+          name: medhastra-db
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: RENDER_FRONTEND_URL
-        value: https://inferencemd-frontend.onrender.com
+        value: https://medhastra-frontend.onrender.com
       - key: GOOGLE_API_KEY
         sync: false
 
   # Frontend Static Site (React)
   - type: web
-    name: inferencemd-frontend
+    name: medhastra-frontend
     runtime: static
     buildCommand: "cd frontend && npm ci && npm run build"
     staticPublishPath: ./frontend/build
