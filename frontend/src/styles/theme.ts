@@ -1,38 +1,46 @@
-// Theme file based on inference-md-design.md guidelines
+// Theme file for Medhastra branding
 
 export const theme = {
   colors: {
     // Primary colors
-    deepMedicalBlue: '#2964AB',
-    calmTeal: '#218F8D',
-    hospitalWhite: '#FAFCFD',
+    darkBlue: '#171848',      // Primary brand color - dark blue
+    yellow: '#F49F0F',        // Accent color - yellow
+    white: '#FFFBF5',         // Background color - white
+    surgicalGreen: '#3CCFA8', // For success states
     
     // Supporting colors
-    successGreen: '#31B77A',
-    alertAmber: '#F59E0B',
-    errorRed: '#E63946',
-    neutralGray: '#8C9BAB',
-    darkText: '#1A2A40',
+    successGreen: '#3CCFA8',    // Using surgical green for success
+    alertAmber: '#F49F0F',      // Using yellow for alerts
+    errorRed: '#E63946',        // Keeping error red for contrast
+    neutralGray: '#8C9BAB',     // Neutral gray for secondary text
+    darkText: '#171848',        // Using dark blue for text
     
     // Panel background colors
-    leftPanelBg: '#FAFCFD', // Use hospitalWhite for cleaner look
-    rightPanelBg: '#EBF3FB', // Lighter blue for subtle contrast
+    leftPanelBg: '#FFFBF5',     // White for clean look
+    rightPanelBg: '#F7F8FC',    // Light blue tint for subtle contrast
     
     // Border color
-    borderColor: '#E0E4E8', // Subtle border for separation
+    borderColor: '#E0E4E8',     // Subtle border for separation
 
     // Chat message colors
-    aiMessageBg: '#F0F7FF',
-    doctorMessageBg: '#FFFFFF',
-    doctorMessageBorder: '#2964AB',
+    aiMessageBg: '#F7F8FC',     // Light blue for AI messages
+    doctorMessageBg: '#FFFFFF', // White for doctor messages
+    doctorMessageBorder: '#171848', // Dark blue for border
     
     // Disclaimer box
-    disclaimerBg: '#FEF9C3',
-    disclaimerBorder: '#F59E0B',
+    disclaimerBg: '#FFF8E6',    // Light gold for disclaimers
+    disclaimerBorder: '#F49F0F' // Yellow for borders
   },
   
   typography: {
-    fontFamily: '"Inter", sans-serif',
+    // Primary: Montserrat - Modern, geometric, high legibility
+    // Secondary: Roboto Slab - Serious, clinical but not cold
+    // Tertiary: Open Sans - For body text, accessible, clean
+    fontFamily: {
+      primary: '"Montserrat", sans-serif',
+      secondary: '"Roboto Slab", serif',
+      body: '"Open Sans", sans-serif'
+    },
     fontSizes: {
       body: '16px',
       secondary: '14px',
@@ -46,6 +54,7 @@ export const theme = {
       regular: 400,
       medium: 500,
       semibold: 600,
+      bold: 700
     },
     lineHeights: {
       body: 1.5,

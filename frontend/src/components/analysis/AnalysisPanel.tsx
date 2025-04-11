@@ -56,8 +56,8 @@ const SectionHeader = styled.div<{ type: string }>`
   padding: 1rem;
   background-color: ${props => {
     switch(props.type) {
-      case 'factors': return props.theme.colors.deepMedicalBlue + '20';
-      case 'causal': return props.theme.colors.calmTeal + '20';
+      case 'factors': return props.theme.colors.darkBlue + '20';
+      case 'causal': return props.theme.colors.yellow + '20';
       case 'diagnosis': return props.theme.colors.alertAmber + '20';
       case 'treatment': return props.theme.colors.successGreen + '20';
       default: return 'white';
@@ -74,8 +74,8 @@ const SectionTitle = styled.h3<{ type: string }>`
   font-size: ${props => props.theme.typography.fontSizes.body};
   color: ${props => {
     switch(props.type) {
-      case 'factors': return props.theme.colors.deepMedicalBlue;
-      case 'causal': return props.theme.colors.calmTeal;
+      case 'factors': return props.theme.colors.darkBlue;
+      case 'causal': return props.theme.colors.yellow;
       case 'diagnosis': return props.theme.colors.alertAmber;
       case 'treatment': return props.theme.colors.successGreen;
       default: return props.theme.colors.darkText;

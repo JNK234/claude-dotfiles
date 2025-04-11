@@ -1,6 +1,6 @@
 {
-  "short_name": "InferenceMD",
-  "name": "InferenceMD - Medical Diagnosis with Causal Inference",
+  "short_name": "Medhastra",
+  "name": "Medhastra - Intelligent Diagnostics for Modern Medicine",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#2964AB",
-  "background_color": "#FAFCFD"
+  "theme_color": "#171848",
+  "background_color": "#FFFBF5"
 }

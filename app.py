@@ -17,7 +17,7 @@ logging.basicConfig(
 
 # Set page config
 st.set_page_config(
-    page_title="Second OpniAIon",
+    page_title="Medhastra",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -25,6 +25,10 @@ st.set_page_config(
 
 # Load custom CSS
 def load_css():
+    # Add Google Fonts
+    st.markdown('<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Roboto+Slab:wght@400;500&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">', unsafe_allow_html=True)
+    
+    # Load custom CSS
     with open("assets/styles.css") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
@@ -267,7 +271,8 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.title("Second OpniAIon")
+        st.title("Medhastra")
+        st.markdown("*Intelligent Diagnostics for Modern Medicine*")
         st.markdown("---")
         
         # Display current stage
