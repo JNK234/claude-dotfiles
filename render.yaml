@@ -33,6 +33,4 @@ services:
     staticPublishPath: ./frontend/build
     # envVars section removed as REACT_APP_API_URL is no longer needed at build time
     # with the proxy rewrite rule below.
-    rewrites:
-      - source: /api/* # Match any request starting with /api/
-        destination: https://inferencemd-backend.onrender.com/api/* # Forward to the backend service URL
+    
