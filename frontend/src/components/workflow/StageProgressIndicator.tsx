@@ -55,7 +55,7 @@ const StageNode = styled.div<{ status: 'completed' | 'active' | 'upcoming' }>`
       props.status === 'completed' 
         ? props.theme.colors.successGreen 
         : props.status === 'active' 
-          ? props.theme.colors.deepMedicalBlue 
+          ? props.theme.colors.darkBlue
           : props.theme.colors.neutralGray
     };
     color: white;
@@ -76,7 +76,7 @@ const StageNode = styled.div<{ status: 'completed' | 'active' | 'upcoming' }>`
     };
     color: ${props => 
       props.status === 'active' 
-        ? props.theme.colors.deepMedicalBlue 
+        ? props.theme.colors.darkBlue
         : props.theme.colors.darkText
     };
     text-align: center;

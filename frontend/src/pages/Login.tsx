@@ -13,11 +13,23 @@ const LoginContainer = styled.div`
   background-color: #f5f8fa;
 `;
 
-const Logo = styled.div`
+const LogoContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 2rem;
+`;
+
+const LogoImage = styled.img`
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1rem;
+`;
+
+const LogoText = styled.div`
   font-size: 2rem;
   font-weight: bold;
-  color: #0c4a6e;
+  color: #171848;
 `;
 
 const LoginForm = styled.form`
@@ -66,7 +78,7 @@ const Input = styled.input`
 const Button = styled.button`
   width: 100%;
   padding: 0.75rem;
-  background-color: #0c4a6e;
+  background-color: #171848;
   color: white;
   font-size: 1rem;
   font-weight: 500;
@@ -76,7 +88,7 @@ const Button = styled.button`
   transition: background-color 0.15s ease-in-out;
   
   &:hover {
-    background-color: #075985;
+    background-color: #232661;
   }
   
   &:disabled {
@@ -111,7 +123,10 @@ const Login: React.FC = () => {
   
   return (
     <LoginContainer>
-      <Logo>InferenceMD</Logo>
+      <LogoContainer>
+        <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
+        <LogoText>Medhastra</LogoText>
+      </LogoContainer>
       <LoginForm onSubmit={handleSubmit}>
         <FormTitle>Log in to your account</FormTitle>
         

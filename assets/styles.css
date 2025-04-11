@@ -1,0 +1,147 @@
+/* Medhastra Styles */
+
+:root {
+  --dark-blue: #171848;     /* Primary brand color - dark blue */
+  --yellow: #F49F0F;        /* Accent color - yellow */
+  --white: #FFFBF5;         /* Background color - white */
+  --surgical-green: #3CCFA8; /* Keeping this for success states */
+}
+
+/* Global Styles */
+body {
+  font-family: 'Open Sans', sans-serif;
+  color: var(--dark-blue);
+  background-color: var(--white);
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Subheaders */
+.subheader {
+  font-family: 'Roboto Slab', serif;
+  font-weight: 500;
+}
+
+/* Sidebar */
+.sidebar .sidebar-content {
+  background-color: var(--white);
+}
+
+.sidebar .sidebar-content h1 {
+  color: var(--dark-blue);
+}
+
+/* Chat messages */
+.chat-message {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.user-message {
+  background-color: white;
+  border: 1px solid var(--dark-blue);
+  border-left: 5px solid var(--dark-blue);
+}
+
+.assistant-message {
+  background-color: #F0F2FA;
+  border: 1px solid #E0E4E8;
+}
+
+/* Highlight box */
+.highlight-box {
+  background-color: var(--white);
+  border: 1px solid #E0E4E8;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Success box */
+.success-box {
+  background-color: rgba(60, 207, 168, 0.1);
+  border: 1px solid var(--surgical-green);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Warning box */
+.warning-box {
+  background-color: rgba(244, 159, 15, 0.1);
+  border: 1px solid var(--yellow);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Button styles */
+.stButton > button {
+  background-color: var(--dark-blue);
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+  background-color: #232661;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.approve-button .stButton > button {
+  background-color: var(--dark-blue);
+}
+
+.approve-button .stButton > button:hover {
+  background-color: #232661;
+}
+
+.download-button .stButton > button {
+  background-color: var(--yellow);
+  color: var(--dark-blue);
+}
+
+.download-button .stButton > button:hover {
+  background-color: #E6940A;
+}
+
+/* Treatment type styling */
+.treatment-causal {
+  color: var(--surgical-green);
+  font-weight: bold;
+}
+
+.treatment-preventative {
+  color: var(--yellow);
+  font-weight: bold;
+}
+
+.treatment-symptomatic {
+  color: #E63946;
+  font-weight: bold;
+}
+
+/* Causal arrow styling */
+.causal-arrow {
+  color: var(--dark-blue);
+  font-weight: bold;
+  padding: 0 0.25rem;
+}
+
+/* Progress bar */
+.stProgress > div > div {
+  background-color: var(--yellow);
+} 

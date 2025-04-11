@@ -13,17 +13,18 @@ const getButtonStyles = (variant: ButtonVariant) => {
   switch (variant) {
     case 'primary':
       return css`
-        background-color: ${props => props.theme.colors.deepMedicalBlue};
+        background-color: ${props => props.theme.colors.darkBlue};
         color: white;
         border: none;
         
         &:hover:not(:disabled) {
-          background-color: ${props => props.theme.colors.calmTeal}; // Use theme accent for hover
+          background-color: ${props => props.theme.colors.yellow}; // Use theme accent for hover
+          color: ${props => props.theme.colors.darkBlue}; // Dark text on yellow
           box-shadow: ${props => props.theme.shadows.small}; // Add subtle lift
         }
         
         &:active:not(:disabled) {
-          background-color: #1F7C7A; // Slightly darker teal for active
+          background-color: #E6940A; // Slightly darker yellow for active
           box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); // Subtle inset shadow
         }
 
@@ -36,16 +37,16 @@ const getButtonStyles = (variant: ButtonVariant) => {
     case 'secondary':
       return css`
         background-color: white;
-        color: ${props => props.theme.colors.deepMedicalBlue};
-        border: 1px solid ${props => props.theme.colors.deepMedicalBlue};
+        color: ${props => props.theme.colors.darkBlue};
+        border: 1px solid ${props => props.theme.colors.darkBlue};
         
         &:hover:not(:disabled) {
           background-color: ${props => props.theme.colors.rightPanelBg}; // Use light blue from theme
-          border-color: ${props => props.theme.colors.calmTeal}; // Accent border on hover
+          border-color: ${props => props.theme.colors.yellow}; // Accent border on hover
         }
         
         &:active:not(:disabled) {
-          background-color: #DDEAF8; // Slightly darker light blue
+          background-color: #F0F2F8; // Slightly darker light blue
         }
 
         &:disabled {
@@ -58,18 +59,18 @@ const getButtonStyles = (variant: ButtonVariant) => {
     case 'tertiary':
       return css`
         background-color: transparent;
-        color: ${props => props.theme.colors.deepMedicalBlue};
+        color: ${props => props.theme.colors.darkBlue};
         border: none;
         text-decoration: none;
         padding: 0.75rem 0.5rem; // Reduce padding for tertiary
 
         &:hover:not(:disabled) {
-          color: ${props => props.theme.colors.calmTeal};
+          color: ${props => props.theme.colors.yellow};
           background-color: rgba(0,0,0,0.03); // Subtle background on hover
         }
         
         &:active:not(:disabled) {
-          color: #1F7C7A; // Darker teal
+          color: #E6940A; // Darker yellow
         }
 
         &:disabled {
