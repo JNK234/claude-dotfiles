@@ -34,7 +34,7 @@ const LeftPanel = styled.div<PanelProps>`
 
 const CenterPanel = styled.div`
   flex: 1;
-  background-color: ${props => props.theme.colors.hospitalWhite};
+  background-color: ${props => props.theme.colors.white};
   overflow-y: auto;
   padding: 1.5rem;
   display: flex;
@@ -77,7 +77,7 @@ const ToggleButton = styled.button<{ isPanelVisible: boolean }>`
   position: fixed;
   width: 24px;
   height: 60px;
-  background-color: ${props => props.theme.colors.deepMedicalBlue};
+  background-color: ${props => props.theme.colors.darkBlue};
   color: white;
   border: none;
   border-radius: 0 ${props => props.theme.layout.borderRadius} ${props => props.theme.layout.borderRadius} 0; // Use theme border radius
@@ -92,7 +92,7 @@ const ToggleButton = styled.button<{ isPanelVisible: boolean }>`
   transition: left 0.3s ease, background-color ${props => props.theme.transitions.default};
   
   &:hover {
-    background-color: ${props => props.theme.colors.calmTeal}; // Use theme color for hover
+    background-color: ${props => props.theme.colors.yellow}; // Use theme color for hover
   }
   
   &:focus {

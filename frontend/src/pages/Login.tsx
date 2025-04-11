@@ -17,7 +17,7 @@ const Logo = styled.div`
   margin-bottom: 2rem;
   font-size: 2rem;
   font-weight: bold;
-  color: #0c4a6e;
+  color: #171848;
 `;
 
 const LoginForm = styled.form`
@@ -66,7 +66,7 @@ const Input = styled.input`
 const Button = styled.button`
   width: 100%;
   padding: 0.75rem;
-  background-color: #0c4a6e;
+  background-color: #171848;
   color: white;
   font-size: 1rem;
   font-weight: 500;
@@ -76,7 +76,7 @@ const Button = styled.button`
   transition: background-color 0.15s ease-in-out;
   
   &:hover {
-    background-color: #075985;
+    background-color: #232661;
   }
   
   &:disabled {
@@ -111,7 +111,7 @@ const Login: React.FC = () => {
   
   return (
     <LoginContainer>
-      <Logo>InferenceMD</Logo>
+      <Logo>Medhastra</Logo>
       <LoginForm onSubmit={handleSubmit}>
         <FormTitle>Log in to your account</FormTitle>
         

@@ -200,14 +200,25 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Get all stages in order
       const orderedStages = WorkflowService.getStagesInOrder();
       
-      // Update stage status based on current stage using functional update
+      // Map the current stage to its consolidated group if needed
+      const currentStageInfo = WorkflowService.mapStageToUI(currentStage);
+      // Find the consolidated stage that matches the current stage's name
+      const consolidatedCurrentStage = orderedStages.includes(currentStage) 
+        ? currentStage 
+        : orderedStages.find(stageId => 
+            WorkflowService.mapStageToUI(stageId).name === currentStageInfo.name
+          ) || currentStage;
+      
+      console.log('Current stage:', currentStage, 'Consolidated stage:', consolidatedCurrentStage);
+      
+      // Update stage status based on consolidated current stage using functional update
       setStages(prevStages => orderedStages.map(stageId => {
         const stageInfo = WorkflowService.mapStageToUI(stageId);
-        const currentIndex = orderedStages.findIndex(s => s === currentStage);
-        const stageIndex = orderedStages.findIndex(s => s === stageId);
+        const currentIndex = orderedStages.indexOf(consolidatedCurrentStage);
+        const stageIndex = orderedStages.indexOf(stageId);
         
         let status: 'upcoming' | 'active' | 'completed' = 'upcoming';
-        if (stageId === currentStage) {
+        if (stageId === consolidatedCurrentStage) {
           status = 'active';
         } else if (stageIndex < currentIndex) {
           status = 'completed';
