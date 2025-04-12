@@ -1,38 +1,39 @@
 # Simplified Render Deployment Configuration
 databases:
-  - name: inferencemd-db
+  - name: medhastra-db
     plan: free
     postgresMajorVersion: 14
 
 services:
   # Backend Web Service (FastAPI)
   - type: web
-    name: inferencemd-backend
+    name: medhastra-backend
     runtime: docker
-    plan: standard
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: .
     envVars:
       # Essential variables only
       - key: DATABASE_URL
         fromDatabase:
-          name: inferencemd-db
+          name: medhastra-db
           property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: RENDER_FRONTEND_URL
-        value: https://inferencemd-frontend.onrender.com
+        value: https://medhastra-frontend.onrender.com
       - key: GOOGLE_API_KEY
         sync: false
+      - key: LLM_PROVIDER # Explicitly set the provider for deployment
+        value: gemini
+      - key: LLM_MODEL_NAME # Explicitly set the model name for the selected provider
+        value: gemini-2.5-pro-preview-03-25 # Match the value from .env
 
   # Frontend Static Site (React)
   - type: web
-    name: inferencemd-frontend
+    name: medhastra-frontend
     runtime: static
     buildCommand: "cd frontend && npm ci && npm run build"
     staticPublishPath: ./frontend/build
     # envVars section removed as REACT_APP_API_URL is no longer needed at build time
     # with the proxy rewrite rule below.
-    rewrites:
-      - source: /api/* # Match any request starting with /api/
-        destination: https://inferencemd-backend.onrender.com/api/* # Forward to the backend service URL
