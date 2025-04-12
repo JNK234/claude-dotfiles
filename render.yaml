@@ -26,6 +26,8 @@ services:
         sync: false
       - key: LLM_PROVIDER # Explicitly set the provider for deployment
         value: gemini
+      - key: LLM_MODEL_NAME # Explicitly set the model name for the selected provider
+        value: gemini-2.5-pro-preview-03-25 # Match the value from .env
 
   # Frontend Static Site (React)
   - type: web
