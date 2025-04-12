@@ -24,6 +24,8 @@ services:
         value: https://medhastra-frontend.onrender.com
       - key: GOOGLE_API_KEY
         sync: false
+      - key: LLM_PROVIDER # Explicitly set the provider for deployment
+        value: gemini
 
   # Frontend Static Site (React)
   - type: web
@@ -33,4 +35,3 @@ services:
     staticPublishPath: ./frontend/build
     # envVars section removed as REACT_APP_API_URL is no longer needed at build time
     # with the proxy rewrite rule below.
-    
