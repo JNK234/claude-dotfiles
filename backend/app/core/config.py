@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./inferenceMD.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./medhastra.db")
     
     # CORS - Renamed field to avoid auto-parsing conflicts
     # Default CORS origins (used if RENDER_FRONTEND_URL is not set)

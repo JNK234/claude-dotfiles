@@ -12,7 +12,7 @@ services:
       - ./reports:/app/reports
       - ./static:/app/static
     environment:
-      - DATABASE_URL=sqlite:///./inferenceMD.db
+      - DATABASE_URL=sqlite:///./medhastra.db
       - SECRET_KEY=${SECRET_KEY:-supersecretkey}
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
