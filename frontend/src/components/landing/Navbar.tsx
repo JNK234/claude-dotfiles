@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Brain } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,7 +11,7 @@ function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <Brain className="h-8 w-8 text-indigo-600" />
+              <img src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" className="h-8 w-8" />
               <span className="ml-2 text-xl font-bold text-gray-900">Medhastra AI</span>
             </Link>
           </div>

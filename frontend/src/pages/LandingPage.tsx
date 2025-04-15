@@ -582,7 +582,7 @@ const LandingPage: React.FC = () => {
       <LandingWrapper>
         <Navbar>
           <Logo>
-            <img src="/favicon/favicon-32x32.png" alt="MedhastraAI Logo" />
+            <img src="/favicon/android-chrome-192x192.png" alt="MedhastraAI Logo" />
             <span className="medhastra">Medhastra</span>
             <span className="ai">AI</span>
           </Logo>
