@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import styled from 'styled-components';
 import ThreePanelLayout from './components/layout/ThreePanelLayout';
 import CaseList from './components/cases/CaseList';
@@ -15,6 +15,14 @@ import { AuthProvider } from './contexts/AuthContext';
 import { WorkflowProvider, useWorkflow } from './contexts/WorkflowContext';
 import CaseService from './services/CaseService';
 import ReportService from './services/ReportService';
+
+// Landing page imports
+import LandingNavbar from './components/landing/Navbar';
+import LandingFooter from './components/landing/Footer';
+import Home from './pages/landing/Home';
+import Resources from './pages/landing/Resources';
+import About from './pages/landing/About';
+import Contact from './pages/landing/Contact';
 
 // Container for stage progress indicator
 const ProgressContainer = styled.div`
@@ -378,20 +386,52 @@ const CaseListConnector: React.FC<{
 };
 
 const App: React.FC = () => {
+  // Add effect to toggle landing-page class on body
+  React.useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/' || path === '/resources' || path === '/about' || path === '/contact') {
+      document.body.classList.add('landing-page');
+    } else {
+      document.body.classList.remove('landing-page');
+    }
+    
+    return () => {
+      document.body.classList.remove('landing-page');
+    };
+  }, []);
+
   return (
-    <Router>
-      <AuthProvider>
-        <WorkflowProvider>
+    <AuthProvider>
+      <WorkflowProvider>
+        <Router>
           <Routes>
+            {/* Landing page layout wrapper */}
+            <Route element={
+              <div className="min-h-screen bg-white flex flex-col">
+                <LandingNavbar />
+                <main className="flex-grow">
+                  <Outlet />
+                </main>
+                <LandingFooter />
+              </div>
+            }>
+              {/* Landing page routes */}
+              <Route index element={<Home />} />
+              <Route path="/resources" element={<Resources />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+            </Route>
+            
+            {/* Existing app routes */}
             <Route path="/login" element={<Login />} />
             <Route element={<PrivateRoute />}>
-              <Route path="/" element={<MainApp />} />
+              <Route path="/app/*" element={<MainApp />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </WorkflowProvider>
-      </AuthProvider>
-    </Router>
+        </Router>
+      </WorkflowProvider>
+    </AuthProvider>
   );
 };
 

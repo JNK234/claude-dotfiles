@@ -4,8 +4,6 @@ import { theme } from './theme';
 export const GlobalStyles = createGlobalStyle`
   * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
   }
 
   html, body, #root {
@@ -13,7 +11,8 @@ export const GlobalStyles = createGlobalStyle`
     width: 100%;
   }
 
-  body {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) {
     font-family: ${theme.typography.fontFamily.body};
     font-size: ${theme.typography.fontSizes.body};
     line-height: ${theme.typography.lineHeights.body};
@@ -23,7 +22,13 @@ export const GlobalStyles = createGlobalStyle`
     -moz-osx-font-smoothing: grayscale;
   }
   
-  h1, h2, h3, h4, h5, h6 {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) h1, 
+  body:not(.landing-page) h2, 
+  body:not(.landing-page) h3, 
+  body:not(.landing-page) h4, 
+  body:not(.landing-page) h5, 
+  body:not(.landing-page) h6 {
     font-family: ${theme.typography.fontFamily.primary};
     line-height: ${theme.typography.lineHeights.heading};
     margin-bottom: 0.5em;
@@ -32,33 +37,39 @@ export const GlobalStyles = createGlobalStyle`
     letter-spacing: 0.5px;
   }
   
-  h1 {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) h1 {
     font-size: ${theme.typography.fontSizes.h1};
     color: ${theme.colors.darkBlue};
   }
   
-  h2 {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) h2 {
     font-size: ${theme.typography.fontSizes.h2};
     color: ${theme.colors.darkBlue};
   }
   
-  h3 {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) h3 {
     font-size: ${theme.typography.fontSizes.h3};
     color: ${theme.colors.darkBlue};
   }
 
-  .subheader {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) .subheader {
     font-family: ${theme.typography.fontFamily.secondary};
     font-weight: ${theme.typography.fontWeights.medium};
     color: ${theme.colors.darkBlue};
   }
   
-  p {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) p {
     margin-bottom: 1em;
     font-family: ${theme.typography.fontFamily.body};
   }
   
-  a {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) a {
     color: ${theme.colors.darkBlue};
     text-decoration: none;
     transition: color ${theme.transitions.default};
@@ -68,26 +79,29 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
   
-  button, input, textarea {
+  /* Only apply these styles to the main app, not the landing page */
+  body:not(.landing-page) button, 
+  body:not(.landing-page) input, 
+  body:not(.landing-page) textarea {
     font-family: ${theme.typography.fontFamily.primary};
   }
   
-  /* Primary action buttons */
-  .btn-primary {
+  /* Primary action buttons - only for main app */
+  body:not(.landing-page) .btn-primary {
     background-color: ${theme.colors.darkBlue};
     color: white;
     border: none;
   }
 
-  /* Secondary action buttons */
-  .btn-secondary {
+  /* Secondary action buttons - only for main app */
+  body:not(.landing-page) .btn-secondary {
     background-color: ${theme.colors.yellow};
     color: ${theme.colors.darkBlue};
     border: none;
   }
 
-  /* Highlight elements */
-  .highlight {
+  /* Highlight elements - only for main app */
+  body:not(.landing-page) .highlight {
     color: ${theme.colors.yellow};
   }
   

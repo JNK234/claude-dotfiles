@@ -116,9 +116,9 @@ const Login: React.FC = () => {
     await login(email, password);
   };
   
-  // If already authenticated, redirect to main app
+  // If already authenticated, redirect to main app at /app
   if (isAuthenticated) {
-    return <Navigate to="/" />
+    return <Navigate to="/app" />
   }
   
   return (
