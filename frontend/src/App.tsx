@@ -15,6 +15,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { WorkflowProvider, useWorkflow } from './contexts/WorkflowContext';
 import CaseService from './services/CaseService';
 import ReportService from './services/ReportService';
+import { Case } from './components/cases/CaseListItem';
 
 // Landing page imports
 import LandingNavbar from './components/landing/Navbar';
