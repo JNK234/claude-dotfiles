@@ -4,14 +4,14 @@ import AnimatedSection from '../../components/landing/AnimatedSection';
 
 function Contact() {
   return (
-    <div className="bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-20">
+    <div className="bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">Contact Us</h1>
+          <h1 className="text-4xl font-extrabold text-darkBlue sm:text-5xl">Contact Us</h1>
           <p className="mt-4 text-xl text-gray-600">
             We'd love to hear from you
           </p>
@@ -25,11 +25,11 @@ function Contact() {
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.3 }}
               >
-                <h3 className="text-xl font-semibold text-gray-900">Email</h3>
+                <h3 className="text-xl font-semibold text-darkBlue">Email</h3>
                 <p className="mt-4">
                   <a
                     href="mailto:contact@medhastra.ai"
-                    className="text-indigo-600 hover:text-indigo-500 text-lg"
+                    className="text-darkBlue hover:text-yellow text-lg"
                   >
                     contact@medhastra.ai
                   </a>
@@ -41,11 +41,11 @@ function Contact() {
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.3 }}
               >
-                <h3 className="text-xl font-semibold text-gray-900">Social Media</h3>
+                <h3 className="text-xl font-semibold text-darkBlue">Social Media</h3>
                 <div className="mt-4 flex justify-center space-x-6">
                   <a
                     href="https://linkedin.com"
-                    className="text-gray-400 hover:text-indigo-500 transition-colors duration-300"
+                    className="text-gray-400 hover:text-darkBlue transition-colors duration-300"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -56,7 +56,7 @@ function Contact() {
                   </a>
                   <a
                     href="https://instagram.com"
-                    className="text-gray-400 hover:text-indigo-500 transition-colors duration-300"
+                    className="text-gray-400 hover:text-darkBlue transition-colors duration-300"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -77,7 +77,7 @@ function Contact() {
             >
               <form className="grid grid-cols-1 gap-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="name" className="block text-sm font-medium text-darkText">
                     Name
                   </label>
                   <div className="mt-1">
@@ -85,13 +85,13 @@ function Contact() {
                       type="text"
                       name="name"
                       id="name"
-                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="shadow-sm focus:ring-yellow focus:border-yellow block w-full sm:text-sm border-gray-300 rounded-md"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-darkText">
                     Email
                   </label>
                   <div className="mt-1">
@@ -99,13 +99,13 @@ function Contact() {
                       type="email"
                       name="email"
                       id="email"
-                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="shadow-sm focus:ring-yellow focus:border-yellow block w-full sm:text-sm border-gray-300 rounded-md"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="message" className="block text-sm font-medium text-darkText">
                     Message
                   </label>
                   <div className="mt-1">
@@ -113,7 +113,7 @@ function Contact() {
                       id="message"
                       name="message"
                       rows={4}
-                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      className="shadow-sm focus:ring-yellow focus:border-yellow block w-full sm:text-sm border-gray-300 rounded-md"
                     />
                   </div>
                 </div>
@@ -123,7 +123,7 @@ function Contact() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow"
                   >
                     Send Message
                   </motion.button>

@@ -32,7 +32,7 @@ const LogoText = styled.div`
   color: #171848;
 `;
 
-const LoginForm = styled.form`
+const AuthForm = styled.form`
   width: 100%;
   max-width: 400px;
   padding: 2rem;
@@ -106,6 +106,53 @@ const ErrorMessage = styled.div`
   font-size: 0.875rem;
 `;
 
+const Divider = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  span {
+    margin: 0 1rem;
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+`;
+
+const SecondaryButton = styled(Button)`
+  background-color: white;
+  color: #171848;
+  border: 1px solid #171848;
+  margin-top: 1rem;
+  
+  &:hover {
+    background-color: #f8fafc;
+  }
+`;
+
+const LinkText = styled.p`
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  
+  a {
+    color: #171848;
+    text-decoration: none;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -127,8 +174,8 @@ const Login: React.FC = () => {
         <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
         <LogoText>Medhastra</LogoText>
       </LogoContainer>
-      <LoginForm onSubmit={handleSubmit}>
-        <FormTitle>Log in to your account</FormTitle>
+      <AuthForm onSubmit={handleSubmit}>
+        <FormTitle>Welcome Back</FormTitle>
         
         {error && <ErrorMessage>{error}</ErrorMessage>}
         
@@ -157,7 +204,25 @@ const Login: React.FC = () => {
         <Button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Log in'}
         </Button>
-      </LoginForm>
+
+        <Divider>
+          <span>OR</span>
+        </Divider>
+
+        <SecondaryButton type="button" onClick={() => window.location.href = '/register'}>
+          Create New Account
+        </SecondaryButton>
+
+        <LinkText>
+          <a href="/forgot-password">Forgot your password?</a>
+        </LinkText>
+
+        <LinkText>
+          By continuing, you agree to our{' '}
+          <a href="/terms">Terms of Service</a> and{' '}
+          <a href="/privacy">Privacy Policy</a>
+        </LinkText>
+      </AuthForm>
     </LoginContainer>
   );
 };

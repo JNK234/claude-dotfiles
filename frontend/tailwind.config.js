@@ -1,41 +1,82 @@
+import { theme as appTheme } from './src/styles/theme';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  important: true, // This ensures Tailwind classes override styled-components
   theme: {
     extend: {
       colors: {
-        indigo: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-        },
-        blue: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
+        // Primary colors
+        darkBlue: appTheme.colors.darkBlue,
+        yellow: appTheme.colors.yellow,
+        white: appTheme.colors.white,
+        surgicalGreen: appTheme.colors.surgicalGreen,
+        
+        // Supporting colors
+        successGreen: appTheme.colors.successGreen,
+        alertAmber: appTheme.colors.alertAmber,
+        errorRed: appTheme.colors.errorRed,
+        neutralGray: appTheme.colors.neutralGray,
+        darkText: appTheme.colors.darkText,
+        
+        // Panel background colors
+        leftPanelBg: appTheme.colors.leftPanelBg,
+        rightPanelBg: appTheme.colors.rightPanelBg,
+        
+        // Border color
+        borderColor: appTheme.colors.borderColor,
+        
+        // Chat message colors
+        aiMessageBg: appTheme.colors.aiMessageBg,
+        doctorMessageBg: appTheme.colors.doctorMessageBg,
+        doctorMessageBorder: appTheme.colors.doctorMessageBorder,
+        
+        // Disclaimer box
+        disclaimerBg: appTheme.colors.disclaimerBg,
+        disclaimerBorder: appTheme.colors.disclaimerBorder,
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        primary: ['"Montserrat"', 'sans-serif'],
+        secondary: ['"Roboto Slab"', 'serif'],
+        body: ['"Open Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        body: appTheme.typography.fontSizes.body,
+        secondary: appTheme.typography.fontSizes.secondary,
+        h1: appTheme.typography.fontSizes.h1,
+        h2: appTheme.typography.fontSizes.h2,
+        h3: appTheme.typography.fontSizes.h3,
+        button: appTheme.typography.fontSizes.button,
+        small: appTheme.typography.fontSizes.small,
+      },
+      fontWeight: {
+        regular: appTheme.typography.fontWeights.regular,
+        medium: appTheme.typography.fontWeights.medium,
+        semibold: appTheme.typography.fontWeights.semibold,
+        bold: appTheme.typography.fontWeights.bold,
+      },
+      lineHeight: {
+        body: appTheme.typography.lineHeights.body,
+        heading: appTheme.typography.lineHeights.heading,
+      },
+      borderRadius: {
+        DEFAULT: appTheme.layout.borderRadius,
+      },
+      boxShadow: {
+        small: appTheme.shadows.small,
+        medium: appTheme.shadows.medium,
+        large: appTheme.shadows.large,
+      },
+      transitionDuration: {
+        DEFAULT: '300ms',
+      },
+      transitionTimingFunction: {
+        DEFAULT: 'ease',
       },
     },
   },
   plugins: [],
-} 
+}

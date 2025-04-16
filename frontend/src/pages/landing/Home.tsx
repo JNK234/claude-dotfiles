@@ -9,7 +9,7 @@ function Home() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <div className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 overflow-hidden">
+      <div className="relative min-h-screen bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="relative z-10 pt-20 pb-8 sm:pt-24 sm:pb-16 md:pt-32 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
@@ -32,7 +32,7 @@ function Home() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="block text-indigo-600"
+                    className="block text-darkBlue"
                   >
                     made visible
                   </motion.span>
@@ -56,7 +56,7 @@ function Home() {
                       href="https://forms.google.com/your-form-url"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
+                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue md:py-4 md:text-lg md:px-10"
                     >
                       Request Demo
                       <ArrowRight className="ml-2 h-5 w-5" />
@@ -85,7 +85,7 @@ function Home() {
       <AnimatedSection className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-gray-900">See How It Works</h2>
+            <h2 className="text-3xl font-extrabold text-darkBlue">See How It Works</h2>
             <p className="mt-4 text-xl text-gray-600">Watch our platform in action</p>
           </div>
           <motion.div
@@ -107,7 +107,7 @@ function Home() {
       </AnimatedSection>
 
       {/* Stats Section */}
-      <div className="py-20 bg-gradient-to-b from-white to-indigo-50">
+      <div className="py-20 bg-gradient-to-b from-white to-rightPanelBg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <StatCard number="92%" label="Physician Satisfaction" delay={0} />
@@ -150,13 +150,13 @@ function Home() {
       </AnimatedSection>
 
       {/* Benefits Section */}
-      <AnimatedSection className="py-20 bg-gradient-to-br from-indigo-50 via-white to-blue-50">
+      <AnimatedSection className="py-20 bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl font-extrabold text-center mb-16"
+            className="text-3xl font-extrabold text-center mb-16 text-darkBlue"
           >
             Key Benefits
           </motion.h2>
@@ -165,21 +165,21 @@ function Home() {
               className="text-center p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
               whileHover={{ y: -5 }}
             >
-              <h3 className="text-xl font-semibold mb-4 text-indigo-600">For Patients</h3>
+              <h3 className="text-xl font-semibold mb-4 text-darkBlue">For Patients</h3>
               <p className="text-gray-600">Faster access to care, better outcomes</p>
             </motion.div>
             <motion.div
               className="text-center p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
               whileHover={{ y: -5 }}
             >
-              <h3 className="text-xl font-semibold mb-4 text-indigo-600">For Physicians</h3>
+              <h3 className="text-xl font-semibold mb-4 text-darkBlue">For Physicians</h3>
               <p className="text-gray-600">Reduced administrative burden, diagnostic support</p>
             </motion.div>
             <motion.div
               className="text-center p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
               whileHover={{ y: -5 }}
             >
-              <h3 className="text-xl font-semibold mb-4 text-indigo-600">For Health Systems</h3>
+              <h3 className="text-xl font-semibold mb-4 text-darkBlue">For Health Systems</h3>
               <p className="text-gray-600">Increased throughput, quality improvement, cost savings</p>
             </motion.div>
           </div>
@@ -193,11 +193,11 @@ function Home() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl font-extrabold text-center mb-12"
+            className="text-3xl font-extrabold text-center mb-12 text-darkBlue"
           >
             The Challenge
           </motion.h2>
-          <div className="bg-gradient-to-r from-indigo-500 to-blue-600 rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-darkBlue to-darkBlue rounded-2xl shadow-xl overflow-hidden">
             <div className="px-8 py-12 bg-opacity-90 backdrop-blur-lg">
               <div className="max-w-3xl mx-auto">
                 <ul className="space-y-6 text-white text-lg">
@@ -238,7 +238,7 @@ function Home() {
       </AnimatedSection>
 
       {/* Final CTA Section */}
-      <AnimatedSection className="py-20 bg-gradient-to-br from-indigo-50 via-white to-blue-50">
+      <AnimatedSection className="py-20 bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -246,12 +246,12 @@ function Home() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl font-extrabold mb-8">Ready to Transform Your Practice?</h2>
+            <h2 className="text-3xl font-extrabold mb-8 text-darkBlue">Ready to Transform Your Practice?</h2>
             <motion.a
               href="https://forms.google.com/your-form-url"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
+              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue md:py-4 md:text-lg md:px-10"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >

@@ -17,7 +17,7 @@ function StatCard({ number, label, delay = 0 }: StatCardProps) {
       transition={{ duration: 0.5, delay }}
     >
       <motion.div
-        className="text-4xl font-bold text-indigo-600 mb-2"
+        className="text-4xl font-bold text-darkBlue mb-2"
         initial={{ scale: 0 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}

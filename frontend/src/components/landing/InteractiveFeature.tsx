@@ -22,7 +22,7 @@ function InteractiveFeature({ icon, title, description, details }: InteractiveFe
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
           <motion.div
-            className="text-indigo-600"
+            className="text-darkBlue"
             animate={{ rotate: isExpanded ? 360 : 0 }}
             transition={{ duration: 0.5 }}
           >

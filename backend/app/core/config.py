@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     
     # CORS - Renamed field to avoid auto-parsing conflicts
     # Default CORS origins (used if RENDER_FRONTEND_URL is not set)
-    ALLOWED_CORS_ORIGINS: List[str] = ["http://localhost:3000"] 
+    ALLOWED_CORS_ORIGINS: List[str] = ["http://localhost:5173"] 
     # Field to capture the frontend URL from Render environment variable (set via render.yaml)
     RENDER_FRONTEND_URL: Optional[str] = None 
     # Field to capture the custom frontend URL (set manually in Render Env Vars)
