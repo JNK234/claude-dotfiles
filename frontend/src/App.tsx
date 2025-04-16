@@ -333,7 +333,7 @@ const CaseListConnector: React.FC<{
     };
     
     fetchCases();
-  }, []);
+  }, [selectedCaseId]);
 
   /**
    * Handles the deletion of a case.
