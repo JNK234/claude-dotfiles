@@ -9,7 +9,8 @@ interface CaseListProps {
   onNewCase: () => void;
   selectedCaseId?: string;
   isLoading?: boolean;
-  onDeleteCase: (caseId: string) => Promise<void>; // Add prop for delete handler from parent
+  onDeleteCase: (caseId: string) => Promise<void>;
+  onRenameCase: (caseId: string, newName: string) => Promise<void>;
 }
 
 const Container = styled.div`
@@ -102,7 +103,8 @@ export const CaseList: React.FC<CaseListProps> = ({
   onNewCase,
   selectedCaseId,
   isLoading = false,
-  onDeleteCase // Destructure the new prop
+  onDeleteCase,
+  onRenameCase
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -126,6 +128,16 @@ export const CaseList: React.FC<CaseListProps> = ({
       // Log the error. Ideally, show a user-facing notification.
       console.error('Error requesting case deletion:', error);
       alert(`Failed to delete case: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleRenameRequest = async (caseId: string, newName: string) => {
+    try {
+      await onRenameCase(caseId, newName);
+      console.log(`Rename requested and handled by parent for case ID: ${caseId}`);
+    } catch (error) {
+      console.error('Error requesting case rename:', error);
+      alert(`Failed to rename case: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -173,7 +185,8 @@ export const CaseList: React.FC<CaseListProps> = ({
               caseData={caseItem} 
               isSelected={caseItem.id === selectedCaseId}
               onClick={() => onSelectCase(caseItem)}
-              onDelete={handleDeleteRequest} // Pass the delete handler down
+              onDelete={handleDeleteRequest}
+              onRename={handleRenameRequest}
             />
           ))
         ) : (

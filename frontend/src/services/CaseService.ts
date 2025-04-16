@@ -64,6 +64,10 @@ class CaseService extends ApiService {
     return this.delete<void>(`/cases/${caseId}`);
   }
 
+  async renameCase(caseId: string, newName: string): Promise<Case> {
+    return this.patch<Case>(`/cases/${caseId}`, { case_text: newName });
+  }
+
   async getCaseDetails(caseId: string): Promise<CaseDetails> {
     // Calls the new backend endpoint
     return this.get<CaseDetails>(`/cases/${caseId}/details`);

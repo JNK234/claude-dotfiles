@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import ReactMarkdown from 'react-markdown';
+import { marked } from 'marked';
+
 interface ReasoningPanelProps {
   currentStage: string;
   allStagesContent: Record<string, string>;
@@ -53,92 +54,141 @@ const StageLabel = styled.span<{ isCompleted: boolean }>`
 const ContentContainer = styled.div`
   overflow-y: auto;
   flex-grow: 1;
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: white;
   border-radius: ${props => props.theme.layout.borderRadius};
   box-shadow: ${props => props.theme.shadows.small};
-  line-height: 1.6;
-  font-size: ${props => props.theme.typography.fontSizes.body};
   
-  /* Basic Markdown styling */
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+  /* Rich text content styling */
+  .markdown-content {
+    font-size: ${props => props.theme.typography.fontSizes.body};
+    line-height: 1.6;
     color: ${props => props.theme.colors.darkText};
-  }
-  
-  h1 {
-    font-size: 1.7rem;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-  }
-  
-  h3 {
-    font-size: 1.3rem;
-  }
-  
-  p {
-    margin-bottom: 1rem;
-  }
-  
-  ul, ol {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-  }
-  
-  li {
-    margin-bottom: 0.5rem;
-  }
-  
-  blockquote {
-    border-left: 4px solid ${props => props.theme.colors.neutralGray};
-    padding-left: 1rem;
-    font-style: italic;
-    margin: 1rem 0;
-  }
-  
-  code {
-    background-color: #f3f3f3;
-    padding: 0.2rem 0.4rem;
-    border-radius: 3px;
-    font-family: monospace;
-  }
-  
-  pre {
-    background-color: #f3f3f3;
-    padding: 1rem;
-    border-radius: 5px;
-    overflow-x: auto;
-    margin-bottom: 1rem;
-  }
-  
-  pre code {
-    background-color: transparent;
-    padding: 0;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-  }
-  
-  th, td {
-    padding: 0.5rem;
-    border: 1px solid #e0e0e0;
-  }
-  
-  th {
-    background-color: #f3f3f3;
-    font-weight: bold;
-  }
-  
-  hr {
-    border: 0;
-    border-top: 1px solid #e0e0e0;
-    margin: 1.5rem 0;
+    
+    /* Headings */
+    h1, h2, h3, h4, h5, h6 {
+      color: ${props => props.theme.colors.darkBlue};
+      font-family: ${props => props.theme.typography.fontFamily.primary};
+      font-weight: ${props => props.theme.typography.fontWeights.bold};
+      margin: 1.5em 0 0.75em;
+      line-height: 1.3;
+    }
+    
+    h1 { font-size: 2em; }
+    h2 { font-size: 1.75em; }
+    h3 { font-size: 1.5em; }
+    h4 { font-size: 1.25em; }
+    h5 { font-size: 1.1em; }
+    h6 { font-size: 1em; }
+    
+    /* First heading should not have top margin */
+    h1:first-child,
+    h2:first-child,
+    h3:first-child,
+    h4:first-child,
+    h5:first-child,
+    h6:first-child {
+      margin-top: 0;
+    }
+    
+    /* Paragraphs and Lists */
+    p {
+      margin: 0 0 1em;
+    }
+    
+    ul, ol {
+      margin: 0 0 1em;
+      padding-left: 1.5em;
+    }
+    
+    li {
+      margin: 0.5em 0;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      margin: 1em 0;
+      border-collapse: collapse;
+      background-color: white;
+      font-size: ${props => props.theme.typography.fontSizes.body};
+      border-radius: ${props => props.theme.layout.borderRadius};
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    th {
+      background-color: ${props => props.theme.colors.rightPanelBg};
+      color: ${props => props.theme.colors.darkBlue};
+      font-weight: ${props => props.theme.typography.fontWeights.semibold};
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border: 1px solid ${props => props.theme.colors.borderColor};
+      white-space: nowrap;
+    }
+    
+    td {
+      padding: 0.75rem 1rem;
+      border: 1px solid ${props => props.theme.colors.borderColor};
+      vertical-align: top;
+    }
+    
+    tr:nth-child(even) {
+      background-color: ${props => props.theme.colors.rightPanelBg}30;
+    }
+    
+    tr:hover {
+      background-color: ${props => props.theme.colors.rightPanelBg}50;
+    }
+    
+    /* Code blocks */
+    pre {
+      background-color: ${props => props.theme.colors.rightPanelBg};
+      padding: 1rem;
+      border-radius: ${props => props.theme.layout.borderRadius};
+      overflow-x: auto;
+      margin: 1em 0;
+    }
+    
+    code {
+      font-family: monospace;
+      font-size: 0.9em;
+      padding: 0.2em 0.4em;
+      background-color: ${props => props.theme.colors.rightPanelBg};
+      border-radius: 3px;
+    }
+    
+    /* Blockquotes */
+    blockquote {
+      border-left: 4px solid ${props => props.theme.colors.yellow};
+      margin: 1em 0;
+      padding: 0.5em 1em;
+      background-color: ${props => props.theme.colors.rightPanelBg}30;
+      
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+    
+    /* Horizontal rule */
+    hr {
+      border: 0;
+      border-top: 1px solid ${props => props.theme.colors.borderColor};
+      margin: 2em 0;
+    }
+    
+    /* Links */
+    a {
+      color: ${props => props.theme.colors.darkBlue};
+      text-decoration: none;
+      border-bottom: 1px solid ${props => props.theme.colors.yellow};
+      transition: all ${props => props.theme.transitions.default};
+      
+      &:hover {
+        color: ${props => props.theme.colors.yellow};
+        border-bottom-color: transparent;
+      }
+    }
   }
 `;
 
@@ -150,6 +200,17 @@ export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({
 }) => {
   const stageName = currentStage.charAt(0).toUpperCase() + currentStage.slice(1).replace(/_/g, ' ');
   const isCompleted = caseStatus === 'completed';
+
+  // Configure marked options
+  useEffect(() => {
+    marked.setOptions({
+      gfm: true, // GitHub Flavored Markdown
+      breaks: true, // Convert line breaks to <br>
+      headerIds: true, // Add IDs to headers
+      mangle: false, // Don't escape HTML
+      sanitize: false, // Don't sanitize HTML
+    });
+  }, []);
   
   return (
     <Container>
@@ -168,10 +229,15 @@ export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({
             .filter(([_, content]) => content)
             .map(([stage, content], index, array) => {
               const formattedStage = stage.charAt(0).toUpperCase() + stage.slice(1).replace(/_/g, ' ');
+              const htmlContent = marked(content);
+              
               return (
                 <div key={stage}>
                   <h2>{formattedStage}</h2>
-                  <ReactMarkdown>{content}</ReactMarkdown>
+                  <div 
+                    className="markdown-content"
+                    dangerouslySetInnerHTML={{ __html: htmlContent }} 
+                  />
                   {index < array.length - 1 && <hr />}
                 </div>
               );
