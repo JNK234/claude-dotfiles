@@ -150,7 +150,7 @@ export const CaseList: React.FC<CaseListProps> = ({
   return (
     <Container>
       <Header>
-        <Title>Medhastra</Title>
+        <Title>Medhastra AI</Title>
         <Button 
           variant="primary" 
           fullWidth 

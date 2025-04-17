@@ -23,6 +23,7 @@ const Header = styled.div`
 const Title = styled.h2`
   margin-bottom: 0.5rem;
   color: ${props => props.theme.colors.darkText};
+  text-transform: none; // Ensure title case is used
 `;
 
 const Subtitle = styled.p`
@@ -206,9 +207,9 @@ export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({
     marked.setOptions({
       gfm: true, // GitHub Flavored Markdown
       breaks: true, // Convert line breaks to <br>
-      headerIds: true, // Add IDs to headers
-      mangle: false, // Don't escape HTML
-      sanitize: false, // Don't sanitize HTML
+      // headerIds: true, // Removed: This option is invalid and causes a TypeScript error.
+      // mangle: false, // Removed: This option is invalid and causes a TypeScript error.
+      // sanitize: false, // Removed: This option is invalid and causes a TypeScript error.
     });
   }, []);
   
