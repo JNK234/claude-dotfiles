@@ -23,7 +23,7 @@ function Navbar() {
             <Link to="/about" className="text-darkText hover:text-yellow">About Us</Link>
             <Link to="/contact" className="text-darkText hover:text-yellow">Contact</Link>
             <a
-              href="https://forms.google.com/your-form-url"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-darkBlue text-white px-4 py-2 rounded-md hover:bg-yellow hover:text-darkBlue transition"
@@ -53,7 +53,7 @@ function Navbar() {
             <Link to="/about" className="block px-3 py-2 text-darkText hover:text-yellow">About Us</Link>
             <Link to="/contact" className="block px-3 py-2 text-darkText hover:text-yellow">Contact</Link>
             <a
-              href="https://forms.google.com/your-form-url"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full mt-4 text-center bg-darkBlue text-white px-4 py-2 rounded-md hover:bg-yellow hover:text-darkBlue transition"

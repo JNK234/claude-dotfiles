@@ -32,7 +32,7 @@ function Home() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="block text-darkBlue"
+                    className="block text-yellow"
                   >
                     made visible
                   </motion.span>
@@ -43,7 +43,7 @@ function Home() {
                   transition={{ delay: 0.9 }}
                   className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0"
                 >
-                  Built like a doctor, thinks like a doctor, works with the doctor
+                  Built like a doctor. Thinks like a doctor. Works with the doctor
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -53,7 +53,7 @@ function Home() {
                 >
                   <div className="rounded-md shadow">
                     <a
-                      href="https://forms.google.com/your-form-url"
+                      href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue md:py-4 md:text-lg md:px-10"
@@ -71,12 +71,12 @@ function Home() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2"
+          className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-2/5"
         >
           <img
-            className="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full rounded-bl-3xl shadow-2xl"
-            src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-            alt="Doctor using tablet"
+            className="h-48 w-full object-cover sm:h-64 md:h-80 lg:w-full lg:h-full rounded-bl-3xl shadow-2xl"
+            src="/doc_md_front.jpeg"
+            alt="Doctor using computer"
           />
         </motion.div>
       </div>
@@ -85,7 +85,7 @@ function Home() {
       <AnimatedSection className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-darkBlue">See How It Works</h2>
+            <h2 className="text-3xl font-extrabold text-darkBlue">How it works</h2>
             <p className="mt-4 text-xl text-gray-600">Watch our platform in action</p>
           </div>
           <motion.div
@@ -106,51 +106,253 @@ function Home() {
         </div>
       </AnimatedSection>
 
-      {/* Stats Section */}
-      <div className="py-20 bg-gradient-to-b from-white to-rightPanelBg">
+      {/* Challenges Section */}
+      <AnimatedSection className="py-20 bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <StatCard number="92%" label="Physician Satisfaction" delay={0} />
-            <StatCard number="45min" label="Time Saved Per Case" delay={0.2} />
-            <StatCard number="3x" label="Faster Diagnosis" delay={0.4} />
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl font-extrabold text-center mb-12 text-darkBlue"
+          >
+            Current Challenges
+          </motion.h2>
+
+          {/* Healthcare Challenges */}
+          <div className="mb-16">
+            <motion.h3
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-2xl font-semibold text-center mb-8 text-darkBlue"
+            >
+              In Healthcare
+            </motion.h3>
+            <div className="bg-gradient-to-r from-darkBlue to-darkBlue rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-8 py-12 bg-opacity-90 backdrop-blur-lg">
+                <div className="max-w-3xl mx-auto">
+                  <ul className="space-y-8 text-white">
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      className="flex items-start space-x-6"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        <svg className="h-8 w-8 text-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-xl mb-2">Physician Burnout</h3>
+                        <p className="text-gray-200 text-lg">
+                          62% of doctors report burnout symptoms
+                          <span className="block text-sm mt-1 text-gray-300">Mayo Clinic (2022)</span>
+                        </p>
+                      </div>
+                    </motion.li>
+
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 }}
+                      className="flex items-start space-x-6"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        <svg className="h-8 w-8 text-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-xl mb-2">Extended Wait Times</h3>
+                        <p className="text-gray-200 text-lg">
+                          Critical barrier to healthcare access
+                          <span className="block text-sm mt-1 text-gray-300">Inquiry (2020)</span>
+                        </p>
+                      </div>
+                    </motion.li>
+
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.4 }}
+                      className="flex items-start space-x-6"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        <svg className="h-8 w-8 text-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-xl mb-2">Financial Impact</h3>
+                        <p className="text-gray-200 text-lg">
+                          $4.6B+ losses from inefficiencies
+                          <span className="block text-sm mt-1 text-gray-300">Annals of Internal Medicine (2019)</span>
+                        </p>
+                      </div>
+                    </motion.li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI/LLM Challenges */}
+          <div>
+            <motion.h3
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-2xl font-semibold text-center mb-8 text-darkBlue"
+            >
+              In AI/LLM Healthcare Solutions
+            </motion.h3>
+            <div className="bg-gradient-to-r from-darkBlue to-darkBlue rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-8 py-12 bg-opacity-90 backdrop-blur-lg">
+                <div className="max-w-3xl mx-auto">
+                  <ul className="space-y-8 text-white">
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      className="flex items-start space-x-6"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        <svg className="h-8 w-8 text-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-xl mb-2">Transparency Challenge</h3>
+                        <p className="text-gray-200 text-lg">
+                          Most AI systems operate as black boxes, making it difficult for physicians to trust and validate their decisions
+                        </p>
+                      </div>
+                    </motion.li>
+
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.2 }}
+                      className="flex items-start space-x-6"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        <svg className="h-8 w-8 text-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-xl mb-2">Control & Accountability</h3>
+                        <p className="text-gray-200 text-lg">
+                          Limited physician oversight in current AI solutions reduces trust and adoption
+                        </p>
+                      </div>
+                    </motion.li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </AnimatedSection>
 
       {/* Features Section */}
-      <AnimatedSection className="py-20 bg-white">
+      <AnimatedSection className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl font-extrabold text-center mb-16 text-darkBlue"
+          >
+            Key Features
+          </motion.h2>
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
             <InteractiveFeature
-              icon={<Brain className="h-8 w-8" />}
-              title="Transparent reasoning"
+              icon={<Brain className="h-12 w-12" />}
+              title="Transparent Reasoning"
               description="Clear insights into AI decision-making process"
-              details="Our AI system provides step-by-step explanations of its diagnostic reasoning, allowing doctors to understand and verify each conclusion."
+              details="Maps clinical pathways, highlights supporting evidence, and performs counterfactual analysis ensuring transparency to build trust."
+              className="p-10"
             />
             <InteractiveFeature
-              icon={<Clock className="h-8 w-8" />}
-              title="Real-time support"
-              description="Instant diagnostic assistance when you need it"
-              details="Get immediate support during patient consultations with real-time analysis and suggestions based on current symptoms and medical history."
-            />
-            <InteractiveFeature
-              icon={<FileText className="h-8 w-8" />}
+              icon={<FileText className="h-12 w-12" />}
               title="Documentation"
               description="Automated generation of clinical documentation"
-              details="Reduce administrative burden with AI-powered documentation that captures and organizes clinical findings, decisions, and treatment plans."
+              details="Summarizes encounter and generates physician note, decreasing physician burden."
+              className="p-10"
             />
             <InteractiveFeature
-              icon={<Heart className="h-8 w-8" />}
-              title="Better Outcomes"
-              description="Improved patient care and clinical efficiency"
-              details="Achieve superior patient outcomes through more accurate diagnoses, faster treatment decisions, and reduced medical errors."
+              icon={<Clock className="h-12 w-12" />}
+              title="Real-time Support"
+              description="Instant diagnostic assistance"
+              details="Get immediate support during patient consultations with real-time analysis and suggestions based on current symptoms and medical history."
+              className="p-10"
+            />
+            <InteractiveFeature
+              icon={<Heart className="h-12 w-12" />}
+              title="Physician Controlled & Expertly Designed"
+              description="Physician-designed step-by-step approval ensures complete oversight"
+              details="Every step of the process is guided by the provider—ensuring clinical oversight, safety, and precision from start to finish."
+              className="p-10"
             />
           </div>
         </div>
       </AnimatedSection>
 
+      {/* Stats Section */}
+      <div className="py-20 bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <StatCard 
+              number="100%" 
+              label={
+                <div>
+                  <span className="block">Physicians Need</span>
+                  <span className="block text-sm mt-1">Diagnostic Help Monthly</span>
+                  <span className="block text-xs mt-1 text-gray-500">(43% daily, 29% weekly)</span>
+                </div>
+              }
+              delay={0} 
+            />
+            <StatCard 
+              number="#1" 
+              label={
+                <div>
+                  <span className="block">Most Important Feature</span>
+                  <span className="block text-sm mt-1">Transparent Reasoning</span>
+                </div>
+              }
+              delay={0.2} 
+            />
+            <StatCard 
+              number="93%" 
+              label={
+                <div>
+                  <span className="block">Physicians Find Value</span>
+                  <span className="block text-sm mt-1">In AI-Assisted Review</span>
+                </div>
+              }
+              delay={0.4} 
+            />
+          </div>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center text-sm text-gray-500 mt-8 italic"
+          >
+            *Based on internal physician survey data
+          </motion.p>
+        </div>
+      </div>
+
       {/* Benefits Section */}
-      <AnimatedSection className="py-20 bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg">
+      <AnimatedSection className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -166,7 +368,7 @@ function Home() {
               whileHover={{ y: -5 }}
             >
               <h3 className="text-xl font-semibold mb-4 text-darkBlue">For Patients</h3>
-              <p className="text-gray-600">Faster access to care, better outcomes</p>
+              <p className="text-gray-600">Faster access to care, shorter wait times</p>
             </motion.div>
             <motion.div
               className="text-center p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
@@ -186,57 +388,6 @@ function Home() {
         </div>
       </AnimatedSection>
 
-      {/* Problem Statement Section */}
-      <AnimatedSection className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl font-extrabold text-center mb-12 text-darkBlue"
-          >
-            The Challenge
-          </motion.h2>
-          <div className="bg-gradient-to-r from-darkBlue to-darkBlue rounded-2xl shadow-xl overflow-hidden">
-            <div className="px-8 py-12 bg-opacity-90 backdrop-blur-lg">
-              <div className="max-w-3xl mx-auto">
-                <ul className="space-y-6 text-white text-lg">
-                  <motion.li
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    className="flex items-center"
-                  >
-                    <div className="h-2 w-2 bg-white rounded-full mr-4"></div>
-                    Healthcare systems face increasing wait times, physician burnout, and rising costs
-                  </motion.li>
-                  <motion.li
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 }}
-                    className="flex items-center"
-                  >
-                    <div className="h-2 w-2 bg-white rounded-full mr-4"></div>
-                    Clinical reasoning transparency is lacking in current systems
-                  </motion.li>
-                  <motion.li
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.4 }}
-                    className="flex items-center"
-                  >
-                    <div className="h-2 w-2 bg-white rounded-full mr-4"></div>
-                    Physicians consistently cite transparent reasoning as the most crucial feature in AI systems
-                  </motion.li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </AnimatedSection>
-
       {/* Final CTA Section */}
       <AnimatedSection className="py-20 bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -248,7 +399,7 @@ function Home() {
           >
             <h2 className="text-3xl font-extrabold mb-8 text-darkBlue">Ready to Transform Your Practice?</h2>
             <motion.a
-              href="https://forms.google.com/your-form-url"
+              href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue md:py-4 md:text-lg md:px-10"

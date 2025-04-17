@@ -3,29 +3,30 @@ import { motion } from 'framer-motion';
 
 interface StatCardProps {
   number: string;
-  label: string;
+  label: React.ReactNode;
   delay?: number;
 }
 
 function StatCard({ number, label, delay = 0 }: StatCardProps) {
   return (
     <motion.div
-      className="bg-white p-6 rounded-lg shadow-lg text-center"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
+      transition={{ delay }}
+      className="text-center p-8 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      whileHover={{ y: -5 }}
     >
-      <motion.div
-        className="text-4xl font-bold text-darkBlue mb-2"
-        initial={{ scale: 0 }}
+      <motion.span
+        className="block text-4xl font-bold text-darkBlue mb-4"
+        initial={{ scale: 0.5 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: delay + 0.2 }}
+        transition={{ delay: delay + 0.2 }}
       >
         {number}
-      </motion.div>
-      <p className="text-gray-600">{label}</p>
+      </motion.span>
+      <div className="text-gray-600">{label}</div>
     </motion.div>
   );
 }
