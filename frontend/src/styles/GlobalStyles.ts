@@ -11,8 +11,8 @@ export const GlobalStyles = createGlobalStyle`
     width: 100%;
   }
 
-  /* Only apply these styles to the main app, not the landing page */
-  body:not(.landing-page) {
+  /* Apply base body styles globally */
+  body { 
     font-family: ${theme.typography.fontFamily.body};
     font-size: ${theme.typography.fontSizes.body};
     line-height: ${theme.typography.lineHeights.body};

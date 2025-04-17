@@ -14,10 +14,115 @@ function About() {
           <h1 className="text-4xl font-extrabold text-darkBlue sm:text-5xl">Our Story</h1>
         </motion.div>
 
+        {/* Team Section Moved Here */}
+        <AnimatedSection className="mt-20">
+          <h2 className="text-3xl font-bold text-darkBlue mb-12 text-center">Our Team</h2>
+          {/* Team Section Documentation:
+              - Component: Displays team members in a responsive grid.
+              - Data Flow: Team member data (name, title, description, image) is hardcoded here. Could be fetched from an API in the future.
+              - Styling: Uses Tailwind CSS for layout and styling. Framer Motion for hover animations.
+              - Images: Sourced from the /public directory. Ensure images are optimized. Placeholder used for members without photos.
+              - Integration: Part of the About page, showcasing the founding team.
+              - Future Extensions: Could be refactored into a reusable TeamMemberCard component. Data could be managed via state or fetched dynamically.
+          */}
+          <div className="grid grid-cols-1 gap-16 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Narashima Karthik */}
+            <motion.div
+              className="text-center group" // Added group for potential hover effects on children
+              whileHover={{ y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="relative">
+                 {/* Increased size from w-48 h-48 to w-56 h-56. Switched to background-image for better control. */}
+                <div
+                  className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg"
+                  style={{
+                    backgroundImage: `url('/Karthik_headshot.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center 30%', // Position slightly above center
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                  aria-label="Narashima Karthik" // Add aria-label for accessibility since img is gone
+                >
+                  {/* Removed img tag, using background image on parent div instead */}
+                  {/* Optional overlay effect on hover */}
+                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                </div>
+              </div>
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold text-darkBlue">Narashima Karthik</h3>
+                <p className="text-darkBlue font-medium">CTO, Co-founder</p>
+                {/* <p className="mt-2 text-gray-500">Brief description or credentials</p> */}
+              </div>
+            </motion.div>
+
+            {/* Paola Barrios */}
+            <motion.div
+              className="text-center group"
+              whileHover={{ y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="relative">
+                 {/* Increased size from w-48 h-48 to w-56 h-56 to prevent image cropping */}
+                <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg">
+                  <img
+                    className="absolute inset-0 w-full h-full object-cover"
+                    src="/PB_headshot.jpg" // Path relative to public folder
+                    alt="Paola Barrios"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                </div>
+              </div>
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold text-darkBlue">Paola Barrios, MD, MS</h3>
+                <p className="text-darkBlue font-medium">Clinical Lead, Implementation, Co-Founder</p>
+                {/* <p className="mt-2 text-gray-500">MD, MS</p> */}
+              </div>
+            </motion.div>
+
+            {/* Joanne Mathew */}
+            <motion.div
+              className="text-center group"
+              whileHover={{ y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="relative">
+               {/* Increased size from w-48 h-48 to w-56 h-56 to prevent image cropping */}
+              {/* Placeholder styling: Using a gray background and an SVG user icon */}
+              <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg bg-gray-300 flex items-center justify-center">
+                {/* SVG User Placeholder Icon */}
+                <svg className="w-24 h-24 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                </svg>
+                {/* <img
+                  className="absolute inset-0 w-full h-full rounded-full object-cover"
+                  src="https://via.placeholder.com/256/cccccc/888888?text=JM" // Generic placeholder URL - Replaced with SVG
+                    alt="Joanne Mathew"
+                  /> */}
+                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                </div>
+              </div>
+              <div className="mt-6">
+                <h3 className="text-xl font-semibold text-darkBlue">Joanne Mathew, MD</h3>
+                <p className="text-darkBlue font-medium">Clinical Lead, Co-Founder</p>
+                {/* <p className="mt-2 text-gray-500">MD</p> */}
+              </div>
+            </motion.div>
+          </div>
+        </AnimatedSection>
+        {/* End Moved Team Section */}
+
+        {/* Start Original Story Section */}
         <AnimatedSection className="mt-20">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-16">
             <div className="px-8 py-12">
-              <h3 className="text-2xl font-bold text-darkBlue mb-6">A Global Perspective at the Intersection of Medicine and Engineering</h3>
+              {/* Added flex layout and Globe icon */}
+              <h3 className="text-2xl font-bold text-darkBlue mb-6 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                <span>A Global Perspective at the Intersection of Medicine and Engineering</span>
+              </h3>
               <div className="prose prose-lg mx-auto text-gray-600">
                 <p className="leading-relaxed">
                   Medhastra began where many great innovations do—at the intersection of diverse perspectives
@@ -36,9 +141,16 @@ function About() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-16">
+          {/* Changed background to light gray for visual separation */}
+          <div className="bg-gray-50 rounded-2xl shadow-xl overflow-hidden mb-16">
             <div className="px-8 py-12">
-              <h3 className="text-2xl font-bold text-darkBlue mb-6">From Class Project to Healthcare Innovation</h3>
+              {/* Added flex layout and Lightbulb icon */}
+              <h3 className="text-2xl font-bold text-darkBlue mb-6 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <span>From Class Project to Healthcare Innovation</span>
+              </h3>
               <div className="prose prose-lg mx-auto text-gray-600">
                 <p className="leading-relaxed">
                   We initially connected through a project focused on identifying reasoning flaws in large language
@@ -59,7 +171,13 @@ function About() {
 
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="px-8 py-12">
-              <h3 className="text-2xl font-bold text-darkBlue mb-6">Building What Physicians Actually Need</h3>
+              {/* Added flex layout and User Group icon */}
+              <h3 className="text-2xl font-bold text-darkBlue mb-6 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Building What Physicians Actually Need</span>
+              </h3>
               <div className="prose prose-lg mx-auto text-gray-600">
                 <p className="leading-relaxed">
                   The more we talked, the clearer our vision became. We didn't want to create just another
@@ -83,79 +201,7 @@ function About() {
           </div>
         </AnimatedSection>
 
-        <AnimatedSection className="mt-20">
-          <h2 className="text-3xl font-bold text-darkBlue mb-12 text-center">Our Team</h2>
-          <div className="grid grid-cols-1 gap-16 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Team Member 1 */}
-            <motion.div
-              className="text-center"
-              whileHover={{ y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative">
-                <div className="relative w-48 h-48 mx-auto">
-                  <img
-                    className="absolute inset-0 w-full h-full rounded-full object-cover"
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60"
-                    alt="Team member"
-                  />
-                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                </div>
-              </div>
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold text-darkBlue">Dr. Sarah Johnson</h3>
-                <p className="text-darkBlue font-medium">Chief Medical Officer</p>
-                <p className="mt-2 text-gray-500">MD, PhD in Medical AI</p>
-              </div>
-            </motion.div>
-
-            {/* Team Member 2 */}
-            <motion.div
-              className="text-center"
-              whileHover={{ y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative">
-                <div className="relative w-48 h-48 mx-auto">
-                  <img
-                    className="absolute inset-0 w-full h-full rounded-full object-cover"
-                    src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60"
-                    alt="Team member"
-                  />
-                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                </div>
-              </div>
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold text-darkBlue">Michael Chen</h3>
-                <p className="text-darkBlue font-medium">Chief Technology Officer</p>
-                <p className="mt-2 text-gray-500">MS in Computer Science</p>
-              </div>
-            </motion.div>
-
-            {/* Team Member 3 */}
-            <motion.div
-              className="text-center"
-              whileHover={{ y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative">
-                <div className="relative w-48 h-48 mx-auto">
-                  <img
-                    className="absolute inset-0 w-full h-full rounded-full object-cover"
-                    src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=4&w=256&h=256&q=60"
-                    alt="Team member"
-                  />
-                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                </div>
-              </div>
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold text-darkBlue">Dr. James Wilson</h3>
-                <p className="text-darkBlue font-medium">Head of Research</p>
-                <p className="mt-2 text-gray-500">PhD in Machine Learning</p>
-              </div>
-            </motion.div>
-          </div>
-        </AnimatedSection>
+        {/* This entire section has been moved up */}
       </div>
     </div>
   );

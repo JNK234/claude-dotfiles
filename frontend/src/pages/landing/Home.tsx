@@ -34,7 +34,7 @@ function Home() {
                     transition={{ delay: 0.6 }}
                     className="block text-yellow"
                   >
-                    made visible
+                    Made visible
                   </motion.span>
                 </h1>
                 <motion.p
@@ -74,7 +74,7 @@ function Home() {
           className="lg:absolute lg:inset-y-0 lg:right-0 lg:w-2/5"
         >
           <img
-            className="h-48 w-full object-cover sm:h-64 md:h-80 lg:w-full lg:h-full rounded-bl-3xl shadow-2xl"
+            className="h-48 w-full object-cover object-left-center sm:h-64 md:h-80 lg:w-full lg:h-full rounded-bl-3xl shadow-2xl"
             src="/doc_md_front.jpeg"
             alt="Doctor using computer"
           />

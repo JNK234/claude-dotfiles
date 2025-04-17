@@ -1,137 +1,338 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Mail, MapPin, Phone, Linkedin, Instagram, Send } from 'lucide-react';
 import AnimatedSection from '../../components/landing/AnimatedSection';
 
 function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError('');
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Form submitted:', formData);
+      setSubmitSuccess(true);
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      setSubmitError('There was an error submitting your message. Please try again.');
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-gradient-to-br from-rightPanelBg via-white to-rightPanelBg min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+          className="text-center mb-16"
         >
-          <h1 className="text-4xl font-extrabold text-darkBlue sm:text-5xl">Contact Us</h1>
-          <p className="mt-4 text-xl text-gray-600">
-            We'd love to hear from you
+          <h1 className="text-4xl font-extrabold text-darkBlue sm:text-5xl">Get in Touch</h1>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
+            Have questions about Medhastra AI? We'd love to hear from you. Reach out to our team and we'll get back to you as soon as possible.
           </p>
         </motion.div>
 
-        <AnimatedSection className="mt-16">
-          <div className="max-w-lg mx-auto">
-            <div className="grid grid-cols-1 gap-12 mb-16">
-              <motion.div
-                className="text-center bg-white rounded-xl shadow-lg p-8"
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Contact Form */}
+          <AnimatedSection className="bg-white rounded-2xl shadow-xl p-8 order-2 lg:order-1">
+            <h2 className="text-2xl font-bold text-darkBlue mb-6">Send Us a Message</h2>
+            
+            {submitSuccess ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-green-50 border border-green-200 text-green-700 px-6 py-8 rounded-lg mb-6 text-center"
               >
-                <h3 className="text-xl font-semibold text-darkBlue">Email</h3>
-                <p className="mt-4">
-                  <a
-                    href="mailto:contact@medhastra.ai"
-                    className="text-darkBlue hover:text-yellow text-lg"
-                  >
-                    contact@medhastra.ai
-                  </a>
-                </p>
+                <svg className="w-12 h-12 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 className="text-xl font-semibold mb-2">Thank You!</h3>
+                <p>Your message has been sent successfully. We'll get back to you shortly.</p>
+                <button 
+                  onClick={() => setSubmitSuccess(false)}
+                  className="mt-4 px-4 py-2 bg-darkBlue text-white rounded-md hover:bg-yellow hover:text-darkBlue transition-colors"
+                >
+                  Send Another Message
+                </button>
               </motion.div>
-
-              <motion.div
-                className="text-center bg-white rounded-xl shadow-lg p-8"
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <h3 className="text-xl font-semibold text-darkBlue">Social Media</h3>
-                <div className="mt-4 flex justify-center space-x-6">
-                  <a
-                    href="https://linkedin.com"
-                    className="text-gray-400 hover:text-darkBlue transition-colors duration-300"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="sr-only">LinkedIn</span>
-                    <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                    </svg>
-                  </a>
-                  <a
-                    href="https://instagram.com"
-                    className="text-gray-400 hover:text-darkBlue transition-colors duration-300"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="sr-only">Instagram</span>
-                    <svg className="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/>
-                    </svg>
-                  </a>
-                </div>
-              </motion.div>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-xl p-8"
-            >
-              <form className="grid grid-cols-1 gap-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-darkText">
-                    Name
-                  </label>
-                  <div className="mt-1">
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {submitError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                    {submitError}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Your Name
+                    </label>
                     <input
                       type="text"
-                      name="name"
                       id="name"
-                      className="shadow-sm focus:ring-yellow focus:border-yellow block w-full sm:text-sm border-gray-300 rounded-md"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow focus:border-yellow transition-colors"
+                      placeholder="John Doe"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-darkText">
-                    Email
-                  </label>
-                  <div className="mt-1">
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address
+                    </label>
                     <input
                       type="email"
-                      name="email"
                       id="email"
-                      className="shadow-sm focus:ring-yellow focus:border-yellow block w-full sm:text-sm border-gray-300 rounded-md"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow focus:border-yellow transition-colors"
+                      placeholder="john@example.com"
                     />
                   </div>
                 </div>
-
+                
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-darkText">
-                    Message
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                    Subject
                   </label>
-                  <div className="mt-1">
-                    <textarea
-                      id="message"
-                      name="message"
-                      rows={4}
-                      className="shadow-sm focus:ring-yellow focus:border-yellow block w-full sm:text-sm border-gray-300 rounded-md"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow focus:border-yellow transition-colors"
+                    placeholder="How can we help you?"
+                  />
                 </div>
-
+                
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your Message
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    rows={6}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-yellow focus:border-yellow transition-colors"
+                    placeholder="Tell us what you need..."
+                  ></textarea>
+                </div>
+                
                 <div>
                   <motion.button
+                    type="submit"
+                    disabled={isSubmitting}
+                    // Ensure button is visible: dark blue background, white text
+                    className="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow"
                   >
-                    Send Message
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        {/* Ensure icon is white */}
+                        <Send className="mr-2 h-5 w-5 text-white" /> 
+                        Send Message
+                      </>
+                    )}
                   </motion.button>
                 </div>
               </form>
-            </motion.div>
+            )}
+          </AnimatedSection>
+
+          {/* Contact Information */}
+          <AnimatedSection className="order-1 lg:order-2">
+            <div className="bg-darkBlue text-white rounded-2xl shadow-xl p-8 mb-8">
+              <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
+              <div className="space-y-6">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-yellow bg-opacity-20 p-3 rounded-full">
+                    <Mail className="h-6 w-6 text-yellow" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-yellow">Email</h3>
+                    <p className="mt-1">
+                      <a href="mailto:contact@medhastra.ai" className="hover:text-yellow transition-colors">
+                        contact@medhastra.ai
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-yellow bg-opacity-20 p-3 rounded-full">
+                    <Phone className="h-6 w-6 text-yellow" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-yellow">Phone</h3>
+                    <p className="mt-1">
+                      <a href="tel:+14155552671" className="hover:text-yellow transition-colors">
+                        +1 (415) 555-2671
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 bg-yellow bg-opacity-20 p-3 rounded-full">
+                    <MapPin className="h-6 w-6 text-yellow" />
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-yellow">Location</h3>
+                    <p className="mt-1">
+                      Chicago, Illinois<br />
+                      United States
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-10">
+                <h3 className="text-lg font-medium text-yellow mb-4">Connect With Us</h3>
+                <div className="flex space-x-4">
+                  <a 
+                    href="https://linkedin.com/company/medhastra" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    // Explicitly set icon color to white
+                    className="bg-white bg-opacity-10 p-3 rounded-full hover:bg-yellow hover:text-darkBlue transition-colors"
+                  >
+                    <Linkedin className="h-5 w-5 text-white" /> {/* Set text-white directly */}
+                  </a>
+                  <a 
+                    href="https://instagram.com/medhastra.ai" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                     // Explicitly set icon color to white
+                    className="bg-white bg-opacity-10 p-3 rounded-full hover:bg-yellow hover:text-darkBlue transition-colors"
+                  >
+                    <Instagram className="h-5 w-5 text-white" /> {/* Set text-white directly */}
+                  </a>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-2xl shadow-xl p-8">
+              <h2 className="text-2xl font-bold text-darkBlue mb-6">Schedule a Demo</h2>
+              <p className="text-gray-600 mb-6">
+                Interested in seeing Medhastra AI in action? Schedule a personalized demo with our team to see how we can transform your clinical practice.
+              </p>
+              <motion.a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-darkBlue hover:bg-yellow hover:text-darkBlue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Request Demo
+              </motion.a>
+            </div>
+          </AnimatedSection>
+        </div>
+        
+        {/* 
+        // FAQ Section - Temporarily commented out
+        <AnimatedSection className="mt-20">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold text-darkBlue mb-8 text-center">Frequently Asked Questions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-darkBlue mb-3">How does Medhastra AI work?</h3>
+                <p className="text-gray-600">
+                  Medhastra AI uses advanced natural language processing and machine learning to analyze patient data, provide diagnostic suggestions, and generate clinical documentation while making its reasoning transparent to physicians.
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-darkBlue mb-3">Is Medhastra HIPAA compliant?</h3>
+                <p className="text-gray-600">
+                  Yes, Medhastra is fully HIPAA compliant. We implement industry-leading security measures to ensure all patient data is protected according to healthcare privacy standards.
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-darkBlue mb-3">How long does implementation take?</h3>
+                <p className="text-gray-600">
+                  Implementation typically takes 2-4 weeks, depending on your existing systems. Our team works closely with your IT department to ensure a smooth integration process.
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-darkBlue mb-3">Can Medhastra integrate with our EHR?</h3>
+                <p className="text-gray-600">
+                  Yes, Medhastra is designed to integrate with major EHR systems including Epic, Cerner, Allscripts, and more. We provide API connections and custom integration solutions.
+                </p>
+              </div>
+            </div>
           </div>
         </AnimatedSection>
+        */}
+        
+        {/* 
+        // Map Section - Temporarily commented out
+        <AnimatedSection className="mt-20">
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="aspect-video w-full">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d100939.98555098464!2d-122.50764017948551!3d37.75781499657613!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan%20Francisco%2C%20CA!5e0!3m2!1sen!2sus!4v1623252076831!5m2!1sen!2sus" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy"
+                title="Medhastra Location"
+              ></iframe>
+            </div>
+          </div>
+        </AnimatedSection>
+        */}
       </div>
     </div>
   );
