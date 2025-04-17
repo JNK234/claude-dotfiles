@@ -203,7 +203,7 @@ const Login: React.FC = () => {
     <LoginContainer>
       <LogoContainer>
         <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
-        <LogoText>MedAstra AI</LogoText>
+        <LogoText>Medhastra AI</LogoText>
       </LogoContainer>
       <AuthForm onSubmit={handleSubmit}>
         <FormTitle>Welcome Back</FormTitle>
@@ -236,7 +236,8 @@ const Login: React.FC = () => {
           {loading ? 'Logging in...' : 'Log in'}
         </Button>
 
-        <SecondaryButton type="button" onClick={() => navigate('/register')}>
+        {/* TODO: Implement registration flow when backend is ready */}
+        <SecondaryButton type="button" disabled>
           Create New Account
         </SecondaryButton>
 
