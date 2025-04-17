@@ -312,32 +312,33 @@ function Home() {
               number="100%" 
               label={
                 <div>
-                  <span className="block">Physicians Need</span>
-                  <span className="block text-sm mt-1">Diagnostic Help Monthly</span>
-                  <span className="block text-xs mt-1 text-gray-500">(43% daily, 29% weekly)</span>
+                  {/* Combined main text into one span, removed block/size/margin classes */}
+                  <span className="inline">Physicians Need Diagnostic Help Monthly</span>
+                  {/* Kept parenthesis separate with its styling, added space and made inline */}
+                  <span className="inline-block text-xs text-gray-500 ml-1">(43% daily, 29% weekly)</span>
                 </div>
               }
-              delay={0} 
+              delay={0}
             />
             <StatCard 
               number="#1" 
               label={
                 <div>
-                  <span className="block">Most Important Feature</span>
-                  <span className="block text-sm mt-1">Transparent Reasoning</span>
+                  {/* Combined text into one span, removed block/size/margin classes */}
+                  <span className="inline">Most Important Feature Transparent Reasoning</span>
                 </div>
               }
-              delay={0.2} 
+              delay={0.2}
             />
             <StatCard 
               number="93%" 
               label={
                 <div>
-                  <span className="block">Physicians Find Value</span>
-                  <span className="block text-sm mt-1">In AI-Assisted Review</span>
+                  {/* Combined text into one span, removed block/size/margin classes */}
+                  <span className="inline">Physicians Find Value In AI-Assisted Review</span>
                 </div>
               }
-              delay={0.4} 
+              delay={0.4}
             />
           </div>
           <motion.p
