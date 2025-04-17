@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { FcGoogle } from 'react-icons/fc';
 
 const LoginContainer = styled.div`
   display: flex;
@@ -97,6 +98,21 @@ const Button = styled.button`
   }
 `;
 
+const GoogleButton = styled(Button)`
+  background-color: white;
+  color: #171848;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  
+  &:hover {
+    background-color: #f8fafc;
+  }
+`;
+
 const ErrorMessage = styled.div`
   margin-top: 1rem;
   padding: 0.75rem;
@@ -157,22 +173,37 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, error, loading, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    return <Navigate to="/app" />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    try {
+      await login(email, password);
+      navigate('/app');
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
-  
-  // If already authenticated, redirect to main app at /app
-  if (isAuthenticated) {
-    return <Navigate to="/app" />
-  }
-  
+
+  const handleGoogleLogin = async () => {
+    try {
+      // Implement Google login logic here using your auth service
+      console.log('Google login clicked');
+    } catch (error) {
+      console.error('Google login failed:', error);
+    }
+  };
+
   return (
     <LoginContainer>
       <LogoContainer>
         <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
-        <LogoText>Medhastra</LogoText>
+        <LogoText>MedAstra AI</LogoText>
       </LogoContainer>
       <AuthForm onSubmit={handleSubmit}>
         <FormTitle>Welcome Back</FormTitle>
@@ -205,13 +236,14 @@ const Login: React.FC = () => {
           {loading ? 'Logging in...' : 'Log in'}
         </Button>
 
-        <Divider>
-          <span>OR</span>
-        </Divider>
-
-        <SecondaryButton type="button" onClick={() => window.location.href = '/register'}>
+        <SecondaryButton type="button" onClick={() => navigate('/register')}>
           Create New Account
         </SecondaryButton>
+
+        <GoogleButton type="button" onClick={handleGoogleLogin}>
+          <FcGoogle size={20} />
+          Continue with Google
+        </GoogleButton>
 
         <LinkText>
           <a href="/forgot-password">Forgot your password?</a>
