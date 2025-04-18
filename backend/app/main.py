@@ -10,7 +10,7 @@ from sqlalchemy.sql import text
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.init_db import init_db, create_tables
-from app.routers import auth, cases, workflow, messages, reports
+from app.routers import auth, cases, workflow, messages, reports, contact # Added contact router import
 
 # Create FastAPI app
 app = FastAPI(
@@ -56,6 +56,7 @@ app.include_router(cases.router, prefix=f"{settings.API_V1_STR}/cases", tags=["C
 app.include_router(workflow.router, prefix=f"{settings.API_V1_STR}/cases", tags=["Workflow"])
 app.include_router(messages.router, prefix=f"{settings.API_V1_STR}/cases", tags=["Messages"])
 app.include_router(reports.router, prefix=f"{settings.API_V1_STR}/cases", tags=["Reports"])
+app.include_router(contact.router, prefix=f"{settings.API_V1_STR}", tags=["Contact"]) # Added contact router
 
 # Endpoint to get stage mapping
 @app.get(f"{settings.API_V1_STR}/stages/mapping", tags=["Workflow"])

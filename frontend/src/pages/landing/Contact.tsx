@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Phone, Linkedin, Instagram, Send } from 'lucide-react';
 import AnimatedSection from '../../components/landing/AnimatedSection';
+import ApiService from '../../services/ApiService'; // Import ApiService
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -24,25 +25,59 @@ function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // TEMPORARY FIX: Deactivate message sending by returning early.
+    console.log("Contact form submission temporarily disabled.");
+    // Optionally, provide user feedback that submission is disabled
+    // setSubmitError("Message sending is temporarily disabled."); 
+    return; 
+
+    // Original logic below is now unreachable
     setIsSubmitting(true);
+    setSubmitSuccess(false); // Reset success state
     setSubmitError('');
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Form submitted:', formData);
+      // Create an instance of ApiService
+      const apiService = new ApiService(); 
+      // Use the instance to send the data to the backend
+      const response = await apiService.post('/contact', formData); 
+
+      // Check if the response is okay (status code 2xx)
+      // ApiService might throw an error for non-2xx responses, 
+      // but we double-check here or rely on ApiService's error handling.
+      // Assuming ApiService handles non-2xx by throwing an error.
+
+      console.log('Form submitted successfully:', response); // Log the response from backend
       setSubmitSuccess(true);
-      setFormData({
+      setFormData({ // Clear the form on success
         name: '',
         email: '',
         subject: '',
         message: ''
       });
-    } catch (error) {
-      setSubmitError('There was an error submitting your message. Please try again.');
-      console.error('Error submitting form:', error);
+
+    } catch (error: any) {
+      // Handle errors from ApiService or network issues
+      console.error('Error submitting contact form:', error);
+      // Provide a user-friendly error message
+      // Check if the error object has response data (e.g., from validation errors)
+      if (error.response && error.response.data && error.response.data.detail) {
+        // Handle specific validation errors if backend provides them
+        // For now, using a generic message based on status or a default
+        if (error.response.status === 422) {
+           setSubmitError('Please check your input. Ensure the email is valid and all fields are filled correctly.');
+        } else if (error.response.status === 500) {
+           setSubmitError('There was a server error. Please try again later.');
+        } else {
+           setSubmitError(`An error occurred: ${error.response.data.detail || 'Please try again.'}`);
+        }
+      } else {
+        // Generic network or other error
+        setSubmitError('Could not connect to the server. Please check your internet connection and try again.');
+      }
+      setSubmitSuccess(false); // Ensure success state is false on error
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Ensure spinner stops regardless of outcome
     }
   };
 
@@ -198,8 +233,8 @@ function Contact() {
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-yellow">Email</h3>
                     <p className="mt-1">
-                      <a href="mailto:contact@medhastra.ai" className="hover:text-yellow transition-colors">
-                        contact@medhastra.ai
+                      <a href="mailto:medhastra@gmail.com" className="hover:text-yellow transition-colors">
+                        medhastra@gmail.com
                       </a>
                     </p>
                   </div>
@@ -212,8 +247,8 @@ function Contact() {
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-yellow">Phone</h3>
                     <p className="mt-1">
-                      <a href="tel:+14155552671" className="hover:text-yellow transition-colors">
-                        +1 (415) 555-2671
+                      <a href="tel:+14407230268" className="hover:text-yellow transition-colors">
+                        +1 (440) 723-0268
                       </a>
                     </p>
                   </div>
@@ -237,7 +272,7 @@ function Contact() {
                 <h3 className="text-lg font-medium text-yellow mb-4">Connect With Us</h3>
                 <div className="flex space-x-4">
                   <a 
-                    href="https://linkedin.com/company/medhastra" 
+                    href="https://www.linkedin.com/company/medhastra-ai/about/?viewAsMember=true" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     // Explicitly set icon color to white
@@ -246,7 +281,7 @@ function Contact() {
                     <Linkedin className="h-5 w-5 text-white" /> {/* Set text-white directly */}
                   </a>
                   <a 
-                    href="https://instagram.com/medhastra.ai" 
+                    href="https://www.instagram.com/medhastra/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                      // Explicitly set icon color to white

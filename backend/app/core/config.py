@@ -100,7 +100,20 @@ class Settings(BaseSettings):
     
     # Static files
     STATIC_DIR: str = os.getenv("STATIC_DIR", "static")
-    
+
+    # Email Configuration (for fastapi-mail)
+    MAIL_USERNAME: Optional[str] = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD: Optional[str] = os.getenv("MAIL_PASSWORD")
+    MAIL_FROM: Optional[str] = os.getenv("MAIL_FROM")
+    MAIL_PORT: int = int(os.getenv("MAIL_PORT", 587))
+    MAIL_SERVER: Optional[str] = os.getenv("MAIL_SERVER")
+    MAIL_FROM_NAME: Optional[str] = os.getenv("MAIL_FROM_NAME", "Medhastra AI Contact")
+    MAIL_STARTTLS: bool = os.getenv("MAIL_STARTTLS", "True").lower() == "true"
+    MAIL_SSL_TLS: bool = os.getenv("MAIL_SSL_TLS", "False").lower() == "true"
+    USE_CREDENTIALS: bool = os.getenv("USE_CREDENTIALS", "True").lower() == "true"
+    VALIDATE_CERTS: bool = os.getenv("VALIDATE_CERTS", "True").lower() == "true"
+    TEMPLATE_FOLDER: Optional[str] = os.getenv("TEMPLATE_FOLDER") # Optional template folder
+
     # Workflow settings
     # Map 9 backend stages to 4 frontend stages
     STAGE_MAPPING: dict = {

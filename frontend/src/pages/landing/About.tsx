@@ -27,30 +27,29 @@ function About() {
           */}
           <div className="grid grid-cols-1 gap-16 sm:grid-cols-2 lg:grid-cols-3">
             {/* Narashima Karthik */}
-            <motion.div
-              className="text-center group" // Added group for potential hover effects on children
-              whileHover={{ y: -10 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative">
-                 {/* Increased size from w-48 h-48 to w-56 h-56. Switched to background-image for better control. */}
-                <div
-                  className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg"
-                  style={{
-                    backgroundImage: `url('/Karthik_headshot.jpg')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center 30%', // Position slightly above center
-                    backgroundRepeat: 'no-repeat'
-                  }}
-                  aria-label="Narashima Karthik" // Add aria-label for accessibility since img is gone
-                >
-                  {/* Removed img tag, using background image on parent div instead */}
-                  {/* Optional overlay effect on hover */}
-                  <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                </div>
-              </div>
-              <div className="mt-6">
-                <h3 className="text-xl font-semibold text-darkBlue">Narashima Karthik</h3>
+             <motion.div
+               className="text-center group" // Added group for potential hover effects on children
+               whileHover={{ y: -10 }}
+               transition={{ duration: 0.3 }}
+             >
+               <div className="relative">
+                  {/* Consistent approach: Using img tag with object-cover like others. Added bg-gray-200 */}
+                 <div
+                   className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg bg-gray-200"
+                   // Removed inline style for background image
+                 >
+                  {/* Added img tag for consistency. Changed object-cover to object-contain */}
+                  <img
+                    className="absolute inset-0 w-full h-full object-contain rounded-full"
+                    src="/Karthik.png" // Corrected filename
+                    alt="Narasimha Karthik"
+                   />
+                   {/* Optional overlay effect on hover */}
+                   <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                 </div>
+               </div>
+               <div className="mt-6">
+                <h3 className="text-xl font-semibold text-darkBlue">Narasimha Karthik</h3>
                 <p className="text-darkBlue font-medium">CTO, Co-founder</p>
                 {/* <p className="mt-2 text-gray-500">Brief description or credentials</p> */}
               </div>
@@ -63,11 +62,11 @@ function About() {
               transition={{ duration: 0.3 }}
             >
               <div className="relative">
-                 {/* Increased size from w-48 h-48 to w-56 h-56 to prevent image cropping */}
-                <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg">
+                 {/* Increased size from w-48 h-48 to w-56 h-56 to prevent image cropping. Added bg-gray-200. Changed object-cover to object-contain */}
+                <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg bg-gray-200">
                   <img
-                    className="absolute inset-0 w-full h-full object-cover"
-                    src="/PB_headshot.jpg" // Path relative to public folder
+                    className="absolute inset-0 w-full h-full object-contain rounded-full" // Changed object-cover to object-contain
+                    src="/Paola.png" // Corrected filename
                     alt="Paola Barrios"
                   />
                   <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
@@ -75,7 +74,7 @@ function About() {
               </div>
               <div className="mt-6">
                 <h3 className="text-xl font-semibold text-darkBlue">Paola Barrios, MD, MS</h3>
-                <p className="text-darkBlue font-medium">Clinical Lead, Implementation, Co-Founder</p>
+                <p className="text-darkBlue font-medium">Clinical Lead, Co-Founder</p>
                 {/* <p className="mt-2 text-gray-500">MD, MS</p> */}
               </div>
             </motion.div>
@@ -87,18 +86,14 @@ function About() {
               transition={{ duration: 0.3 }}
             >
               <div className="relative">
-               {/* Increased size from w-48 h-48 to w-56 h-56 to prevent image cropping */}
-              {/* Placeholder styling: Using a gray background and an SVG user icon */}
-              <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg bg-gray-300 flex items-center justify-center">
-                {/* SVG User Placeholder Icon */}
-                <svg className="w-24 h-24 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                </svg>
-                {/* <img
-                  className="absolute inset-0 w-full h-full rounded-full object-cover"
-                  src="https://via.placeholder.com/256/cccccc/888888?text=JM" // Generic placeholder URL - Replaced with SVG
+                 {/* Increased size from w-48 h-48 to w-56 h-56 to prevent image cropping. Added bg-gray-200. Changed object-cover to object-contain */}
+                <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-full shadow-lg bg-gray-200">
+                  {/* Replaced placeholder SVG with actual image */}
+                  <img
+                    className="absolute inset-0 w-full h-full object-contain rounded-full" // Changed object-cover to object-contain
+                    src="/Joanne.png" // Corrected filename
                     alt="Joanne Mathew"
-                  /> */}
+                  />
                   <div className="absolute inset-0 rounded-full bg-darkBlue mix-blend-multiply opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 </div>
               </div>

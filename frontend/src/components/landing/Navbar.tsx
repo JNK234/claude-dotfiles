@@ -19,8 +19,8 @@ function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-darkText hover:text-yellow">Home</Link>
-            <Link to="/resources" className="text-darkText hover:text-yellow">Resources</Link>
             <Link to="/about" className="text-darkText hover:text-yellow">About Us</Link>
+            <Link to="/resources" className="text-darkText hover:text-yellow">Resources</Link>
             <Link to="/contact" className="text-darkText hover:text-yellow">Contact</Link>
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
@@ -49,8 +49,8 @@ function Navbar() {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link to="/" className="block px-3 py-2 text-darkText hover:text-yellow">Home</Link>
-            <Link to="/resources" className="block px-3 py-2 text-darkText hover:text-yellow">Resources</Link>
             <Link to="/about" className="block px-3 py-2 text-darkText hover:text-yellow">About Us</Link>
+            <Link to="/resources" className="block px-3 py-2 text-darkText hover:text-yellow">Resources</Link>
             <Link to="/contact" className="block px-3 py-2 text-darkText hover:text-yellow">Contact</Link>
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSellcZloYxQbSz_0wyD3brhTmOYmpGqBCJ01E0SvVdXG0f33w/viewform?usp=sharing"
