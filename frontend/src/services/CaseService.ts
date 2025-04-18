@@ -64,6 +64,10 @@ class CaseService extends ApiService {
     return this.delete<void>(`/cases/${caseId}`);
   }
 
+  async renameCase(caseId: string, newName: string): Promise<Case> {
+    return this.patch<Case>(`/cases/${caseId}`, { case_text: newName });
+  }
+
   async getCaseDetails(caseId: string): Promise<CaseDetails> {
     // Calls the new backend endpoint
     return this.get<CaseDetails>(`/cases/${caseId}/details`);
@@ -80,8 +84,8 @@ class CaseService extends ApiService {
     // Extract patient name from case text (first few words)
     const patientName = apiCase.case_text.split(' ').slice(0, 3).join(' ') + '...';
     
-    // Format the date
-    const date = new Date(apiCase.created_at).toLocaleDateString();
+    // Format the date using updated_at instead of created_at to match the sorting order
+    const date = new Date(apiCase.updated_at).toLocaleDateString();
     
     // Create summary from case text (first 100 chars)
     const summary = apiCase.case_text.length > 100 

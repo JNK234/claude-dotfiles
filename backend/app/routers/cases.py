@@ -12,7 +12,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.case import Case, Message, StageResult # Added Message, StageResult
 from app.models.user import User
-from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList, CaseDetails # Added CaseDetails
+from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList, CaseDetails, CaseUpdate # Added CaseUpdate
 from sqlalchemy.orm import joinedload # To eagerly load relationships
 
 router = APIRouter()
@@ -218,3 +218,54 @@ def delete_case(
     # 204 status code requires no content returned
     
     return None
+
+@router.patch("/{case_id}", response_model=CaseSchema)
+def update_case(
+    case_id: UUID,
+    case_in: CaseUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Update a case
+    
+    Args:
+        case_id: Case ID
+        case_in: Case update data
+        db: Database session
+        current_user: Current authenticated user
+        
+    Returns:
+        Case: Updated case
+        
+    Raises:
+        HTTPException: If case not found or not owned by current user
+    """
+    # Get case by ID
+    case = db.query(Case).filter(Case.id == case_id).first()
+    
+    # Check if case exists
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case with ID {case_id} not found"
+        )
+    
+    # Check if case belongs to current user
+    if case.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this case"
+        )
+    
+    # Update case fields
+    update_data = case_in.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(case, field, value)
+    
+    # Save changes
+    db.commit()
+    db.refresh(case)
+    
+    # Return the updated case
+    return case

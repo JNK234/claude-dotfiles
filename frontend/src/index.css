@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Override styled-components with Tailwind */
+@layer base {
+  html, body {
+    @apply m-0 p-0;
+  }
+}
+
+/* Landing page specific styles */
+.landing-page {
+  @apply bg-white;
+}
+
+/* Your custom styles below */ 

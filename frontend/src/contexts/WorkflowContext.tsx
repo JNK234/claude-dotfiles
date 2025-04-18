@@ -339,6 +339,8 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       // Create the case
       const newCase = await CaseService.createCase({ case_text: caseText });
+      
+      // Set the selected case ID first to trigger the case list refresh
       setSelectedCaseId(newCase.id);
       setCurrentStage(newCase.current_stage);
       

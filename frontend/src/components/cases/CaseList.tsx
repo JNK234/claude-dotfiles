@@ -9,7 +9,8 @@ interface CaseListProps {
   onNewCase: () => void;
   selectedCaseId?: string;
   isLoading?: boolean;
-  onDeleteCase: (caseId: string) => Promise<void>; // Add prop for delete handler from parent
+  onDeleteCase: (caseId: string) => Promise<void>;
+  onRenameCase: (caseId: string, newName: string) => Promise<void>;
 }
 
 const Container = styled.div`
@@ -102,7 +103,8 @@ export const CaseList: React.FC<CaseListProps> = ({
   onNewCase,
   selectedCaseId,
   isLoading = false,
-  onDeleteCase // Destructure the new prop
+  onDeleteCase,
+  onRenameCase
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -129,6 +131,16 @@ export const CaseList: React.FC<CaseListProps> = ({
     }
   };
 
+  const handleRenameRequest = async (caseId: string, newName: string) => {
+    try {
+      await onRenameCase(caseId, newName);
+      console.log(`Rename requested and handled by parent for case ID: ${caseId}`);
+    } catch (error) {
+      console.error('Error requesting case rename:', error);
+      alert(`Failed to rename case: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   // Filter cases based on search query
   const filteredCases = cases.filter(caseItem => 
     caseItem.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,7 +150,7 @@ export const CaseList: React.FC<CaseListProps> = ({
   return (
     <Container>
       <Header>
-        <Title>Medhastra</Title>
+        <Title>Medhastra AI</Title>
         <Button 
           variant="primary" 
           fullWidth 
@@ -173,7 +185,8 @@ export const CaseList: React.FC<CaseListProps> = ({
               caseData={caseItem} 
               isSelected={caseItem.id === selectedCaseId}
               onClick={() => onSelectCase(caseItem)}
-              onDelete={handleDeleteRequest} // Pass the delete handler down
+              onDelete={handleDeleteRequest}
+              onRename={handleRenameRequest}
             />
           ))
         ) : (

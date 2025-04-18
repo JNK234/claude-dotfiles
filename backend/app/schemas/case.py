@@ -16,6 +16,12 @@ class CaseCreate(CaseBase):
     """Schema for creating a new case"""
     pass
 
+class CaseUpdate(BaseModel):
+    """Schema for updating a case"""
+    case_text: Optional[str] = None
+    current_stage: Optional[str] = None
+    is_complete: Optional[bool] = None
+
 class Case(CaseBase):
     """Schema for case returned from API"""
     id: UUID

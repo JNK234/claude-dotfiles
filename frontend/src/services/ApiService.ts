@@ -70,6 +70,11 @@ class ApiService {
     return response.data;
   }
 
+  async patch<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.api.patch<T>(endpoint, data, config);
+    return response.data;
+  }
+
   async delete<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.api.delete<T>(endpoint, config);
     return response.data;

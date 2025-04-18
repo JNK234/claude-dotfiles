@@ -14,6 +14,7 @@ export const theme = {
     errorRed: '#E63946',        // Keeping error red for contrast
     neutralGray: '#8C9BAB',     // Neutral gray for secondary text
     darkText: '#171848',        // Using dark blue for text
+    deepMedicalBlue: '#2A64F5', // Added for focus states, distinct blue
     
     // Panel background colors
     leftPanelBg: '#FFFBF5',     // White for clean look
