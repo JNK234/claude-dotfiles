@@ -100,3 +100,101 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     if user is None:
         raise credentials_exception
     return user
+
+# Supabase Auth Validation
+def validate_supabase_jwt(token: str) -> Dict[str, Any]:
+    """
+    Validate a Supabase JWT token
+    
+    Args:
+        token: Supabase JWT token
+        
+    Returns:
+        Dict[str, Any]: Decoded token payload
+        
+    Raises:
+        HTTPException: If token is invalid
+    """
+    # This is a placeholder - in a real implementation, you would:
+    # 1. Fetch the Supabase JWT signing keys (JWKS)
+    # 2. Validate the token signature
+    # 3. Check expiration and other claims
+    # 
+    # For now, we'll assume the token is valid if it can be decoded
+    # In production, you should use a proper JWT validation library
+    try:
+        # Just decode without verification for now
+        # In production, you would verify using Supabase public key
+        payload = jwt.decode(token, options={"verify_signature": False})
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+def get_supabase_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
+    """
+    Get or create a user from a Supabase JWT token
+    
+    Args:
+        db: Database session
+        token: Supabase JWT token
+        
+    Returns:
+        User: Current user
+        
+    Raises:
+        HTTPException: If token is invalid or user not found
+    """
+    # Validate the token and extract user info
+    payload = validate_supabase_jwt(token)
+    
+    # Extract user ID from the Supabase token
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID in token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Try to find the user in our database
+    try:
+        user_uuid = uuid.UUID(user_id)
+        user = db.query(User).filter(User.id == user_uuid).first()
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid user ID format",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # If user doesn't exist in our database, create it
+    if not user:
+        # Extract user data from token
+        email = payload.get("email")
+        name = payload.get("name", "")
+        
+        # In a real implementation, you should validate this data
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Email not found in token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Create a new user record
+        user = User(
+            id=user_uuid,
+            email=email,
+            name=name,
+            hashed_password="",  # No password needed as auth is handled by Supabase
+            is_active=True
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    
+    return user

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import ThreePanelLayout from './components/layout/ThreePanelLayout';
 import CaseList from './components/cases/CaseList';
@@ -10,12 +10,17 @@ import PHIDisclaimer from './components/ui/PHIDisclaimer';
 import StageProgressIndicator from './components/workflow/StageProgressIndicator';
 import Button from './components/ui/Button';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import PrivateRoute from './components/auth/PrivateRoute';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WorkflowProvider, useWorkflow } from './contexts/WorkflowContext';
 import CaseService from './services/CaseService';
 import ReportService from './services/ReportService';
 import { Case } from './components/cases/CaseListItem';
+import { supabase } from './lib/supabase';
 
 // Landing page imports
 import LandingNavbar from './components/landing/Navbar';
@@ -419,52 +424,175 @@ const CaseListConnector: React.FC<{
   );
 };
 
-const App: React.FC = () => {
-  // Add effect to toggle landing-page class on body
-  React.useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/' || path === '/resources' || path === '/about' || path === '/contact') {
-      document.body.classList.add('landing-page');
-    } else {
-      document.body.classList.remove('landing-page');
+// Auth callback component to handle OAuth redirects
+const AuthCallback: React.FC = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Get hash from the URL
+    const handleHash = async () => {
+      try {
+        // The callback URL contains a hash with tokens
+        // Supabase client will automatically extract the tokens
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (data && data.session) {
+          // User is authenticated, redirect to app
+          navigate('/app');
+        } else {
+          // No session found, redirect to login
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error('Error during auth callback:', error);
+        navigate('/login');
+      }
+    };
+    
+    handleHash();
+  }, [navigate]);
+  
+  return <div className="flex justify-center items-center min-h-screen">Processing authentication...</div>;
+};
+
+// Reset password component
+const ResetPassword: React.FC = () => {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
     }
     
-    return () => {
-      document.body.classList.remove('landing-page');
-    };
-  }, []);
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) throw error;
+      
+      setSuccess(true);
+      // Redirect to login after 3 seconds
+      setTimeout(() => navigate('/login'), 3000);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while resetting your password');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+        <h2 className="text-2xl font-bold text-center mb-6">Reset Your Password</h2>
+        
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
+        
+        {success ? (
+          <div className="bg-green-50 text-green-600 p-3 rounded-md mb-4">
+            Password reset successful! Redirecting to login...
+          </div>
+        ) : (
+          <form onSubmit={handleReset}>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-medium mb-2">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                required
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-medium mb-2">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                required
+                disabled={loading}
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+            >
+              {loading ? 'Resetting...' : 'Reset Password'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
+const App: React.FC = () => {
   return (
     <AuthProvider>
-      <WorkflowProvider>
-        <Router>
-          <Routes>
-            {/* Landing page layout wrapper */}
-            <Route element={
-              <div className="min-h-screen bg-white flex flex-col">
-                <LandingNavbar />
-                <main className="flex-grow">
-                  <Outlet />
-                </main>
-                <LandingFooter />
-              </div>
-            }>
-              {/* Landing page routes */}
-              <Route index element={<Home />} />
-              <Route path="/resources" element={<Resources />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-            </Route>
-            
-            {/* Existing app routes */}
-            <Route path="/login" element={<Login />} />
-            <Route element={<PrivateRoute />}>
-              <Route path="/app/*" element={<MainApp />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
-      </WorkflowProvider>
+      <Router>
+        <Routes>
+          {/* Landing Pages */}
+          <Route element={
+            <div className="min-h-screen bg-white flex flex-col">
+              <LandingNavbar />
+              <main className="flex-grow">
+                <Outlet />
+              </main>
+              <LandingFooter />
+            </div>
+          }>
+            <Route index element={<Home />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+          </Route>
+
+          {/* Auth Pages */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+
+          {/* Protected App Routes */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/app/*" element={
+              <WorkflowProvider>
+                <MainApp />
+              </WorkflowProvider>
+            } />
+          </Route>
+
+          {/* Redirect to home for unknown routes */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
 };

@@ -1,45 +1,71 @@
-import ApiService from './ApiService';
+import { supabase } from '../lib/supabase';
+import type { Session } from '@supabase/supabase-js';
 
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
+export class AuthService {
+  static async getSession(): Promise<Session | null> {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Error getting session:', error);
+      throw error;
+    }
 
-export interface AuthResponse {
-  access_token: string;
-  token_type: string;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  is_active: boolean;
-  role: string;
-  created_at: string;
-}
-
-class AuthService extends ApiService {
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await this.post<AuthResponse>('/auth/login', credentials);
-    // Store token in local storage
-    localStorage.setItem('token', response.access_token);
-    return response;
+    return session;
   }
 
-  async getCurrentUser(): Promise<User> {
-    return this.get<User>('/auth/me');
+  static async refreshSession(): Promise<Session | null> {
+    const { data: { session }, error } = await supabase.auth.refreshSession();
+    
+    if (error) {
+      console.error('Error refreshing session:', error);
+      throw error;
+    }
+
+    return session;
   }
 
-  logout(): void {
-    localStorage.removeItem('token');
-    // Redirect to login page
-    window.location.href = '/login';
+  static async isAuthenticated(): Promise<boolean> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return !!session;
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      return false;
+    }
   }
 
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+  static async resetPassword(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+
+    if (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
+  }
+
+  static async updatePassword(password: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (error) {
+      console.error('Error updating password:', error);
+      throw error;
+    }
+  }
+
+  static async verifyEmail(token: string, email: string): Promise<void> {
+    const { error } = await supabase.auth.verifyOtp({
+      token,
+      type: 'email',
+      email,
+    });
+
+    if (error) {
+      console.error('Error verifying email:', error);
+      throw error;
+    }
   }
 }
-
-export default new AuthService();

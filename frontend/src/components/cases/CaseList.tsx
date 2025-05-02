@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import CaseListItem, { Case } from './CaseListItem';
 import Button from '../ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CaseListProps {
   cases: Case[];
@@ -97,6 +98,15 @@ const LoadingContainer = styled.div`
   }
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid ${props => props.theme.colors.borderColor};
+`;
+
 export const CaseList: React.FC<CaseListProps> = ({ 
   cases, 
   onSelectCase, 
@@ -107,25 +117,13 @@ export const CaseList: React.FC<CaseListProps> = ({
   onRenameCase
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { signOut } = useAuth();
 
-  /**
-   * Handles the request to delete a case.
-   * This function calls the onDeleteCase prop provided by the parent component,
-   * which is responsible for the actual API call and state update.
-   * @param caseId - The ID of the case to be deleted.
-   */
   const handleDeleteRequest = async (caseId: string) => {
-    // Optional: Add a confirmation dialog here for better UX
-    // if (!window.confirm('Are you sure you want to delete this case? This action cannot be undone.')) {
-    //   return;
-    // }
     try {
-      // Call the parent's delete handler
       await onDeleteCase(caseId);
-      // Logging confirmation. The actual list update happens in the parent component.
       console.log(`Deletion requested and handled by parent for case ID: ${caseId}`);
     } catch (error) {
-      // Log the error. Ideally, show a user-facing notification.
       console.error('Error requesting case deletion:', error);
       alert(`Failed to delete case: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -141,7 +139,14 @@ export const CaseList: React.FC<CaseListProps> = ({
     }
   };
 
-  // Filter cases based on search query
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   const filteredCases = cases.filter(caseItem => 
     caseItem.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     caseItem.summary.toLowerCase().includes(searchQuery.toLowerCase())
@@ -150,7 +155,7 @@ export const CaseList: React.FC<CaseListProps> = ({
   return (
     <Container>
       <Header>
-        <Title>Medhastra AI</Title>
+        <Title>Medhastra</Title>
         <Button 
           variant="primary" 
           fullWidth 
@@ -195,6 +200,16 @@ export const CaseList: React.FC<CaseListProps> = ({
           </NoResultsMessage>
         )}
       </CasesContainer>
+
+      <ButtonContainer>
+        <Button 
+          variant="secondary"
+          fullWidth
+          onClick={handleSignOut}
+        >
+          Sign Out
+        </Button>
+      </ButtonContainer>
     </Container>
   );
 };

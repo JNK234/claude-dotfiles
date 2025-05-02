@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, Link } from 'react-router-dom';
-import { FcGoogle } from 'react-icons/fc';
-import { useAuth } from '../contexts/AuthContext';
+import { AuthService } from '../services/AuthService';
 
-const LoginContainer = styled.div`
+const ForgotPasswordContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,9 +42,16 @@ const AuthForm = styled.form`
 `;
 
 const FormTitle = styled.h1`
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   font-size: 1.5rem;
   color: #0f172a;
+  text-align: center;
+`;
+
+const FormDescription = styled.p`
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
   text-align: center;
 `;
 
@@ -98,32 +104,6 @@ const Button = styled.button`
   }
 `;
 
-const GoogleButton = styled(Button)`
-  background-color: white;
-  color: #171848;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
-const SecondaryButton = styled(Button)`
-  background-color: white;
-  color: #171848;
-  border: 1px solid #171848;
-  margin-top: 1rem;
-  
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
 const LinkText = styled.p`
   text-align: center;
   margin-top: 1rem;
@@ -141,8 +121,18 @@ const LinkText = styled.p`
   }
 `;
 
+const SuccessMessage = styled.div`
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #dcfce7;
+  color: #166534;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  text-align: center;
+`;
+
 const ErrorMessage = styled.div`
-  margin-bottom: 1rem;
+  margin-top: 1rem;
   padding: 0.75rem;
   background-color: #fee2e2;
   color: #b91c1c;
@@ -151,98 +141,74 @@ const ErrorMessage = styled.div`
   text-align: center;
 `;
 
-const Login: React.FC = () => {
+const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-
+    
     try {
-      await signIn(email, password);
-      navigate('/app');
+      const { error } = await AuthService.resetPassword(email);
+      
+      if (error) {
+        throw error;
+      }
+
+      setIsSubmitted(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      setError(err.message || 'Failed to send reset instructions');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setError(null);
-    try {
-      await signInWithGoogle();
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with Google');
-    }
-  };
-
   return (
-    <LoginContainer>
+    <ForgotPasswordContainer>
       <LogoContainer>
         <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
         <LogoText>Medhastra AI</LogoText>
       </LogoContainer>
       <AuthForm onSubmit={handleSubmit}>
-        <FormTitle>Welcome Back</FormTitle>
-        
+        <FormTitle>Reset Password</FormTitle>
+        <FormDescription>
+          Enter your email address and we'll send you instructions to reset your password.
+        </FormDescription>
+
         {error && <ErrorMessage>{error}</ErrorMessage>}
+        {isSubmitted && (
+          <SuccessMessage>
+            If an account exists with this email, you will receive password reset instructions shortly.
+          </SuccessMessage>
+        )}
         
         <FormGroup>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Email Address</Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={isLoading}
+            disabled={isSubmitted || isLoading}
           />
         </FormGroup>
         
-        <FormGroup>
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-          />
-        </FormGroup>
-        
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Log in'}
+        <Button type="submit" disabled={isSubmitted || isLoading}>
+          {isLoading ? 'Sending...' : isSubmitted ? 'Instructions Sent' : 'Send Reset Instructions'}
         </Button>
 
-        <SecondaryButton type="button" onClick={() => navigate('/signup')} disabled={isLoading}>
-          Create New Account
-        </SecondaryButton>
-
-        <GoogleButton type="button" onClick={handleGoogleLogin} disabled={isLoading}>
-          <FcGoogle size={20} />
-          Continue with Google
-        </GoogleButton>
-
         <LinkText>
-          <Link to="/forgot-password">Forgot your password?</Link>
-        </LinkText>
-
-        <LinkText>
-          By continuing, you agree to our{' '}
-          <Link to="/terms">Terms of Service</Link> and{' '}
-          <Link to="/privacy">Privacy Policy</Link>
+          Remember your password? <Link to="/login">Log in</Link>
         </LinkText>
       </AuthForm>
-    </LoginContainer>
+    </ForgotPasswordContainer>
   );
 };
 
-export default Login;
+export default ForgotPassword;

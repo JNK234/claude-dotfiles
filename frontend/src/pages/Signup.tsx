@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate, Link } from 'react-router-dom';
-import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../contexts/AuthContext';
+import { FcGoogle } from 'react-icons/fc';
 
-const LoginContainer = styled.div`
+const SignupContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,17 +113,6 @@ const GoogleButton = styled(Button)`
   }
 `;
 
-const SecondaryButton = styled(Button)`
-  background-color: white;
-  color: #171848;
-  border: 1px solid #171848;
-  margin-top: 1rem;
-  
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
 const LinkText = styled.p`
   text-align: center;
   margin-top: 1rem;
@@ -151,56 +140,110 @@ const ErrorMessage = styled.div`
   text-align: center;
 `;
 
-const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Signup: React.FC = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
-      navigate('/app');
+      await signUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
+      navigate('/login');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      setError(err.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignUp = async () => {
     setError(null);
+    setIsLoading(true);
+    
     try {
       await signInWithGoogle();
+      navigate('/app');
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google');
+      setIsLoading(false);
     }
   };
 
   return (
-    <LoginContainer>
+    <SignupContainer>
       <LogoContainer>
         <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
         <LogoText>Medhastra AI</LogoText>
       </LogoContainer>
       <AuthForm onSubmit={handleSubmit}>
-        <FormTitle>Welcome Back</FormTitle>
+        <FormTitle>Create Your Account</FormTitle>
         
         {error && <ErrorMessage>{error}</ErrorMessage>}
+        
+        <FormGroup>
+          <Label htmlFor="firstName">First Name</Label>
+          <Input
+            id="firstName"
+            name="firstName"
+            type="text"
+            value={formData.firstName}
+            onChange={handleChange}
+            required
+            disabled={isLoading}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input
+            id="lastName"
+            name="lastName"
+            type="text"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+            disabled={isLoading}
+          />
+        </FormGroup>
         
         <FormGroup>
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
+            name="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
             required
             disabled={isLoading}
           />
@@ -210,29 +253,39 @@ const Login: React.FC = () => {
           <Label htmlFor="password">Password</Label>
           <Input
             id="password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
+            required
+            disabled={isLoading}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
             required
             disabled={isLoading}
           />
         </FormGroup>
         
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Log in'}
+          {isLoading ? 'Creating Account...' : 'Create Account'}
         </Button>
 
-        <SecondaryButton type="button" onClick={() => navigate('/signup')} disabled={isLoading}>
-          Create New Account
-        </SecondaryButton>
-
-        <GoogleButton type="button" onClick={handleGoogleLogin} disabled={isLoading}>
+        <GoogleButton type="button" onClick={handleGoogleSignUp} disabled={isLoading}>
           <FcGoogle size={20} />
-          Continue with Google
+          Sign up with Google
         </GoogleButton>
 
         <LinkText>
-          <Link to="/forgot-password">Forgot your password?</Link>
+          Already have an account? <Link to="/login">Log in</Link>
         </LinkText>
 
         <LinkText>
@@ -241,8 +294,8 @@ const Login: React.FC = () => {
           <Link to="/privacy">Privacy Policy</Link>
         </LinkText>
       </AuthForm>
-    </LoginContainer>
+    </SignupContainer>
   );
 };
 
-export default Login;
+export default Signup;

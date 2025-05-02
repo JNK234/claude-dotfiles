@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { supabase } from '../lib/supabase'; // Import supabase client
 
 // Use relative path for API requests, relying on Render's rewrite rule for proxying
-const API_URL = '/api'; 
+const API_URL = '/api';
 
 class ApiService {
   protected api: AxiosInstance;
@@ -16,10 +17,30 @@ class ApiService {
 
     // Add request interceptor to include token in requests
     this.api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+      async (config) => { // Make the interceptor async
+        try {
+          // Prioritize getting the token from the active Supabase session
+          const { data: { session }, error } = await supabase.auth.getSession();
+
+          if (error) {
+            console.error('Error getting Supabase session in interceptor:', error);
+            // Optionally fall back to localStorage or handle error
+          }
+
+          const token = session?.access_token; // Get the access token
+
+          if (token) {
+            console.log('[ApiService Interceptor] Using token from Supabase session.');
+            config.headers.Authorization = `Bearer ${token}`;
+          } else {
+            // Fallback or if no session exists (e.g., public routes)
+            console.warn('[ApiService Interceptor] No active Supabase session token found.');
+            // You might still check localStorage here as a secondary fallback if needed
+            // const localToken = localStorage.getItem('token');
+            // if (localToken) config.headers.Authorization = `Bearer ${localToken}`;
+          }
+        } catch (e) {
+           console.error('Unexpected error in Supabase session check:', e);
         }
         return config;
       },
