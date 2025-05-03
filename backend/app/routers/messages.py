@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_supabase_user # Changed import
 from app.models.case import Case, Message
 from app.models.user import User
 from app.schemas.case import Message as MessageSchema, MessageCreate, MessageList
@@ -17,12 +17,12 @@ from app.services.diagnosis_service import DiagnosisService
 router = APIRouter()
 
 @router.get("/{case_id}/messages", response_model=MessageList)
-def list_messages(
+async def list_messages( # Changed to async
     case_id: UUID,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     List messages for a case
@@ -68,11 +68,11 @@ def list_messages(
     return {"messages": messages, "total": total}
 
 @router.post("/{case_id}/messages", response_model=MessageSchema, status_code=status.HTTP_201_CREATED)
-def create_message(
+async def create_message( # Changed to async
     case_id: UUID,
     message_in: MessageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Create a new message for a case

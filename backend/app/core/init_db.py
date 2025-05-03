@@ -4,7 +4,8 @@ Database initialization module
 import logging
 from sqlalchemy.orm import Session
 
-from app.core.security import get_password_hash
+# Removed import of get_password_hash as it's no longer used here
+# from app.core.security import get_password_hash
 from app.models.user import User
 
 # Configure logging
@@ -21,24 +22,13 @@ def init_db(db: Session) -> None:
     # Check if users exist
     user = db.query(User).first()
     if user:
-        logger.info("Database already initialized with users")
+        logger.info("Database already contains users. Skipping default user creation.")
         return
     
-    # Create default doctor user
-    user = User(
-        email="doctor@example.com",
-        name="Demo Doctor",
-        hashed_password=get_password_hash("password"),
-        is_active=True,
-        role="doctor"
-    )
-    
-    # Add to database
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    
-    logger.info(f"Created default doctor user: {user.email}")
+    # Removed default user creation logic.
+    # User creation should now happen via Supabase signup and the associated trigger.
+    logger.info("No users found. Database initialization complete (default user creation skipped).")
+    # If other initialization steps were needed, they would go here.
 
 def create_tables(db: Session) -> None:
     """

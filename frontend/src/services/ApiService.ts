@@ -1,5 +1,5 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { supabase } from '../lib/supabase'; // Import supabase client
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import { supabase } from '../lib/supabase';
 
 // Use relative path for API requests, relying on Render's rewrite rule for proxying
 const API_URL = '/api';
@@ -17,85 +17,141 @@ class ApiService {
 
     // Add request interceptor to include token in requests
     this.api.interceptors.request.use(
-      async (config) => { // Make the interceptor async
+      async (config) => {
         try {
-          // Prioritize getting the token from the active Supabase session
+          // Get current Supabase session
           const { data: { session }, error } = await supabase.auth.getSession();
 
           if (error) {
-            console.error('Error getting Supabase session in interceptor:', error);
-            // Optionally fall back to localStorage or handle error
-          }
-
-          const token = session?.access_token; // Get the access token
-
-          if (token) {
-            console.log('[ApiService Interceptor] Using token from Supabase session.');
-            config.headers.Authorization = `Bearer ${token}`;
+            console.error('[ApiService] Error getting Supabase session:', error);
+          } else if (session?.access_token) {
+            console.log('[ApiService] Using token from Supabase session');
+            config.headers.Authorization = `Bearer ${session.access_token}`;
+            
+            // Store token in localStorage as fallback
+            localStorage.setItem('token', session.access_token);
           } else {
-            // Fallback or if no session exists (e.g., public routes)
-            console.warn('[ApiService Interceptor] No active Supabase session token found.');
-            // You might still check localStorage here as a secondary fallback if needed
-            // const localToken = localStorage.getItem('token');
-            // if (localToken) config.headers.Authorization = `Bearer ${localToken}`;
+            // Try fallback to stored token if available
+            const storedToken = localStorage.getItem('token');
+            if (storedToken) {
+              console.log('[ApiService] Using fallback token from localStorage');
+              config.headers.Authorization = `Bearer ${storedToken}`;
+            } else {
+              console.warn('[ApiService] No authentication token available');
+            }
           }
         } catch (e) {
-           console.error('Unexpected error in Supabase session check:', e);
+          console.error('[ApiService] Unexpected error in auth token handling:', e);
         }
+        
         return config;
       },
       (error) => Promise.reject(error)
     );
 
-    // Add response interceptor for error handling
+    // Add response interceptor for error handling and token refresh
     this.api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        // Handle token expiration
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+      async (error: AxiosError) => {
+        const originalRequest = error.config;
+        
+        // Handle authentication errors (401)
+        if (error.response?.status === 401 && originalRequest) {
+          try {
+            console.log('[ApiService] Received 401, attempting to refresh session');
+            
+            // Try to refresh the session
+            const { data, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError || !data.session) {
+              console.error('[ApiService] Session refresh failed:', refreshError);
+              
+              // Clear tokens and redirect to login
+              localStorage.removeItem('token');
+              window.location.href = '/login?expired=true';
+              return Promise.reject(error);
+            }
+            
+            // Session refreshed successfully
+            console.log('[ApiService] Session refreshed, retrying request');
+            const token = data.session.access_token;
+            localStorage.setItem('token', token);
+            
+            // Update the authorization header and retry the request
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return this.api(originalRequest);
+          } catch (refreshError) {
+            console.error('[ApiService] Error during token refresh:', refreshError);
+            
+            // Clear tokens and redirect to login
+            localStorage.removeItem('token');
+            window.location.href = '/login?expired=true';
+          }
         }
+        
         return Promise.reject(error);
       }
     );
   }
 
+  /**
+   * GET request
+   */
   async get<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.api.get<T>(endpoint, config);
     return response.data;
   }
 
+  /**
+   * POST request
+   */
   async post<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    let finalConfig = config;
+    // Special handling for legacy authentication endpoints
     if (endpoint === '/auth/login') {
+      console.warn('[ApiService] Using legacy auth endpoint - consider migrating to Supabase auth');
+      
+      // Convert to form data for legacy endpoints
       const formData = new URLSearchParams();
-      for (const [key, value] of Object.entries(data)) {
+      for (const [key, value] of Object.entries(data || {})) {
         formData.append(key, value as string);
       }
-      finalConfig = {
+      
+      const formConfig = {
         ...config,
         headers: {
           ...config?.headers,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       };
-      data = formData;
+      
+      const response = await this.api.post<T>(endpoint, formData, formConfig);
+      return response.data;
     }
-    const response = await this.api.post<T>(endpoint, data, finalConfig);
+    
+    // Standard JSON POST
+    const response = await this.api.post<T>(endpoint, data, config);
     return response.data;
   }
 
+  /**
+   * PUT request
+   */
   async put<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.api.put<T>(endpoint, data, config);
     return response.data;
   }
 
+  /**
+   * PATCH request
+   */
   async patch<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.api.patch<T>(endpoint, data, config);
     return response.data;
   }
 
+  /**
+   * DELETE request
+   */
   async delete<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.api.delete<T>(endpoint, config);
     return response.data;
