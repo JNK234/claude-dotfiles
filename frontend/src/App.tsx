@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+// Removed styled-components import
+// import styled from 'styled-components'; 
 import ThreePanelLayout from './components/layout/ThreePanelLayout';
 import CaseList from './components/cases/CaseList';
 import ChatContainer from './components/chat/ChatContainer';
@@ -14,6 +15,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import ProfilePage from './pages/ProfilePage'; // Import the new ProfilePage
 import PrivateRoute from './components/auth/PrivateRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WorkflowProvider, useWorkflow } from './contexts/WorkflowContext';
@@ -30,39 +32,11 @@ import Resources from './pages/landing/Resources';
 import About from './pages/landing/About';
 import Contact from './pages/landing/Contact';
 
-// Container for stage progress indicator
-const ProgressContainer = styled.div`
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: white;
-`;
-
-// Container for main content
-const ContentContainer = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-`;
-
-// Container for stage controls
-const StageControlsContainer = styled.div`
-  padding: 1rem;
-  border-top: 1px solid #e0e0e0;
-  background-color: white;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-`;
-
-// Error container for displaying API errors
-const ErrorContainer = styled.div`
-  padding: 1rem;
-  margin: 1rem;
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-`;
+// Removed styled-component definitions
+// const ProgressContainer = styled.div`...`;
+// const ContentContainer = styled.div`...`;
+// const StageControlsContainer = styled.div`...`;
+// const ErrorContainer = styled.div`...`;
 
 const MainApp: React.FC = () => {
   const {
@@ -216,28 +190,36 @@ const MainApp: React.FC = () => {
   // Render center panel
   const renderCenterPanel = () => {
     return (
-      <ContentContainer>
-        <ProgressContainer>
+      // Replaced ContentContainer with div and Tailwind classes
+      <div className="flex-1 flex flex-col"> 
+        {/* Replaced ProgressContainer with div and Tailwind classes */}
+        <div className="px-8 py-4 border-b border-[#e0e0e0] bg-white"> 
           <StageProgressIndicator stages={stages} />
-        </ProgressContainer>
+        </div>
         
-        {error && <ErrorContainer>{error}</ErrorContainer>}
+        {/* Replaced ErrorContainer with div and Tailwind classes */}
+        {error && 
+          <div className="p-4 m-4 bg-red-100 text-red-700 rounded text-sm"> 
+            {error}
+          </div>
+        }
         
         {!isPhiAcknowledged && (
-          <div style={{ padding: '1rem' }}>
+          <div style={{ padding: '1rem' }}> {/* Keep padding for now */}
             <PHIDisclaimer onAcknowledge={acknowledgePhiDisclaimer} />
           </div>
         )}
         
         {isPhiAcknowledged && (!currentStage || currentStage === 'initial' || currentStage === 'patient_case_analysis_group') && !selectedCaseId && (
-          <div style={{ padding: '1rem' }}>
+          <div style={{ padding: '1rem' }}> {/* Keep padding for now */}
             <CaseInput onSubmit={handleCaseSubmit} />
           </div>
         )}
         
         {isPhiAcknowledged && selectedCaseId && (
           <>
-            <div style={{ flex: 1, overflow: 'hidden' }}>
+            {/* Ensure ChatContainer takes remaining space */}
+            <div className="flex-1 overflow-hidden"> 
               <ChatContainer 
                 messages={messages} 
                 onSendMessage={handleSendMessage} 
@@ -246,7 +228,8 @@ const MainApp: React.FC = () => {
             </div>
             
             {selectedCaseId && (
-              <StageControlsContainer>
+              // Replaced StageControlsContainer with div and Tailwind classes
+              <div className="p-4 border-t border-[#e0e0e0] bg-white flex justify-end gap-4"> 
                 {currentStage !== 'treatment_planning_group' && (
                   <Button 
                     variant="approve" 
@@ -274,11 +257,11 @@ const MainApp: React.FC = () => {
                     </Button>
                   </>
                 )}
-              </StageControlsContainer>
+              </div> // Correct closing tag for StageControlsContainer replacement
             )}
           </>
         )}
-      </ContentContainer>
+      </div> // Correct closing tag for ContentContainer replacement
     );
   };
   
@@ -409,10 +392,20 @@ const CaseListConnector: React.FC<{
   return (
     <>
       {/* Display errors if any */}
-      {deleteError && <ErrorContainer style={{ margin: '0 0 1rem 0' }}>{deleteError}</ErrorContainer>}
-      {renameError && <ErrorContainer style={{ margin: '0 0 1rem 0' }}>{renameError}</ErrorContainer>}
-      <CaseList
-        cases={cases}
+        {/* Replaced ErrorContainer with div and Tailwind classes */}
+        {deleteError && 
+          <div className="p-4 mb-4 bg-red-100 text-red-700 rounded text-sm"> 
+            {deleteError}
+          </div>
+        }
+        {/* Replaced ErrorContainer with div and Tailwind classes */}
+        {renameError && 
+          <div className="p-4 mb-4 bg-red-100 text-red-700 rounded text-sm"> 
+            {renameError}
+          </div>
+        }
+        <CaseList
+          cases={cases}
         onSelectCase={onSelectCase}
         onNewCase={onNewCase}
         selectedCaseId={selectedCaseId}
@@ -582,11 +575,17 @@ const App: React.FC = () => {
 
           {/* Protected App Routes */}
           <Route element={<PrivateRoute />}>
-            <Route path="/app/*" element={
+            {/* Main App Layout */}
+            <Route path="/app" element={
               <WorkflowProvider>
                 <MainApp />
               </WorkflowProvider>
             } />
+            {/* Profile Page Route */}
+            <Route path="/app/profile" element={<ProfilePage />} /> 
+            {/* Add other protected app routes here if needed */}
+            {/* Fallback within /app/* to redirect to /app ? Or handle 404 */}
+             <Route path="/app/*" element={<Navigate to="/app" replace />} /> 
           </Route>
 
           {/* Redirect to home for unknown routes */}

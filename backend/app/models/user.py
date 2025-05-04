@@ -36,6 +36,9 @@ class User(Base):
     
     # Auth provider
     auth_provider = Column(String, default="local")  # "local", "google", "supabase"
+
+    # Account details
+    subscription_tier = Column(String, default="free", nullable=False) # e.g., 'free', 'pro', 'enterprise'
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

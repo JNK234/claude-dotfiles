@@ -18,6 +18,7 @@ class UserBase(BaseModel):
     role: str = "doctor"
     is_onboarded: bool = False
     auth_provider: str = "local"
+    subscription_tier: str = "free" # Added subscription tier
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
@@ -31,21 +32,19 @@ class UserCreate(UserBase):
             raise ValueError("Password is required for local authentication")
         return obj
 
-# Properties to receive via API on update
-class UserUpdate(BaseModel):
-    """Schema for updating an existing user"""
-    email: Optional[EmailStr] = None
-    name: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=8)
-    is_active: Optional[bool] = None
+# Properties to receive via API on user profile update
+class ProfileUpdate(BaseModel):
+    """Schema for updating user profile information"""
+    name: Optional[str] = None # Maps to User.name
+    job_title: Optional[str] = None # Maps to UserProfile.job_title
 
-# Schema for user profile
-class UserProfile(BaseModel):
-    """Schema for user profile data"""
-    user_id: UUID
+# Schema for user profile (read-only view)
+class UserProfileBase(BaseModel):
+    """Base schema for user profile data (read-only fields)"""
+    # user_id: UUID # Removed as it's implicit in the relationship
     phone_number: Optional[str] = None
     company_name: Optional[str] = None
-    job_title: Optional[str] = None
+    job_title: Optional[str] = None # This will be the 'title' field
     country: Optional[str] = None
     timezone: Optional[str] = None
     language: Optional[str] = None
@@ -53,18 +52,31 @@ class UserProfile(BaseModel):
     profile_metadata: Dict[str, Any] = {}
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
     class Config:
         from_attributes = True
 
-# Properties to return via API
+# Properties to return via API (basic user info)
 class User(UserBase):
-    """Schema for user returned from API"""
+    """Schema for user returned from API (basic info)"""
     id: UUID
-    created_at: datetime
-    
+    created_at: datetime # Keep created_at for user account creation date
+
     class Config:
         from_attributes = True
+
+# Combined schema for returning full user profile details
+class UserProfileResponse(User):
+    """Schema for returning full user profile details, including nested profile"""
+    profile: Optional[UserProfileBase] = None # Expect nested profile object
+
+    class Config:
+        from_attributes = True # Enable ORM mode
+
+# Schema for user statistics
+class UserStats(BaseModel):
+    """Schema for user statistics"""
+    cases_processed: int
+    subscription_tier: str
 
 # Properties for token authentication
 class Token(BaseModel):

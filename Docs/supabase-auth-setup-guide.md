@@ -16,6 +16,7 @@ This guide will walk you through setting up the Supabase authentication system f
 5. Run the query
 
 This will set up:
+
 - The profiles table linked to Supabase auth users
 - Row Level Security (RLS) policies for proper data access control
 - Triggers to automatically create profiles for new users
@@ -72,19 +73,20 @@ SUPABASE_SERVICE_KEY=your-service-role-key-from-supabase-dashboard
 ### Common Issues
 
 1. **JWT Validation Errors**
+
    - Check that your `SUPABASE_URL` and `SUPABASE_JWT_AUDIENCE` are correctly set
    - Make sure your backend can access the JWKS endpoint at `https://YOUR_SUPABASE_PROJECT.supabase.co/auth/v1/.well-known/jwks.json`
-
 2. **Profile Not Created**
+
    - Check the trigger function `handle_new_user()` is properly registered
    - Verify the SQL migration ran successfully
    - Look for errors in Supabase logs
-
 3. **Authorization Issues**
+
    - Verify the RLS policies are correctly set up
    - Check that your API requests include the correct Authorization header
-
 4. **CORS Issues**
+
    - Make sure your backend CORS settings allow requests from your frontend origin
 
 ## Using the Authentication System

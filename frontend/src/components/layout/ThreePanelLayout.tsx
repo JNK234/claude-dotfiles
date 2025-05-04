@@ -1,5 +1,8 @@
 import React, { ReactNode, useState, useRef, useEffect } from 'react';
-import styled from 'styled-components';
+import clsx from 'clsx'; // Import clsx for conditional classes
+
+// Removed styled-components import
+// import styled from 'styled-components'; 
 
 interface ThreePanelLayoutProps {
   leftPanel: ReactNode;
@@ -7,105 +10,17 @@ interface ThreePanelLayoutProps {
   rightPanel: ReactNode;
 }
 
-const LayoutContainer = styled.div`
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-`;
+// Removed styled-component definitions
+// const LayoutContainer = styled.div`...`;
+// const LeftPanel = styled.div<PanelProps>`...`;
+// const CenterPanel = styled.div`...`;
+// const RightPanel = styled.div<RightPanelProps>`...`;
+// const ResizeHandle = styled.div`...`;
+// const ToggleButton = styled.button<{ isPanelVisible: boolean }>`...`;
+// const PanelHeader = styled.div`...`; // This wasn't used, can be ignored
 
-interface PanelProps {
-  isVisible: boolean;
-}
-
-const LeftPanel = styled.div<PanelProps>`
-  width: ${props => props.isVisible ? props.theme.layout.leftPanelWidth : '0'};
-  max-width: ${props => props.theme.layout.leftPanelWidth};
-  background-color: ${props => props.theme.colors.leftPanelBg};
-  overflow-y: auto;
-  padding: ${props => props.isVisible ? '1.5rem' : '0'};
-  border-right: 1px solid ${props => props.theme.colors.borderColor}; // Use theme border color
-  transition: width 0.3s ease, padding 0.3s ease;
-  overflow-x: hidden;
-  box-shadow: ${props => props.theme.shadows.medium}; // Add shadow for depth
-  z-index: 1; // Ensure shadow renders correctly
-`;
-
-const CenterPanel = styled.div`
-  flex: 1;
-  background-color: ${props => props.theme.colors.white};
-  overflow-y: auto;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-`;
-
-interface RightPanelProps extends PanelProps {
-  width: string;
-}
-
-const RightPanel = styled.div<RightPanelProps>`
-  width: ${props => props.isVisible ? props.width : '0'};
-  background-color: ${props => props.theme.colors.rightPanelBg};
-  overflow-y: auto;
-  padding: ${props => props.isVisible ? '1.5rem' : '0'};
-  border-left: 1px solid ${props => props.theme.colors.borderColor}; // Use theme border color
-  transition: width 0.3s ease, padding 0.3s ease;
-  position: relative;
-  overflow-x: hidden;
-  box-shadow: ${props => props.theme.shadows.medium}; // Add shadow for depth
-  z-index: 1; // Ensure shadow renders correctly
-`;
-
-const ResizeHandle = styled.div`
-  position: absolute;
-  top: 0;
-  left: -5px;
-  width: 10px;
-  height: 100%;
-  cursor: col-resize;
-  z-index: 10;
-  
-  &:hover, &:active {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-`;
-
-const ToggleButton = styled.button<{ isPanelVisible: boolean }>`
-  position: fixed;
-  width: 24px;
-  height: 60px;
-  background-color: ${props => props.theme.colors.darkBlue};
-  color: white;
-  border: none;
-  border-radius: 0 ${props => props.theme.layout.borderRadius} ${props => props.theme.layout.borderRadius} 0; // Use theme border radius
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 100;
-  top: 50%;
-  transform: translateY(-50%);
-  left: ${props => props.isPanelVisible ? props.theme.layout.leftPanelWidth : '0'};
-  transition: left 0.3s ease, background-color ${props => props.theme.transitions.default};
-  
-  &:hover {
-    background-color: ${props => props.theme.colors.yellow}; // Use theme color for hover
-  }
-  
-  &:focus {
-    outline: none;
-  }
-`;
-
-const PanelHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-`;
+// Define fixed left panel width based on previous theme value
+const LEFT_PANEL_WIDTH_PX = 250; 
 
 export const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
   leftPanel,
@@ -116,7 +31,8 @@ export const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
   const [leftPanelVisible, setLeftPanelVisible] = useState(true);
   
   // Right panel width state (default width but can be changed by user)
-  const [rightPanelWidth, setRightPanelWidth] = useState('30%');
+  // Initialize with a percentage or pixel value suitable for Tailwind/inline style
+  const [rightPanelWidth, setRightPanelWidth] = useState('30%'); 
   
   // Refs for resize functionality
   const rightPanelRef = useRef<HTMLDivElement>(null);
@@ -142,9 +58,10 @@ export const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
     const windowWidth = window.innerWidth;
     const maxWidth = windowWidth * 0.5; // 50% of screen width
     
+    // Ensure minimum width (e.g., 200px) and maximum width
     const newWidth = Math.max(200, Math.min(maxWidth, startWidth.current + delta));
     
-    setRightPanelWidth(`${newWidth}px`);
+    setRightPanelWidth(`${newWidth}px`); // Set width in pixels for inline style
   };
   
   // Handle resize end
@@ -164,7 +81,7 @@ export const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
     };
   }, []);
   
-  // Toggle button icon
+  // Toggle button icon component remains the same
   const ToggleIcon = () => (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d={leftPanelVisible ? "M15 19l-7-7 7-7" : "M9 19l7-7-7-7"} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -172,32 +89,51 @@ export const ThreePanelLayout: React.FC<ThreePanelLayoutProps> = ({
   );
 
   return (
-    <LayoutContainer>
-      <LeftPanel isVisible={leftPanelVisible}>
+    // Replaced LayoutContainer with div and Tailwind classes
+    <div className="flex h-screen w-full overflow-hidden relative">
+      {/* Replaced LeftPanel with div and Tailwind classes */}
+      <div 
+        className={clsx(
+          "bg-leftPanelBg overflow-y-auto overflow-x-hidden border-r border-borderColor shadow-medium z-[1] transition-all duration-300 ease-in-out",
+          leftPanelVisible ? `w-[${LEFT_PANEL_WIDTH_PX}px] p-6` : "w-0 p-0 border-r-0" // Use fixed width and conditional padding/border
+        )}
+        style={{ width: leftPanelVisible ? `${LEFT_PANEL_WIDTH_PX}px` : '0px' }} // Explicit width for transition
+      >
         {leftPanel}
-      </LeftPanel>
+      </div>
       
-      <ToggleButton 
-        isPanelVisible={leftPanelVisible}
+      {/* Replaced ToggleButton with button and Tailwind classes */}
+      <button 
+        className={clsx(
+          "fixed w-6 h-[60px] bg-darkBlue text-white border-none rounded-r-lg flex items-center justify-center cursor-pointer z-50 top-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out hover:bg-yellow focus:outline-none",
+          leftPanelVisible ? `left-[${LEFT_PANEL_WIDTH_PX}px]` : "left-0" // Dynamic left position
+        )}
+        style={{ left: leftPanelVisible ? `${LEFT_PANEL_WIDTH_PX}px` : '0px' }} // Explicit left for transition
         onClick={() => setLeftPanelVisible(!leftPanelVisible)}
         title={leftPanelVisible ? "Hide case history" : "Show case history"}
       >
         <ToggleIcon />
-      </ToggleButton>
+      </button>
       
-      <CenterPanel>
+      {/* Replaced CenterPanel with div and Tailwind classes */}
+      <div className="flex-1 bg-white overflow-y-auto p-6 flex flex-col relative">
         {centerPanel}
-      </CenterPanel>
+      </div>
       
-      <RightPanel 
-        isVisible={true}
-        width={rightPanelWidth}
+      {/* Replaced RightPanel with div and Tailwind classes/inline style */}
+      <div 
+        className="bg-rightPanelBg overflow-y-auto border-l border-borderColor shadow-medium z-[1] relative overflow-x-hidden p-6 transition-all duration-300 ease-in-out" // Added padding back
+        style={{ width: rightPanelWidth }} // Apply dynamic width via inline style
         ref={rightPanelRef}
       >
-        <ResizeHandle onMouseDown={handleResizeStart} />
+        {/* Replaced ResizeHandle with div and Tailwind classes */}
+        <div 
+          className="absolute top-0 left-[-5px] w-[10px] h-full cursor-col-resize z-10 hover:bg-black/5 active:bg-black/5"
+          onMouseDown={handleResizeStart} 
+        />
         {rightPanel}
-      </RightPanel>
-    </LayoutContainer>
+      </div>
+    </div>
   );
 };
 

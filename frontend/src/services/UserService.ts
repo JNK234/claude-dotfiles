@@ -1,238 +1,142 @@
-import { supabase } from '../lib/supabase';
-import type { User, UserProfile, Subscription, UsageTracking, BillingHistory } from '../lib/supabase';
+import ApiService from './ApiService'; // Import the base ApiService
+
+// Define TypeScript interfaces corresponding to backend Pydantic schemas
+
+// Base interface for nested profile data
+export interface UserProfileBase {
+    phone_number?: string | null;
+    company_name?: string | null;
+    job_title?: string | null; // This is the 'title' field
+    country?: string | null;
+    timezone?: string | null;
+    language?: string | null;
+    avatar_url?: string | null;
+    profile_metadata?: Record<string, any>;
+    created_at?: string | null; // ISO date string
+    updated_at?: string | null; // ISO date string
+}
+
+// Main response interface including nested profile
+export interface UserProfileResponse {
+  id: string; // UUID as string
+  email: string;
+  name: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active: boolean;
+  role: string;
+  is_onboarded: boolean;
+  auth_provider: string;
+  subscription_tier: string;
+  created_at: string; // ISO date string
+  profile?: UserProfileBase | null; // Nested profile object
+}
+
+export interface ProfileUpdate {
+  name?: string;
+  job_title?: string;
+}
+
+export interface UserStats {
+  cases_processed: number;
+  subscription_tier: string;
+}
+
+
+// Instantiate ApiService for user-related endpoints
+const apiService = new ApiService();
+const USER_ENDPOINT = '/users'; // Base endpoint for user routes
 
 export class UserService {
-  // User operations
-  static async getUser(userId: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
 
-    if (error) {
-      console.error('Error fetching user:', error);
-      throw error;
+  /**
+   * Fetches the complete profile information for the currently authenticated user.
+   * @returns {Promise<UserProfileResponse>} The user's profile data.
+   */
+  static async getUserProfile(): Promise<UserProfileResponse> {
+    try {
+      console.log('[UserService] Fetching user profile...');
+      const profile = await apiService.get<UserProfileResponse>(`${USER_ENDPOINT}/me`);
+      console.log('[UserService] Profile fetched successfully:', profile);
+      return profile;
+    } catch (error) {
+      console.error('[UserService] Error fetching user profile:', error);
+      // Consider more specific error handling or re-throwing
+      throw new Error('Failed to fetch user profile.'); 
     }
-
-    return data;
   }
 
-  static async updateUser(userId: string, updates: Partial<User>): Promise<User> {
-    const { data, error } = await supabase
-      .from('users')
-      .update(updates)
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating user:', error);
-      throw error;
+  /**
+   * Updates the profile information for the currently authenticated user.
+   * @param {ProfileUpdate} updates - The profile data to update (name, job_title).
+   * @returns {Promise<UserProfileResponse>} The updated user's profile data.
+   */
+  static async updateUserProfile(updates: ProfileUpdate): Promise<UserProfileResponse> {
+    try {
+      console.log('[UserService] Updating user profile with:', updates);
+      const updatedProfile = await apiService.put<UserProfileResponse>(`${USER_ENDPOINT}/me`, updates);
+      console.log('[UserService] Profile updated successfully:', updatedProfile);
+      return updatedProfile;
+    } catch (error) {
+      console.error('[UserService] Error updating user profile:', error);
+       // Check if error response has details
+       const detail = (error as any)?.response?.data?.detail || 'Failed to update user profile.';
+       throw new Error(detail);
     }
-
-    return data;
   }
 
-  // Profile operations
-  static async getProfile(userId: string): Promise<UserProfile | null> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found" error
-      console.error('Error fetching profile:', error);
-      throw error;
+  /**
+   * Fetches statistics for the currently authenticated user.
+   * @returns {Promise<UserStats>} The user's statistics.
+   */
+  static async getUserStats(): Promise<UserStats> {
+    try {
+      console.log('[UserService] Fetching user stats...');
+      const stats = await apiService.get<UserStats>(`${USER_ENDPOINT}/me/stats`);
+      console.log('[UserService] Stats fetched successfully:', stats);
+      return stats;
+    } catch (error) {
+      console.error('[UserService] Error fetching user stats:', error);
+      throw new Error('Failed to fetch user statistics.');
     }
-
-    return data;
   }
 
-  static async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating profile:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  // Subscription operations
-  static async getSubscription(userId: string): Promise<Subscription | null> {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found" error
-      console.error('Error fetching subscription:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  static async updateSubscription(
-    userId: string,
-    updates: Partial<Subscription>
-  ): Promise<Subscription> {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .update(updates)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating subscription:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  // Usage tracking operations
-  static async getUsage(userId: string, featureName: string): Promise<UsageTracking | null> {
-    const { data, error } = await supabase
-      .from('usage_tracking')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('feature_name', featureName)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found" error
-      console.error('Error fetching usage:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  static async incrementUsage(
-    userId: string,
-    featureName: string,
-    increment: number = 1
-  ): Promise<UsageTracking> {
-    const { data, error } = await supabase.rpc('increment_usage', {
-      p_user_id: userId,
-      p_feature_name: featureName,
-      p_increment: increment,
-    });
-
-    if (error) {
-      console.error('Error incrementing usage:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  // Billing operations
-  static async getBillingHistory(userId: string): Promise<BillingHistory[]> {
-    const { data, error } = await supabase
-      .from('billing_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching billing history:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  static async createBillingRecord(record: Omit<BillingHistory, 'id' | 'created_at' | 'updated_at'>): Promise<BillingHistory> {
-    const { data, error } = await supabase
-      .from('billing_history')
-      .insert(record)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating billing record:', error);
-      throw error;
-    }
-
-    return data;
-  }
-
-  // Wait for Supabase trigger to create user and profile
+  // Note: Keep other Supabase-specific functions (like waitForUserCreation) 
+  // if they are still needed elsewhere, e.g., during the auth flow.
+  // Remove unused Supabase direct calls related to profile/user data fetching/updating
+  // if they are fully replaced by the API calls above.
+  // --- Example of keeping a Supabase specific function if needed ---
+  // import { supabase } from '../lib/supabase'; 
+  // import type { User } from '../lib/supabase'; // Assuming types are defined elsewhere
+  /*
   static async waitForUserCreation(userId: string, maxAttempts: number = 3): Promise<User | null> {
     console.log(`Waiting for Supabase trigger to create user ${userId}...`);
     
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        // Try to get the user
         const { data, error } = await supabase
-          .from('users')
+          .from('users') // Still might need direct check if trigger is slow
           .select('*')
           .eq('id', userId)
           .single();
         
         if (!error && data) {
           console.log(`User ${userId} found after waiting.`);
-          return data;
+          return data as User; // Cast if necessary
         }
         
-        // Wait before next attempt
         console.log(`User not found, attempt ${attempt + 1}/${maxAttempts}. Waiting...`);
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(`Error checking for user creation:`, error);
-        // Continue to next attempt
       }
     }
     
     console.error(`User ${userId} not created after ${maxAttempts} attempts.`);
     return null;
   }
-
-  // Combined operations
-  static async getUserWithProfile(userId: string): Promise<{ user: User; profile: UserProfile } | null> {
-    const user = await this.getUser(userId);
-    let profile = await this.getProfile(userId);
-    
-    if (!user) {
-      return null;
-    }
-
-    // Create profile if it doesn't exist
-    if (!profile) {
-      profile = await this.createProfile(userId, {
-        user_id: userId,
-        profile_metadata: {}
-      });
-    }
-
-    return { user, profile };
-  }
-
-  static async getUserWithSubscription(userId: string): Promise<{ user: User; subscription: Subscription } | null> {
-    const [user, subscription] = await Promise.all([
-      this.getUser(userId),
-      this.getSubscription(userId),
-    ]);
-
-    if (!user || !subscription) {
-      return null;
-    }
-
-    return { user, subscription };
-  }
+  */
 }
+
+// Export an instance or use static methods directly
+export default UserService;

@@ -2,16 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Override styled-components with Tailwind */
 @layer base {
-  html, body {
-    @apply m-0 p-0;
+  html, body, #root {
+    @apply h-full w-full; /* Set full height and width */
   }
+
+  html, body { 
+    @apply m-0 p-0; /* Ensure no default margin/padding */
+  }
+
+  body {
+    @apply font-body text-base leading-body text-darkText bg-white antialiased; 
+    /* Apply base font, size, leading, color, bg from theme via tailwind.config.js */
+    /* -webkit-font-smoothing: antialiased; */
+    /* -moz-osx-font-smoothing: grayscale; */ /* Handled by antialiased */
+  }
+
+  /* Add any other truly global base styles here if needed */
+  /* Specific component styles (like h1, p, button inside the app vs landing) */
+  /* should be handled by applying Tailwind classes directly to those components */
+  /* or through Tailwind component layers (@layer components), not in base. */
+
 }
 
-/* Landing page specific styles */
-.landing-page {
-  @apply bg-white;
-}
+/* Landing page specific styles - can likely be removed if body bg is sufficient */
+/* .landing-page { */
+/*   @apply bg-white; */
+/* } */
 
-/* Your custom styles below */ 
+/* Your custom utility styles below (if any) */

@@ -1,155 +1,25 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+// import styled from 'styled-components'; // Removed styled-components import
 import { useNavigate, Link } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../contexts/AuthContext';
 
-const LoginContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-  background-color: #f5f8fa;
-`;
-
-const LogoContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 2rem;
-`;
-
-const LogoImage = styled.img`
-  width: 80px;
-  height: 80px;
-  margin-bottom: 1rem;
-`;
-
-const LogoText = styled.div`
-  font-size: 2rem;
-  font-weight: bold;
-  color: #171848;
-`;
-
-const AuthForm = styled.form`
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
-
-const FormTitle = styled.h1`
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
-  color: #0f172a;
-  text-align: center;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1.5rem;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #64748b;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
-  
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-`;
-
-const Button = styled.button`
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #171848;
-  color: white;
-  font-size: 1rem;
-  font-weight: 500;
-  border: none;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  transition: background-color 0.15s ease-in-out;
-  
-  &:hover {
-    background-color: #232661;
-  }
-  
-  &:disabled {
-    background-color: #94a3b8;
-    cursor: not-allowed;
-  }
-`;
-
-const GoogleButton = styled(Button)`
-  background-color: white;
-  color: #171848;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
-const SecondaryButton = styled(Button)`
-  background-color: white;
-  color: #171848;
-  border: 1px solid #171848;
-  margin-top: 1rem;
-  
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
-const LinkText = styled.p`
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 0.875rem;
-  color: #64748b;
-  
-  a {
-    color: #171848;
-    text-decoration: none;
-    font-weight: 500;
-    
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-`;
-
-const ErrorMessage = styled.div`
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  text-align: center;
-`;
+// --- Styled Component Definitions Removed ---
+// const LoginContainer = styled.div`...`;
+// const LogoContainer = styled.div`...`;
+// const LogoImage = styled.img`...`;
+// const LogoText = styled.div`...`;
+// const AuthForm = styled.form`...`;
+// const FormTitle = styled.h1`...`;
+// const FormGroup = styled.div`...`;
+// const Label = styled.label`...`;
+// const Input = styled.input`...`;
+// const Button = styled.button`...`;
+// const GoogleButton = styled(Button)`...`;
+// const SecondaryButton = styled(Button)`...`;
+// const LinkText = styled.p`...`;
+// const ErrorMessage = styled.div`...`;
+// --- End of Removed Definitions ---
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -183,65 +53,96 @@ const Login: React.FC = () => {
     }
   };
 
+  // --- Define Tailwind classes for buttons ---
+  // Base classes for all buttons in this form
+  const baseButtonClasses = "w-full py-3 px-4 text-base font-medium rounded cursor-pointer transition duration-150 ease-in-out disabled:bg-neutralGray disabled:text-gray-500 disabled:border-neutralGray disabled:cursor-not-allowed";
+  // Primary button specific classes (Dark blue bg, white text, yellow hover)
+  const primaryButtonClasses = `${baseButtonClasses} bg-darkBlue text-white hover:bg-yellow`;
+  // Secondary button specific classes (White bg, dark blue text/border, light gray hover)
+  const secondaryButtonClasses = `${baseButtonClasses} mt-4 bg-white text-darkBlue border border-darkBlue hover:bg-gray-100`;
+  // Google button specific classes (White bg, dark blue text, gray border, light gray hover)
+  const googleButtonClasses = `${baseButtonClasses} mt-4 bg-white text-darkBlue border border-gray-300 flex items-center justify-center gap-2 hover:bg-gray-100`;
+  // --- End of Tailwind class definitions ---
+
   return (
-    <LoginContainer>
-      <LogoContainer>
-        <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
-        <LogoText>Medhastra AI</LogoText>
-      </LogoContainer>
-      <AuthForm onSubmit={handleSubmit}>
-        <FormTitle>Welcome Back</FormTitle>
-        
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        
-        <FormGroup>
-          <Label htmlFor="email">Email</Label>
-          <Input
+    // Replaced LoginContainer with div and Tailwind classes
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-[#f5f8fa]">
+      {/* Replaced LogoContainer with div and Tailwind classes */}
+      <div className="flex flex-col items-center mb-8">
+        {/* Replaced LogoImage with img and Tailwind classes */}
+        <img src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" className="w-20 h-20 mb-4" />
+        {/* Replaced LogoText with div and Tailwind classes */}
+        <div className="text-3xl font-bold text-darkBlue">Medhastra AI</div>
+      </div>
+      {/* Replaced AuthForm with form and Tailwind classes */}
+      <form onSubmit={handleSubmit} className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        {/* Replaced FormTitle with h1 and Tailwind classes */}
+        <h1 className="mb-6 text-2xl font-medium text-center text-gray-900">Welcome Back</h1>
+
+        {/* Replaced ErrorMessage with div and Tailwind classes */}
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm text-center">{error}</div>}
+
+        {/* Replaced FormGroup with div and Tailwind classes */}
+        <div className="mb-6">
+          {/* Replaced Label with label and Tailwind classes */}
+          <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-600">Email</label>
+          {/* Replaced Input with input and Tailwind classes */}
+          <input
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} // Added type annotation
             required
             disabled={isLoading}
+            className="w-full p-3 border border-gray-300 rounded text-base transition duration-150 ease-in-out focus:outline-none focus:border-deepMedicalBlue focus:ring-3 focus:ring-deepMedicalBlue/20" // Updated focus styles
           />
-        </FormGroup>
-        
-        <FormGroup>
-          <Label htmlFor="password">Password</Label>
-          <Input
+        </div>
+
+        {/* Replaced FormGroup with div and Tailwind classes */}
+        <div className="mb-6">
+          {/* Replaced Label with label and Tailwind classes */}
+          <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-600">Password</label>
+          {/* Replaced Input with input and Tailwind classes */}
+          <input
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} // Added type annotation
             required
             disabled={isLoading}
+            className="w-full p-3 border border-gray-300 rounded text-base transition duration-150 ease-in-out focus:outline-none focus:border-deepMedicalBlue focus:ring-3 focus:ring-deepMedicalBlue/20" // Updated focus styles
           />
-        </FormGroup>
-        
-        <Button type="submit" disabled={isLoading}>
+        </div>
+
+        {/* Replaced Button with button and Tailwind classes */}
+        <button type="submit" disabled={isLoading} className={primaryButtonClasses}>
           {isLoading ? 'Signing in...' : 'Log in'}
-        </Button>
+        </button>
 
-        <SecondaryButton type="button" onClick={() => navigate('/signup')} disabled={isLoading}>
+        {/* Replaced SecondaryButton with button and Tailwind classes */}
+        <button type="button" onClick={() => navigate('/signup')} disabled={isLoading} className={secondaryButtonClasses}>
           Create New Account
-        </SecondaryButton>
+        </button>
 
-        <GoogleButton type="button" onClick={handleGoogleLogin} disabled={isLoading}>
+        {/* Replaced GoogleButton with button and Tailwind classes */}
+        <button type="button" onClick={handleGoogleLogin} disabled={isLoading} className={googleButtonClasses}>
           <FcGoogle size={20} />
           Continue with Google
-        </GoogleButton>
+        </button>
 
-        <LinkText>
-          <Link to="/forgot-password">Forgot your password?</Link>
-        </LinkText>
+        {/* Replaced LinkText with p and Tailwind classes */}
+        <p className="mt-4 text-sm text-center text-gray-600">
+          <Link to="/forgot-password" className="font-medium text-darkBlue hover:underline">Forgot your password?</Link>
+        </p>
 
-        <LinkText>
+        {/* Replaced LinkText with p and Tailwind classes */}
+        <p className="mt-4 text-sm text-center text-gray-600">
           By continuing, you agree to our{' '}
-          <Link to="/terms">Terms of Service</Link> and{' '}
-          <Link to="/privacy">Privacy Policy</Link>
-        </LinkText>
-      </AuthForm>
-    </LoginContainer>
+          <Link to="/terms" className="font-medium text-darkBlue hover:underline">Terms of Service</Link> and{' '}
+          <Link to="/privacy" className="font-medium text-darkBlue hover:underline">Privacy Policy</Link>
+        </p>
+      </form>
+    </div>
   );
 };
 

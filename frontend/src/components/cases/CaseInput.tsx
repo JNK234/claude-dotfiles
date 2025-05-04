@@ -1,58 +1,23 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-import Button from '../ui/Button';
+import Button from '../ui/Button'; // Uses refactored Tailwind Button
 import { useWorkflow } from '../../contexts/WorkflowContext';
+import clsx from 'clsx'; // Import clsx
+
+// Removed styled-components import
+// import styled from 'styled-components';
 
 interface CaseInputProps {
   defaultValue?: string;
   onSubmit?: (caseText: string) => Promise<void>;
 }
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 1rem;
-  color: ${props => props.theme.colors.darkText};
-`;
-
-const TextAreaContainer = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const StyledTextArea = styled.textarea`
-  width: 100%;
-  min-height: 300px;
-  resize: vertical;
-  padding: 1rem;
-  border-radius: ${props => props.theme.layout.borderRadius};
-  border: 1px solid #e0e0e0;
-  font-family: ${props => props.theme.typography.fontFamily};
-  font-size: ${props => props.theme.typography.fontSizes.body};
-  line-height: ${props => props.theme.typography.lineHeights.body};
-  
-  &:focus {
-    outline: none;
-    border-color: ${props => props.theme.colors.deepMedicalBlue};
-    box-shadow: 0 0 0 2px ${props => props.theme.colors.deepMedicalBlue}20;
-  }
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
-`;
-
-const HelpText = styled.p`
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-  color: ${props => props.theme.colors.neutralGray};
-  margin-bottom: 1rem;
-`;
+// Removed styled-component definitions
+// const Container = styled.div`...`;
+// const Title = styled.h2`...`;
+// const TextAreaContainer = styled.div`...`;
+// const StyledTextArea = styled.textarea`...`;
+// const ButtonContainer = styled.div`...`;
+// const HelpText = styled.p`...`;
 
 export const CaseInput: React.FC<CaseInputProps> = ({ 
   defaultValue = "",
@@ -61,6 +26,7 @@ export const CaseInput: React.FC<CaseInputProps> = ({
   const [caseText, setCaseText] = useState(defaultValue);
   const { createNewCase, isProcessing } = useWorkflow();
   
+  // Handler functions remain the same
   const handleSubmit = async () => {
     if (caseText.trim()) {
       try {
@@ -83,22 +49,34 @@ export const CaseInput: React.FC<CaseInputProps> = ({
   };
   
   return (
-    <Container>
-      <Title>Patient Case Details</Title>
-      <HelpText>
+    // Replaced Container with div and Tailwind classes
+    <div className="flex flex-col w-full">
+      {/* Replaced Title with h2 and Tailwind classes */}
+      <h2 className="mb-4 text-darkText text-h2 font-primary font-bold"> 
+        Patient Case Details
+      </h2>
+      {/* Replaced HelpText with p and Tailwind classes */}
+      <p className="text-secondary text-neutralGray mb-4">
         Enter detailed patient case information below. Include symptoms, vital signs, test results, medical history, and any other relevant information. 
         Avoid including personally identifiable information.
-      </HelpText>
+      </p>
       
-      <TextAreaContainer>
-        <StyledTextArea 
+      {/* Replaced TextAreaContainer with div */}
+      <div className="mb-4">
+        {/* Replaced StyledTextArea with textarea and Tailwind classes */}
+        <textarea 
           value={caseText}
           onChange={(e) => setCaseText(e.target.value)}
           placeholder="Enter detailed patient case information here..."
+          className={clsx(
+            "w-full min-h-[300px] resize-y p-4 rounded border border-[#e0e0e0] font-body text-base leading-body",
+            "focus:outline-none focus:border-deepMedicalBlue focus:ring-2 focus:ring-deepMedicalBlue/20"
+          )}
         />
-      </TextAreaContainer>
+      </div>
       
-      <ButtonContainer>
+      {/* Replaced ButtonContainer with div and Tailwind classes */}
+      <div className="flex justify-between gap-4 mt-4">
         <Button 
           variant="secondary" 
           onClick={handleSampleCase}
@@ -108,11 +86,12 @@ export const CaseInput: React.FC<CaseInputProps> = ({
         <Button 
           onClick={handleSubmit} 
           disabled={!caseText.trim() || isProcessing}
+          variant="primary" // Explicitly set variant
         >
           Submit Case
         </Button>
-      </ButtonContainer>
-    </Container>
+      </div>
+    </div>
   );
 };
 

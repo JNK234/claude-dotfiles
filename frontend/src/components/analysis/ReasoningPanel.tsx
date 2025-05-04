@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useEffect } from 'react';
 import { marked } from 'marked';
+import clsx from 'clsx'; // Import clsx
+
+// Removed styled-components import
+// import styled from 'styled-components';
 
 interface ReasoningPanelProps {
   currentStage: string;
@@ -9,189 +12,14 @@ interface ReasoningPanelProps {
   caseStatus?: 'in_progress' | 'completed';
 }
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-`;
-
-const Header = styled.div`
-  margin-bottom: 1.5rem;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 0.5rem;
-  color: ${props => props.theme.colors.darkText};
-  text-transform: none; // Ensure title case is used
-`;
-
-const Subtitle = styled.p`
-  color: ${props => props.theme.colors.neutralGray};
-  margin-bottom: 1rem;
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-  display: flex;
-  align-items: center;
-`;
-
-const StatusIndicator = styled.span<{ status: 'in_progress' | 'completed' }>`
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-left: 8px;
-  background-color: ${props => 
-    props.status === 'completed' 
-      ? props.theme.colors.successGreen 
-      : props.theme.colors.deepMedicalBlue
-  };
-`;
-
-const StageLabel = styled.span<{ isCompleted: boolean }>`
-  color: ${props => props.isCompleted ? props.theme.colors.successGreen : 'inherit'};
-  font-weight: ${props => props.isCompleted ? 'bold' : 'normal'};
-`;
-
-const ContentContainer = styled.div`
-  overflow-y: auto;
-  flex-grow: 1;
-  padding: 1.5rem;
-  background-color: white;
-  border-radius: ${props => props.theme.layout.borderRadius};
-  box-shadow: ${props => props.theme.shadows.small};
-  
-  /* Rich text content styling */
-  .markdown-content {
-    font-size: ${props => props.theme.typography.fontSizes.body};
-    line-height: 1.6;
-    color: ${props => props.theme.colors.darkText};
-    
-    /* Headings */
-    h1, h2, h3, h4, h5, h6 {
-      color: ${props => props.theme.colors.darkBlue};
-      font-family: ${props => props.theme.typography.fontFamily.primary};
-      font-weight: ${props => props.theme.typography.fontWeights.bold};
-      margin: 1.5em 0 0.75em;
-      line-height: 1.3;
-    }
-    
-    h1 { font-size: 2em; }
-    h2 { font-size: 1.75em; }
-    h3 { font-size: 1.5em; }
-    h4 { font-size: 1.25em; }
-    h5 { font-size: 1.1em; }
-    h6 { font-size: 1em; }
-    
-    /* First heading should not have top margin */
-    h1:first-child,
-    h2:first-child,
-    h3:first-child,
-    h4:first-child,
-    h5:first-child,
-    h6:first-child {
-      margin-top: 0;
-    }
-    
-    /* Paragraphs and Lists */
-    p {
-      margin: 0 0 1em;
-    }
-    
-    ul, ol {
-      margin: 0 0 1em;
-      padding-left: 1.5em;
-    }
-    
-    li {
-      margin: 0.5em 0;
-    }
-    
-    /* Tables */
-    table {
-      width: 100%;
-      margin: 1em 0;
-      border-collapse: collapse;
-      background-color: white;
-      font-size: ${props => props.theme.typography.fontSizes.body};
-      border-radius: ${props => props.theme.layout.borderRadius};
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-    
-    th {
-      background-color: ${props => props.theme.colors.rightPanelBg};
-      color: ${props => props.theme.colors.darkBlue};
-      font-weight: ${props => props.theme.typography.fontWeights.semibold};
-      text-align: left;
-      padding: 0.75rem 1rem;
-      border: 1px solid ${props => props.theme.colors.borderColor};
-      white-space: nowrap;
-    }
-    
-    td {
-      padding: 0.75rem 1rem;
-      border: 1px solid ${props => props.theme.colors.borderColor};
-      vertical-align: top;
-    }
-    
-    tr:nth-child(even) {
-      background-color: ${props => props.theme.colors.rightPanelBg}30;
-    }
-    
-    tr:hover {
-      background-color: ${props => props.theme.colors.rightPanelBg}50;
-    }
-    
-    /* Code blocks */
-    pre {
-      background-color: ${props => props.theme.colors.rightPanelBg};
-      padding: 1rem;
-      border-radius: ${props => props.theme.layout.borderRadius};
-      overflow-x: auto;
-      margin: 1em 0;
-    }
-    
-    code {
-      font-family: monospace;
-      font-size: 0.9em;
-      padding: 0.2em 0.4em;
-      background-color: ${props => props.theme.colors.rightPanelBg};
-      border-radius: 3px;
-    }
-    
-    /* Blockquotes */
-    blockquote {
-      border-left: 4px solid ${props => props.theme.colors.yellow};
-      margin: 1em 0;
-      padding: 0.5em 1em;
-      background-color: ${props => props.theme.colors.rightPanelBg}30;
-      
-      p:last-child {
-        margin-bottom: 0;
-      }
-    }
-    
-    /* Horizontal rule */
-    hr {
-      border: 0;
-      border-top: 1px solid ${props => props.theme.colors.borderColor};
-      margin: 2em 0;
-    }
-    
-    /* Links */
-    a {
-      color: ${props => props.theme.colors.darkBlue};
-      text-decoration: none;
-      border-bottom: 1px solid ${props => props.theme.colors.yellow};
-      transition: all ${props => props.theme.transitions.default};
-      
-      &:hover {
-        color: ${props => props.theme.colors.yellow};
-        border-bottom-color: transparent;
-      }
-    }
-  }
-`;
+// Removed styled-component definitions
+// const Container = styled.div`...`;
+// const Header = styled.div`...`;
+// const Title = styled.h2`...`;
+// const Subtitle = styled.p`...`;
+// const StatusIndicator = styled.span`...`;
+// const StageLabel = styled.span`...`;
+// const ContentContainer = styled.div`...`;
 
 export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({ 
   currentStage,
@@ -202,29 +30,47 @@ export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({
   const stageName = currentStage.charAt(0).toUpperCase() + currentStage.slice(1).replace(/_/g, ' ');
   const isCompleted = caseStatus === 'completed';
 
-  // Configure marked options
+  // Configure marked options (can remain the same)
   useEffect(() => {
     marked.setOptions({
-      gfm: true, // GitHub Flavored Markdown
-      breaks: true, // Convert line breaks to <br>
-      // headerIds: true, // Removed: This option is invalid and causes a TypeScript error.
-      // mangle: false, // Removed: This option is invalid and causes a TypeScript error.
-      // sanitize: false, // Removed: This option is invalid and causes a TypeScript error.
+      gfm: true, 
+      breaks: true, 
     });
   }, []);
   
   return (
-    <Container>
-      <Header>
-        <Title>Analysis Results</Title>
-        <Subtitle>
-          Current stage: <StageLabel isCompleted={isCompleted}>{stageName}</StageLabel>
-          <StatusIndicator status={caseStatus} />
-          {isCompleted && ' (Completed)'}
-        </Subtitle>
-      </Header>
+    // Replaced Container with div and Tailwind classes
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Replaced Header with div and Tailwind classes */}
+      <div className="mb-6"> 
+        {/* Replaced Title with h2 and Tailwind classes */}
+        <h2 className="mb-2 text-darkText text-h2 font-primary font-bold"> 
+          Analysis Results
+        </h2>
+        {/* Replaced Subtitle with p and Tailwind classes */}
+        <p className="text-neutralGray text-secondary flex items-center mb-4"> 
+          Current stage: 
+          {/* Display Stage Name */}
+          <span className="ml-1 font-medium"> {/* Consistent medium weight for stage name */}
+            {stageName}
+          </span>
+          {/* Display Status Text */}
+          <span 
+            className={clsx(
+              "ml-1.5", // Added spacing
+              {
+                'text-successGreen font-bold': isCompleted, // Style completed status
+                'text-deepMedicalBlue font-normal': !isCompleted // Style in-progress status
+              }
+            )}
+          >
+            ({isCompleted ? 'Completed' : 'In Progress'}) {/* Show status text */}
+          </span>
+        </p>
+      </div>
       
-      <ContentContainer>
+      {/* Replaced ContentContainer with div and Tailwind classes */}
+      <div className="overflow-y-auto flex-grow p-6 bg-white rounded-lg shadow-small">
         {Object.entries(allStagesContent).some(([_, content]) => content) ? (
           Object.entries(allStagesContent)
             .filter(([_, content]) => content)
@@ -234,20 +80,37 @@ export const ReasoningPanel: React.FC<ReasoningPanelProps> = ({
               
               return (
                 <div key={stage}>
-                  <h2>{formattedStage}</h2>
-                  <div 
-                    className="markdown-content"
+                  {/* Apply prose styles for Markdown content */}
+                  {/* Customize prose colors to match theme */}
+                  <article 
+                    className={clsx(
+                      "prose prose-base max-w-none", // Base prose styles
+                      "prose-headings:font-primary prose-headings:font-bold prose-headings:text-darkBlue", // Heading styles
+                      "prose-p:text-darkText", // Paragraph text color
+                      "prose-strong:text-darkText", // Bold text color
+                      "prose-ul:text-darkText prose-ol:text-darkText", // List text color
+                      "prose-li:marker:text-darkBlue", // List marker color
+                      "prose-a:text-darkBlue prose-a:border-b prose-a:border-yellow hover:prose-a:text-yellow hover:prose-a:border-transparent", // Link styles
+                      "prose-blockquote:border-l-yellow prose-blockquote:bg-rightPanelBg/30 prose-blockquote:text-darkText", // Blockquote styles
+                      "prose-code:bg-rightPanelBg prose-code:text-darkText prose-code:font-mono prose-code:text-sm prose-code:px-1 prose-code:py-0.5 prose-code:rounded", // Inline code
+                      "prose-pre:bg-rightPanelBg prose-pre:text-darkText prose-pre:font-mono prose-pre:text-sm prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto", // Code blocks
+                      "prose-hr:border-borderColor", // Horizontal rule
+                      // Add table styles if needed, prose defaults might be okay
+                      // "prose-table:..." 
+                      // "prose-th:..."
+                      // "prose-td:..."
+                    )}
                     dangerouslySetInnerHTML={{ __html: htmlContent }} 
                   />
-                  {index < array.length - 1 && <hr />}
+                  {index < array.length - 1 && <hr className="my-8 border-borderColor" />} 
                 </div>
               );
             })
         ) : (
-          <p>No analysis available yet. Submit a case to begin.</p>
+          <p className="text-neutralGray">No analysis available yet. Submit a case to begin.</p>
         )}
-      </ContentContainer>
-    </Container>
+      </div>
+    </div> // Replaced </Container> with </div>
   );
 };
 

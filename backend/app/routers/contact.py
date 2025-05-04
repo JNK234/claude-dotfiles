@@ -85,14 +85,14 @@ async def submit_contact_form(
     Message:
     --------------------------------------------------
     {contact_data.message}
-    --------------------------------------------------
-    """
+     --------------------------------------------------
+     """
 
     message = MessageSchema(
         subject=email_subject,
-        recipients=["medhastra@gmail.com"],  # Hardcoded recipient address
-        body=email_body,
-        subtype=MessageType.plain,
+        recipients=["info@medhastra.com"],  # Updated recipient address
+         body=email_body,
+         subtype=MessageType.plain,
         reply_to=[contact_data.email] # Set Reply-To header to the sender's email
     )
 
