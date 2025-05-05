@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx'; // Import clsx
+import { useAuth } from '../../contexts/AuthContext'; // Import useAuth hook
 
 // Removed styled-components import
 // import styled from 'styled-components';
@@ -37,8 +38,13 @@ const AIIcon = () => (
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const { content, sender, timestamp } = message;
+  const { user } = useAuth(); // Get user from AuthContext
   
   const isDoctor = sender === 'doctor';
+
+  // Determine the display name for the 'doctor' sender
+  // Use the first name directly from the user object in context, default to 'Doctor'
+  const doctorFirstName = user?.first_name ?? 'Doctor';
 
   return (
     // Replaced MessageContainer with div and Tailwind classes
@@ -57,8 +63,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       >
         {sender === 'assistant' && <AIIcon />}
         {/* Replaced SenderName with span and Tailwind classes */}
+        {/* Display user's first name if sender is 'doctor', otherwise 'Assistant' */}
         <span className="font-medium mr-2 ml-1"> 
-          {isDoctor ? 'Doctor' : 'Assistant'}
+          {isDoctor ? doctorFirstName : 'Assistant'}
         </span>
         {/* Replaced Timestamp with span and Tailwind classes */}
         <span className="text-sm text-neutralGray"> 
