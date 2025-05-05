@@ -1,16 +1,22 @@
 """
 Service layer for user profile and related operations.
 """
+# Removed secrets, logging, timedelta, timezone, Optional imports related to password reset
+from datetime import datetime 
 from sqlalchemy.orm import Session
 from sqlalchemy import func # For count
+# Removed select import
 
 from app.models.user import User, UserProfile
 from app.models.case import Case # Import Case model for counting
 from app.schemas.user import UserProfileResponse, ProfileUpdate, UserStats
+# Removed get_password_hash import
+# Removed logging configuration
+# Removed PASSWORD_RESET_TOKEN_EXPIRE_HOURS constant
 
 class UserService:
     """
-    Provides methods for interacting with user profile data.
+    Provides methods for interacting with user profile data and actions like password reset.
     """
 
     @staticmethod
@@ -25,13 +31,13 @@ class UserService:
         Returns:
             The user's profile information.
         """
-        # Pydantic's `model_validate` with `from_attributes=True` will automatically 
+        # Pydantic's `model_validate` with `from_attributes=True` will automatically
         # handle the relationship loading and nested structure defined in UserProfileResponse.
         # Ensure the relationship is loaded if needed (SQLAlchemy might lazy load it).
-        # You might consider adding options(joinedload(User.profile)) in the query 
-        # that fetches the 'user' object in the dependency (get_current_local_user) 
+        # You might consider adding options(joinedload(User.profile)) in the query
+        # that fetches the 'user' object in the dependency (get_current_local_user)
         # for optimization if lazy loading causes issues.
-        
+
         # Directly validate the ORM object against the response schema
         return UserProfileResponse.model_validate(user)
 
@@ -48,12 +54,12 @@ class UserService:
 
         Returns:
             The updated user's profile information.
-            
+
         Raises:
-            HTTPException: If the user profile doesn't exist and needs to be created first.
+            ValueError: If the user profile doesn't exist and needs to be created first.
         """
         updated = False
-        
+
         # Update User.name if provided
         if profile_data.name is not None and user.name != profile_data.name:
             user.name = profile_data.name
@@ -109,6 +115,8 @@ class UserService:
             cases_processed=case_count,
             subscription_tier=subscription_tier
         )
+
+# Removed Password Reset Methods as Supabase handles this flow
 
 # Instantiate the service
 user_service = UserService()

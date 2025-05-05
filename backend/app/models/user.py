@@ -3,6 +3,7 @@ User model for authentication and user management
 """
 import uuid
 from datetime import datetime
+# Removed Optional import as it's no longer needed here
 
 from sqlalchemy import Column, String, DateTime, Boolean, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
@@ -43,7 +44,9 @@ class User(Base):
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+
+    # Removed Password Reset Fields
+
     # Relationships
     profile = relationship("UserProfile", back_populates="user", uselist=False)
 

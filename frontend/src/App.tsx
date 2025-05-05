@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useNavigate, Link } from 'react-router-dom'; // Added Link import
 // Removed styled-components import
 // import styled from 'styled-components'; 
 import ThreePanelLayout from './components/layout/ThreePanelLayout';
@@ -13,6 +13,7 @@ import Button from './components/ui/Button';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
+// Removed import for ResetPasswordPage
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProfilePage from './pages/ProfilePage'; // Import the new ProfilePage
@@ -448,11 +449,11 @@ const AuthCallback: React.FC = () => {
     
     handleHash();
   }, [navigate]);
-  
-  return <div className="flex justify-center items-center min-h-screen">Processing authentication...</div>;
-};
 
-// Reset password component
+  return <div className="flex justify-center items-center min-h-screen">Processing authentication...</div>;
+}; // Added missing closing brace for AuthCallback component
+
+// Reset password component (Restored)
 const ResetPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -460,90 +461,110 @@ const ResetPassword: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  
+
+  // This component is rendered when the user clicks the link in the reset email.
+  // Supabase handles the token verification implicitly when updateUser is called
+  // after the user navigates here from the email link.
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
+     if (newPassword.length < 8) { // Added length check
+       setError("Password must be at least 8 characters long.");
+       return;
+     }
+
     setLoading(true);
-    
+    setError(null); // Clear previous errors
+
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      
-      if (error) throw error;
-      
+      // Use Supabase client to update the user's password
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+
+      if (updateError) throw updateError;
+
       setSuccess(true);
       // Redirect to login after 3 seconds
-      setTimeout(() => navigate('/login'), 3000);
+      setTimeout(() => navigate('/login?reset=success'), 3000); // Added query param for potential feedback
     } catch (err: any) {
-      setError(err.message || 'An error occurred while resetting your password');
+      setError(err.message || 'An error occurred while resetting your password. The link may be invalid or expired.');
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-bold text-center mb-6">Reset Your Password</h2>
-        
+
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
-            {error}
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
           </div>
         )}
-        
+
         {success ? (
-          <div className="bg-green-50 text-green-600 p-3 rounded-md mb-4">
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
             Password reset successful! Redirecting to login...
           </div>
         ) : (
           <form onSubmit={handleReset}>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-medium mb-2">
+              <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="newPassword">
                 New Password
               </label>
               <input
+                id="newPassword"
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 required
+                minLength={8}
                 disabled={loading}
               />
             </div>
-            
+
             <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-medium mb-2">
+              <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="confirmPassword">
                 Confirm New Password
               </label>
               <input
+                id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                 required
+                minLength={8}
                 disabled={loading}
               />
             </div>
-            
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </button>
           </form>
         )}
+         {/* Added link back to login */}
+         {!success && (
+            <p className="text-center text-gray-500 text-xs mt-4">
+              Remembered your password? <Link to="/login" className="text-blue-600 hover:text-blue-800">Log in</Link>
+            </p>
+          )}
       </div>
     </div>
   );
 };
+
 
 const App: React.FC = () => {
   return (
@@ -573,6 +594,7 @@ const App: React.FC = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          {/* Use the inline ResetPassword component for the route */}
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           {/* Add route for the new email confirmation page that requires login */}
           <Route path="/email-confirmed-login" element={<EmailConfirmedLoginPage />} />

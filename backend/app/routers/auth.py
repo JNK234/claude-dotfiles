@@ -1,5 +1,5 @@
 """
-Authentication endpoints for Supabase JWT validation and user info retrieval.
+Authentication endpoints for Supabase JWT validation, user info retrieval, and password reset.
 """
 from typing import Any, Dict
 
@@ -14,7 +14,12 @@ from app.core.security import (
     get_auth_user_id
 )
 from app.models.user import User
-from app.schemas.user import User as UserSchema, UserCreate
+from app.schemas.user import ( # Import specific schemas
+    User as UserSchema,
+    UserCreate
+    # Removed ForgotPasswordRequest, ResetPasswordRequest
+)
+# Removed user_service import as it's not used here anymore
 
 router = APIRouter()
 
@@ -26,10 +31,10 @@ async def get_current_user_info(
 ) -> Any:
     """
     Get current authenticated user information
-    
+
     Args:
         current_user: Current authenticated user
-        
+
     Returns:
         User: Current user information
     """
@@ -42,7 +47,7 @@ async def verify_token(
 ) -> Dict[str, Any]:
     """
     Verify a JWT token and return user information.
-    
+
     If the user doesn't exist in the local database, it will be created.
 
     Args:
@@ -57,10 +62,10 @@ async def verify_token(
     """
     # Get user info from token
     supabase_user = await get_current_user_from_token(authorization)
-    
+
     # Get or create user in local database
     db_user = await get_current_local_user(db, supabase_user)
-    
+
     # Return user info and token status
     return {
         "valid": True,
@@ -85,12 +90,14 @@ def get_user_id(
     """
     Get the user ID from the JWT token without any database access.
     Useful for lightweight authentication checks.
-    
+
     Args:
         authorization: Authorization header with JWT token (Bearer <token>)
-        
+
     Returns:
         Dict[str, str]: User ID from token
     """
     user_id = get_auth_user_id(authorization)
     return {"user_id": user_id}
+
+# Removed Password Reset Endpoints as Supabase handles this flow

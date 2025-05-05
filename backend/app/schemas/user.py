@@ -24,7 +24,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     """Schema for creating a new user"""
     password: Optional[str] = Field(None, min_length=8)
-    
+
     @classmethod
     def validate(cls, obj):
         # Validate password is required for local auth
@@ -106,3 +106,5 @@ class SupabaseUser(BaseModel):
     user_metadata: Optional[SupabaseUserMetadata] = None
     app_metadata: Optional[Dict[str, Any]] = None
     created_at: datetime
+
+# Removed ForgotPasswordRequest and ResetPasswordRequest schemas

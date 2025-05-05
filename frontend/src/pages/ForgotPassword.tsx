@@ -152,17 +152,16 @@ const ForgotPassword: React.FC = () => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-    
-    try {
-      const { error } = await AuthService.resetPassword(email);
-      
-      if (error) {
-        throw error;
-      }
+    setIsSubmitted(false); // Reset submitted state on new attempt
 
+    try {
+      // Call the correct service method which uses Supabase
+      await AuthService.resetPassword(email);
+      // Supabase handles sending the email. Show success message.
       setIsSubmitted(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset instructions');
+      // Use the error message from Supabase or a generic one
+      setError(err.message || 'Failed to send reset instructions. Please check the email address and try again.');
     } finally {
       setIsLoading(false);
     }
