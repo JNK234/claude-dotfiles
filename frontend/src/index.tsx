@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ThemeProvider } from 'styled-components';
+// Removed ThemeProvider and GlobalStyles imports from styled-components
+// import { ThemeProvider } from 'styled-components';
+// import { GlobalStyles } from './styles/GlobalStyles';
 import App from './App';
-import { theme } from './styles/theme';
-import { GlobalStyles } from './styles/GlobalStyles';
+// Keep theme import if needed elsewhere, but ThemeProvider is removed
+import { theme } from './styles/theme'; 
 import './index.css'; // Import Tailwind CSS directives - Build process handles generation
-
-// Remove redundant import of generated CSS file: import './styles/tailwind.css'; 
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -14,9 +14,10 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <GlobalStyles />
+    {/* Removed ThemeProvider and GlobalStyles */}
+    {/* <ThemeProvider theme={theme}> */}
+      {/* <GlobalStyles /> */}
       <App />
-    </ThemeProvider>
+    {/* </ThemeProvider> */}
   </React.StrictMode>
 );

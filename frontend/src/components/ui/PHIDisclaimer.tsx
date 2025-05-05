@@ -1,52 +1,24 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-import Button from './Button';
+import Button from './Button'; // Uses refactored Tailwind Button
+import clsx from 'clsx'; // Import clsx
+
+// Removed styled-components import
+// import styled from 'styled-components';
 
 interface PHIDisclaimerProps {
   onAcknowledge: () => void;
 }
 
-const DisclaimerContainer = styled.div`
-  background-color: ${props => props.theme.colors.disclaimerBg};
-  border: 1px solid ${props => props.theme.colors.disclaimerBorder};
-  border-radius: ${props => props.theme.layout.borderRadius};
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  position: relative;
-`;
+// Removed styled-component definitions
+// const DisclaimerContainer = styled.div`...`;
+// const DisclaimerTitle = styled.h3`...`;
+// const DisclaimerContent = styled.div`...`;
+// const CheckboxContainer = styled.div`...`;
 
-const DisclaimerTitle = styled.h3`
-  color: ${props => props.theme.colors.alertAmber};
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-`;
-
-const DisclaimerContent = styled.div`
-  margin-bottom: 1.5rem;
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-`;
-
-const CheckboxContainer = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  
-  input {
-    margin-right: 0.75rem;
-    width: 18px;
-    height: 18px;
-  }
-  
-  label {
-    font-weight: ${props => props.theme.typography.fontWeights.medium};
-  }
-`;
-
+// Warning Icon component remains the same
 const WarningIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z" fill="#F59E0B"/>
+    <path d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z" fill="#F59E0B"/> {/* Using alertAmber color directly */}
   </svg>
 );
 
@@ -54,13 +26,17 @@ export const PHIDisclaimer: React.FC<PHIDisclaimerProps> = ({ onAcknowledge }) =
   const [isChecked, setIsChecked] = useState(false);
   
   return (
-    <DisclaimerContainer>
-      <DisclaimerTitle>
+    // Replaced DisclaimerContainer with div and Tailwind classes
+    <div className="bg-disclaimerBg border border-disclaimerBorder rounded p-6 mb-6 relative">
+      {/* Replaced DisclaimerTitle with h3 and Tailwind classes */}
+      <h3 className="text-alertAmber flex items-center gap-2 mb-4 text-lg font-semibold">
         <WarningIcon />
         Protected Health Information (PHI) Warning
-      </DisclaimerTitle>
+      </h3>
       
-      <DisclaimerContent>
+      {/* Replaced DisclaimerContent with div and Tailwind classes */}
+      {/* Added prose for basic list/paragraph styling */}
+      <div className="mb-6 text-secondary prose prose-sm max-w-none prose-li:my-1 prose-p:mb-2">
         <p>This application is designed to assist healthcare professionals in analyzing medical cases. Please be aware of the following important information:</p>
         <ul>
           <li>Do not enter any personally identifiable information (PII) that could be used to identify a patient.</li>
@@ -68,28 +44,32 @@ export const PHIDisclaimer: React.FC<PHIDisclaimerProps> = ({ onAcknowledge }) =
           <li>This tool is a supplement to, not a replacement for, professional medical judgment.</li>
           <li>All data entered is processed according to applicable healthcare privacy regulations.</li>
         </ul>
-      </DisclaimerContent>
+      </div>
       
-      <CheckboxContainer>
+      {/* Replaced CheckboxContainer with div and Tailwind classes */}
+      <div className="flex items-center mb-6">
         <input 
           type="checkbox" 
           id="phi-acknowledgment" 
           checked={isChecked} 
           onChange={() => setIsChecked(!isChecked)}
+          className="mr-3 h-5 w-5 rounded border-gray-300 text-darkBlue focus:ring-darkBlue" // Basic checkbox styling
         />
-        <label htmlFor="phi-acknowledgment">
+        <label htmlFor="phi-acknowledgment" className="font-medium text-sm">
           I understand and acknowledge the PHI guidelines
         </label>
-      </CheckboxContainer>
+      </div>
       
+      {/* Using the refactored Button component */}
       <Button 
         onClick={onAcknowledge} 
         disabled={!isChecked}
         fullWidth
+        variant="primary" // Explicitly set variant if needed, defaults to primary
       >
         Continue
       </Button>
-    </DisclaimerContainer>
+    </div>
   );
 };
 

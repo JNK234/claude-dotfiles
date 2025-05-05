@@ -21,11 +21,20 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
-    ALGORITHM: str = "HS256"
-    
+    ALGORITHM: str = "HS256" # Note: Supabase JWTs use RS256, this might be for legacy tokens if any remain.
+
+    # Supabase Configuration (for JWT Validation)
+    SUPABASE_URL: Optional[str] = os.getenv("SUPABASE_URL")
+    # Default audience for Supabase JWTs
+    SUPABASE_JWT_AUDIENCE: str = os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated")
+    # Issuer is typically the Supabase project URL + /auth/v1
+    SUPABASE_ISSUER: Optional[str] = f"{SUPABASE_URL}/auth/v1" if SUPABASE_URL else None
+    # Supabase service key for admin operations
+    SUPABASE_SERVICE_KEY: Optional[str] = os.getenv("SUPABASE_SERVICE_KEY")
+
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./medhastra.db")
-    
+
     # CORS - Renamed field to avoid auto-parsing conflicts
     # Default CORS origins (used if RENDER_FRONTEND_URL is not set)
     ALLOWED_CORS_ORIGINS: List[str] = ["http://localhost:5173"] 

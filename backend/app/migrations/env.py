@@ -8,8 +8,9 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Add the parent directory to Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the project's backend directory (parent of 'app') to Python path
+# This allows Alembic to find the 'app' module when run from the 'backend' directory
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Load environment variables from .env file
 load_dotenv()
@@ -67,4 +68,4 @@ def run_migrations_online() -> None:
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online() 
+    run_migrations_online()

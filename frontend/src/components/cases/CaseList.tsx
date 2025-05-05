@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import CaseListItem, { Case } from './CaseListItem';
-import Button from '../ui/Button';
+import Button from '../ui/Button'; // Uses the refactored Tailwind Button
+import { useAuth } from '../../contexts/AuthContext';
+import clsx from 'clsx'; // Import clsx
+
+// Removed styled-components import
+// import styled from 'styled-components';
 
 interface CaseListProps {
   cases: Case[];
@@ -13,89 +18,24 @@ interface CaseListProps {
   onRenameCase: (caseId: string, newName: string) => Promise<void>;
 }
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-`;
+// Removed styled-component definitions
+// const Container = styled.div`...`;
+// const Header = styled.div`...`;
+// const Title = styled.h2`...`;
+// const SearchContainer = styled.div`...`;
+// const SearchInput = styled.input`...`;
+// const SearchIconWrapper = styled.div`...`;
+// const CasesContainer = styled.div`...`;
+// const NoResultsMessage = styled.div`...`;
+// const LoadingContainer = styled.div`...`;
+// const ButtonContainer = styled.div`...`;
 
-const Header = styled.div`
-  margin-bottom: 1.5rem;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 1rem;
-  color: ${props => props.theme.colors.darkText};
-`;
-
-const SearchContainer = styled.div`
-  position: relative;
-  margin-bottom: 1rem;
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  padding-left: 2.5rem;
-  border-radius: ${props => props.theme.layout.borderRadius};
-  border: 1px solid #e0e0e0;
-  font-size: ${props => props.theme.typography.fontSizes.body};
-  
-  &:focus {
-    outline: none;
-    border-color: ${props => props.theme.colors.deepMedicalBlue};
-    box-shadow: 0 0 0 2px ${props => props.theme.colors.deepMedicalBlue}20;
-  }
-`;
-
-const SearchIconWrapper = styled.div`
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${props => props.theme.colors.neutralGray};
-`;
-
+// Search Icon component remains the same
 const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M15.5 14H14.7L14.4 13.7C15.4 12.6 16 11.1 16 9.5C16 5.9 13.1 3 9.5 3C5.9 3 3 5.9 3 9.5C3 13.1 5.9 16 9.5 16C11.1 16 12.6 15.4 13.7 14.4L14 14.7V15.5L19 20.5L20.5 19L15.5 14ZM9.5 14C7 14 5 12 5 9.5C5 7 7 5 9.5 5C12 5 14 7 14 9.5C14 12 12 14 9.5 14Z" fill="currentColor"/>
   </svg>
 );
-
-const CasesContainer = styled.div`
-  overflow-y: auto;
-  margin-top: 1rem;
-  flex-grow: 1;
-`;
-
-const NoResultsMessage = styled.div`
-  text-align: center;
-  padding: 2rem;
-  color: ${props => props.theme.colors.neutralGray};
-`;
-
-const LoadingContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  color: ${props => props.theme.colors.neutralGray};
-  
-  .spinner {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid ${props => props.theme.colors.deepMedicalBlue};
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 1s linear infinite;
-    margin-right: 0.5rem;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
 
 export const CaseList: React.FC<CaseListProps> = ({ 
   cases, 
@@ -107,25 +47,15 @@ export const CaseList: React.FC<CaseListProps> = ({
   onRenameCase
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { signOut } = useAuth();
+  const navigate = useNavigate(); // Initialize navigate
 
-  /**
-   * Handles the request to delete a case.
-   * This function calls the onDeleteCase prop provided by the parent component,
-   * which is responsible for the actual API call and state update.
-   * @param caseId - The ID of the case to be deleted.
-   */
+  // Handler functions remain the same
   const handleDeleteRequest = async (caseId: string) => {
-    // Optional: Add a confirmation dialog here for better UX
-    // if (!window.confirm('Are you sure you want to delete this case? This action cannot be undone.')) {
-    //   return;
-    // }
     try {
-      // Call the parent's delete handler
       await onDeleteCase(caseId);
-      // Logging confirmation. The actual list update happens in the parent component.
       console.log(`Deletion requested and handled by parent for case ID: ${caseId}`);
     } catch (error) {
-      // Log the error. Ideally, show a user-facing notification.
       console.error('Error requesting case deletion:', error);
       alert(`Failed to delete case: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -141,16 +71,28 @@ export const CaseList: React.FC<CaseListProps> = ({
     }
   };
 
-  // Filter cases based on search query
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   const filteredCases = cases.filter(caseItem => 
     caseItem.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     caseItem.summary.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   return (
-    <Container>
-      <Header>
-        <Title>Medhastra AI</Title>
+    // Replaced Container with div and Tailwind classes
+    <div className="flex flex-col h-full">
+      {/* Replaced Header with div and Tailwind classes */}
+      <div className="mb-6">
+        {/* Replaced Title with h2 and Tailwind classes */}
+        <h2 className="mb-4 text-darkText text-h2 font-primary font-bold"> 
+          Medhastra AI
+        </h2>
         <Button 
           variant="primary" 
           fullWidth 
@@ -158,26 +100,33 @@ export const CaseList: React.FC<CaseListProps> = ({
         >
           Start New Case
         </Button>
-      </Header>
+      </div>
       
-      <SearchContainer>
-        <SearchIconWrapper>
+      {/* Replaced SearchContainer with div and Tailwind classes */}
+      <div className="relative mb-4">
+        {/* Replaced SearchIconWrapper with div and Tailwind classes */}
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutralGray">
           <SearchIcon />
-        </SearchIconWrapper>
-        <SearchInput 
+        </div >
+        {/* Replaced SearchInput with input and Tailwind classes */}
+        <input 
           type="text" 
           placeholder="Search cases..." 
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
+          className="w-full p-3 pl-10 rounded border border-[#e0e0e0] text-base focus:outline-none focus:border-deepMedicalBlue focus:ring-2 focus:ring-deepMedicalBlue/20"
         />
-      </SearchContainer>
+      </div>
       
-      <CasesContainer>
+      {/* Replaced CasesContainer with div and Tailwind classes */}
+      <div className="overflow-y-auto mt-4 flex-grow">
         {isLoading ? (
-          <LoadingContainer>
-            <div className="spinner"></div>
+          // Replaced LoadingContainer with div and Tailwind classes
+          <div className="flex items-center justify-center p-8 text-neutralGray">
+            {/* Replaced spinner div with Tailwind spinner (requires animation definition or use library) */}
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-deepMedicalBlue mr-2"></div>
             <span>Loading cases...</span>
-          </LoadingContainer>
+          </div>
         ) : filteredCases.length > 0 ? (
           filteredCases.map(caseItem => (
             <CaseListItem 
@@ -190,12 +139,34 @@ export const CaseList: React.FC<CaseListProps> = ({
             />
           ))
         ) : (
-          <NoResultsMessage>
+          // Replaced NoResultsMessage with div and Tailwind classes
+          <div className="text-center p-8 text-neutralGray">
             {searchQuery ? "No cases found matching your search." : "No cases available. Start a new case."}
-          </NoResultsMessage>
+          </div>
         )}
-      </CasesContainer>
-    </Container>
+      </div>
+ 
+       {/* Replaced ButtonContainer with div and Tailwind classes */}
+       <div className="flex flex-col gap-2 mt-auto pt-4 border-t border-borderColor"> {/* Reduced gap */}
+         {/* Add View Profile Button - Temporarily hidden for MVPv1 */}
+         {/* 
+         <Button 
+           variant="secondary" // Or another appropriate variant
+           fullWidth
+           onClick={() => navigate('/app/profile')} // Navigate to profile page
+         >
+           View Profile
+         </Button> 
+         */}
+         <Button 
+           variant="secondary"
+          fullWidth
+          onClick={handleSignOut}
+        >
+          Sign Out
+        </Button>
+      </div>
+    </div>
   );
 };
 

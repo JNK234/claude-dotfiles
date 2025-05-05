@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { MoreVertical, Trash2, Edit3, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { MoreVertical, Trash2, Edit3 } from 'lucide-react'; // Removed ChevronRight as it wasn't used
+import clsx from 'clsx'; // Import clsx
+
+// Removed styled-components import
+// import styled from 'styled-components';
 
 export interface Case {
   id: string;
   patientName: string;
   date: string;
-  summary: string;
+  summary: string; // Keep summary in interface even if not displayed here
   status: 'completed' | 'in-progress' | 'new';
 }
 
@@ -18,139 +21,15 @@ interface CaseListItemProps {
   onRename?: (caseId: string, newName: string) => void;
 }
 
-const ListItem = styled.div<{ isSelected: boolean; status: string }>`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background-color: ${props => props.isSelected ? props.theme.colors.deepMedicalBlue + '15' : 'transparent'};
-  border-radius: ${props => props.theme.layout.borderRadius};
-  border-left: 3px solid ${props => 
-    props.isSelected 
-      ? props.theme.colors.deepMedicalBlue 
-      : props.status === 'completed' 
-        ? props.theme.colors.successGreen 
-        : props.status === 'in-progress' 
-          ? props.theme.colors.alertAmber 
-          : 'transparent'
-  };
-  margin-bottom: 0.25rem;
-  cursor: pointer;
-  transition: all ${props => props.theme.transitions.default};
-  position: relative;
-  min-height: 48px;
-
-  &:hover {
-    background-color: ${props => props.isSelected ? props.theme.colors.deepMedicalBlue + '15' : props.theme.colors.deepMedicalBlue + '05'};
-  }
-`;
-
-const ContentWrapper = styled.div`
-  flex-grow: 1;
-  margin-right: 0.5rem;
-  min-width: 0; /* Enable text truncation */
-`;
-
-const PatientName = styled.h3`
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-  margin: 0;
-  font-weight: ${props => props.theme.typography.fontWeights.medium};
-  color: ${props => props.theme.colors.darkText};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const DateText = styled.p`
-  font-size: ${props => props.theme.typography.fontSizes.small};
-  color: ${props => props.theme.colors.neutralGray};
-  margin: 0.125rem 0 0 0;
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  padding: 0.25rem;
-  cursor: pointer;
-  color: ${props => props.theme.colors.neutralGray};
-  border-radius: ${props => props.theme.layout.borderRadius};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all ${props => props.theme.transitions.default};
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: ${props => props.theme.colors.rightPanelBg};
-    color: ${props => props.theme.colors.darkBlue};
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px ${props => props.theme.colors.yellow}40;
-  }
-`;
-
-const MenuContainer = styled.div<{ isOpen: boolean }>`
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: white;
-  border-radius: ${props => props.theme.layout.borderRadius};
-  box-shadow: ${props => props.theme.shadows.large};
-  min-width: 160px;
-  z-index: 1000;
-  display: ${props => props.isOpen ? 'block' : 'none'};
-  margin-top: 0.25rem;
-  border: 1px solid ${props => props.theme.colors.borderColor};
-`;
-
-const MenuItem = styled.button`
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: ${props => props.theme.colors.darkText};
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-  transition: all ${props => props.theme.transitions.default};
-
-  &:hover {
-    background-color: ${props => props.theme.colors.rightPanelBg};
-  }
-
-  &.delete {
-    color: ${props => props.theme.colors.errorRed};
-    
-    &:hover {
-      background-color: ${props => props.theme.colors.errorRed}10;
-    }
-  }
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-`;
-
-const StatusIndicator = styled.div<{ status: string }>`
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 0.5rem;
-  background-color: ${props => 
-    props.status === 'completed'
-      ? props.theme.colors.successGreen
-      : props.status === 'in-progress'
-        ? props.theme.colors.alertAmber
-        : props.theme.colors.neutralGray
-  };
-  flex-shrink: 0;
-`;
+// Removed styled-component definitions
+// const ListItem = styled.div`...`;
+// const ContentWrapper = styled.div`...`;
+// const PatientName = styled.h3`...`;
+// const DateText = styled.p`...`;
+// const ActionButton = styled.button`...`;
+// const MenuContainer = styled.div`...`;
+// const MenuItem = styled.button`...`;
+// const StatusIndicator = styled.div`...`;
 
 export const CaseListItem: React.FC<CaseListItemProps> = ({
   caseData,
@@ -160,11 +39,11 @@ export const CaseListItem: React.FC<CaseListItemProps> = ({
   onRename
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = React.useRef<HTMLDivElement>(null);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu when clicking outside
-  React.useEffect(() => {
+  // Close menu when clicking outside (remains the same)
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         menuRef.current && 
@@ -180,6 +59,7 @@ export const CaseListItem: React.FC<CaseListItemProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Event handlers remain the same
   const handleMenuClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsMenuOpen(!isMenuOpen);
@@ -202,35 +82,86 @@ export const CaseListItem: React.FC<CaseListItemProps> = ({
     setIsMenuOpen(false);
   };
 
+  // Determine border color based on status and selection
+  const getBorderColorClass = () => {
+    if (isSelected) return 'border-deepMedicalBlue';
+    if (caseData.status === 'completed') return 'border-successGreen';
+    if (caseData.status === 'in-progress') return 'border-alertAmber';
+    return 'border-transparent';
+  };
+
   return (
-    <ListItem isSelected={isSelected} status={caseData.status} onClick={onClick}>
-      <ContentWrapper>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <StatusIndicator status={caseData.status} />
-          <PatientName>{caseData.patientName}</PatientName>
+    // Replaced ListItem with div and Tailwind classes
+    <div 
+      className={clsx(
+        "flex justify-between items-center p-3 rounded mb-1 cursor-pointer transition-all duration-300 ease-in-out relative min-h-[48px]",
+        "border-l-3", // Set left border width
+        getBorderColorClass(), // Apply dynamic border color
+        isSelected ? 'bg-deepMedicalBlue/20 shadow-inner' : 'hover:bg-deepMedicalBlue/5' // Enhanced conditional background and shadow
+      )}
+      onClick={onClick}
+    >
+      {/* Replaced ContentWrapper with div and Tailwind classes */}
+      <div className="flex-grow mr-2 min-w-0"> 
+        <div className="flex items-center">
+          {/* Replaced StatusIndicator with div and Tailwind classes */}
+          <div 
+            className={clsx(
+              "w-1.5 h-1.5 rounded-full mr-2 flex-shrink-0",
+              {
+                'bg-successGreen': caseData.status === 'completed',
+                'bg-alertAmber': caseData.status === 'in-progress',
+                'bg-neutralGray': caseData.status === 'new',
+              }
+            )}
+          />
+          {/* Replaced PatientName with h3 and Tailwind classes */}
+          <h3 className="text-sm font-medium text-darkText whitespace-nowrap overflow-hidden text-ellipsis">
+            {caseData.patientName}
+          </h3>
         </div>
-        <DateText>{caseData.date}</DateText>
-      </ContentWrapper>
+        {/* Replaced DateText with p and Tailwind classes */}
+        <p className="text-xs text-neutralGray mt-0.5">
+          {caseData.date}
+        </p>
+      </div>
       
-      <ActionButton
+      {/* Replaced ActionButton with button and Tailwind classes */}
+      <button
         ref={buttonRef}
         onClick={handleMenuClick}
         title="More options"
+        className="bg-none border-none p-1 cursor-pointer text-neutralGray rounded flex items-center justify-center transition-all duration-300 ease-in-out flex-shrink-0 hover:bg-rightPanelBg hover:text-darkBlue focus:outline-none focus:ring-2 focus:ring-yellow/40"
       >
         <MoreVertical size={16} />
-      </ActionButton>
+      </button>
 
-      <MenuContainer ref={menuRef} isOpen={isMenuOpen}>
-        <MenuItem onClick={handleRename}>
-          <Edit3 />
+      {/* Replaced MenuContainer with div and Tailwind classes */}
+      <div 
+        ref={menuRef} 
+        className={clsx(
+          "absolute top-full right-0 bg-white rounded shadow-lg min-w-[160px] z-[1000] mt-1 border border-borderColor",
+          isMenuOpen ? 'block' : 'hidden' // Toggle visibility
+        )}
+      >
+        {/* Replaced MenuItem with button and Tailwind classes */}
+        <button 
+          onClick={handleRename}
+          className="w-full px-3 py-2 border-none bg-none text-left cursor-pointer flex items-center gap-2 text-darkText text-sm transition-all duration-300 ease-in-out hover:bg-rightPanelBg"
+        >
+          <Edit3 size={14} />
           Rename
-        </MenuItem>
-        <MenuItem className="delete" onClick={handleDelete}>
-          <Trash2 />
+        </button>
+        {/* Replaced MenuItem with button and Tailwind classes */}
+        <button 
+          onClick={handleDelete}
+          className="w-full px-3 py-2 border-none bg-none text-left cursor-pointer flex items-center gap-2 text-errorRed text-sm transition-all duration-300 ease-in-out hover:bg-errorRed/10"
+        >
+          <Trash2 size={14} />
           Delete
-        </MenuItem>
-      </MenuContainer>
-    </ListItem>
+        </button>
+      </div>
+    </div>
   );
 };
 

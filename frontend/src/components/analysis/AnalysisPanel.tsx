@@ -1,6 +1,9 @@
 import React from 'react';
-import styled from 'styled-components';
-import Button from '../ui/Button';
+import Button from '../ui/Button'; // Uses refactored Tailwind Button
+import clsx from 'clsx'; // Import clsx
+
+// Removed styled-components import
+// import styled from 'styled-components';
 
 interface AnalysisSection {
   id: string;
@@ -17,91 +20,20 @@ interface AnalysisPanelProps {
   onDownload?: () => void;
 }
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-`;
+// Removed styled-component definitions
+// const Container = styled.div`...`;
+// const Header = styled.div`...`;
+// const Title = styled.h2`...`;
+// const Subtitle = styled.p`...`;
+// const SectionsContainer = styled.div`...`;
+// const Section = styled.div`...`;
+// const SectionHeader = styled.div`...`;
+// const SectionTitle = styled.h3`...`;
+// const SectionContent = styled.div`...`;
+// const Content = styled.div`...`;
+// const Footer = styled.div`...`;
 
-const Header = styled.div`
-  margin-bottom: 1.5rem;
-`;
-
-const Title = styled.h2`
-  margin-bottom: 0.5rem;
-  color: ${props => props.theme.colors.darkText};
-`;
-
-const Subtitle = styled.p`
-  color: ${props => props.theme.colors.neutralGray};
-  margin-bottom: 1rem;
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-`;
-
-const SectionsContainer = styled.div`
-  overflow-y: auto;
-  flex-grow: 1;
-`;
-
-const Section = styled.div<{ expanded: boolean, type: string }>`
-  margin-bottom: 1rem;
-  border-radius: ${props => props.theme.layout.borderRadius};
-  overflow: hidden;
-  border: 1px solid #e0e0e0;
-  background-color: white;
-  box-shadow: ${props => props.theme.shadows.small};
-`;
-
-const SectionHeader = styled.div<{ type: string }>`
-  padding: 1rem;
-  background-color: ${props => {
-    switch(props.type) {
-      case 'factors': return props.theme.colors.darkBlue + '20';
-      case 'causal': return props.theme.colors.yellow + '20';
-      case 'diagnosis': return props.theme.colors.alertAmber + '20';
-      case 'treatment': return props.theme.colors.successGreen + '20';
-      default: return 'white';
-    }
-  }};
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const SectionTitle = styled.h3<{ type: string }>`
-  margin: 0;
-  font-size: ${props => props.theme.typography.fontSizes.body};
-  color: ${props => {
-    switch(props.type) {
-      case 'factors': return props.theme.colors.darkBlue;
-      case 'causal': return props.theme.colors.yellow;
-      case 'diagnosis': return props.theme.colors.alertAmber;
-      case 'treatment': return props.theme.colors.successGreen;
-      default: return props.theme.colors.darkText;
-    }
-  }};
-`;
-
-const SectionContent = styled.div<{ expanded: boolean }>`
-  padding: ${props => props.expanded ? '1rem' : '0'};
-  max-height: ${props => props.expanded ? '500px' : '0'};
-  overflow: hidden;
-  transition: all ${props => props.theme.transitions.default};
-`;
-
-const Content = styled.div`
-  font-size: ${props => props.theme.typography.fontSizes.secondary};
-  white-space: pre-wrap;
-  word-break: break-word;
-`;
-
-const Footer = styled.div`
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
-`;
-
+// ChevronIcon component remains the same, using inline styles for transform
 const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
   <svg 
     width="16" 
@@ -109,11 +41,23 @@ const ChevronIcon = ({ expanded }: { expanded: boolean }) => (
     viewBox="0 0 24 24" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
-    style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0)', transition: '0.3s ease' }}
+    className="transition-transform duration-300 ease-in-out" // Added Tailwind transition
+    style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0)' }}
   >
-    <path d="M7.41 8.59L12 13.17L16.59 8.59L18 10L12 16L6 10L7.41 8.59Z" fill="currentColor"/>
+    <path d="M7.41 8.59L12 13.17L16.59 8.59L18 10L12 16L6 10L7.41 8.59Z" fill="currentColor"/> {/* Use currentColor */}
   </svg>
 );
+
+// Helper function to get Tailwind classes based on section type
+const getSectionTypeClasses = (type: string) => {
+  switch(type) {
+    case 'factors': return { bg: 'bg-darkBlue/20', text: 'text-darkBlue' };
+    case 'causal': return { bg: 'bg-yellow/20', text: 'text-yellow' }; // Assuming yellow text is desired
+    case 'diagnosis': return { bg: 'bg-alertAmber/20', text: 'text-alertAmber' };
+    case 'treatment': return { bg: 'bg-successGreen/20', text: 'text-successGreen' };
+    default: return { bg: 'bg-white', text: 'text-darkText' };
+  }
+};
 
 export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ 
   sections, 
@@ -122,31 +66,71 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
   onDownload 
 }) => {
   return (
-    <Container>
-      <Header>
-        <Title>Analysis & Results</Title>
-        <Subtitle>Current stage: {currentStage}</Subtitle>
-      </Header>
+    // Replaced Container with div and Tailwind classes
+    <div className="flex flex-col h-full">
+      {/* Replaced Header with div and Tailwind classes */}
+      <div className="mb-6">
+        {/* Replaced Title with h2 and Tailwind classes */}
+        <h2 className="mb-2 text-darkText text-h2 font-primary font-bold">
+          Analysis & Results
+        </h2>
+        {/* Replaced Subtitle with p and Tailwind classes */}
+        <p className="text-neutralGray text-secondary mb-4">
+          Current stage: {currentStage}
+        </p>
+      </div>
       
-      <SectionsContainer>
-        {sections.map((section) => (
-          <Section key={section.id} expanded={!!section.expanded} type={section.type}>
-            <SectionHeader 
-              type={section.type} 
-              onClick={() => onToggleSection(section.id)}
+      {/* Replaced SectionsContainer with div and Tailwind classes */}
+      <div className="overflow-y-auto flex-grow">
+        {sections.map((section) => {
+          const typeClasses = getSectionTypeClasses(section.type);
+          const isExpanded = !!section.expanded;
+
+          return (
+            // Replaced Section with div and Tailwind classes
+            <div 
+              key={section.id} 
+              className="mb-4 rounded-lg overflow-hidden border border-[#e0e0e0] bg-white shadow-small"
             >
-              <SectionTitle type={section.type}>{section.title}</SectionTitle>
-              <ChevronIcon expanded={!!section.expanded} />
-            </SectionHeader>
-            <SectionContent expanded={!!section.expanded}>
-              <Content>{section.content}</Content>
-            </SectionContent>
-          </Section>
-        ))}
-      </SectionsContainer>
+              {/* Replaced SectionHeader with div and Tailwind classes */}
+              <div 
+                className={clsx(
+                  "p-4 cursor-pointer flex justify-between items-center",
+                  typeClasses.bg // Apply dynamic background
+                )}
+                onClick={() => onToggleSection(section.id)}
+              >
+                {/* Replaced SectionTitle with h3 and Tailwind classes */}
+                <h3 className={clsx("m-0 text-base font-medium", typeClasses.text)}> {/* Apply dynamic text color */}
+                  {section.title}
+                </h3>
+                <span className={typeClasses.text}> {/* Apply dynamic text color to icon */}
+                  <ChevronIcon expanded={isExpanded} />
+                </span>
+              </div>
+              {/* Replaced SectionContent with div and Tailwind classes */}
+              {/* Use grid for smooth height transition */}
+              <div 
+                className={clsx(
+                  "grid transition-all duration-300 ease-in-out",
+                  isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                )}
+              >
+                <div className="overflow-hidden"> {/* Needed for grid transition */}
+                  {/* Replaced Content with div and Tailwind classes */}
+                  <div className="p-4 text-secondary whitespace-pre-wrap break-words">
+                    {section.content}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div> {/* Corrected closing tag for SectionsContainer */}
       
       {onDownload && (
-        <Footer>
+        // Replaced Footer with div and Tailwind classes
+        <div className="mt-4 pt-4 border-t border-[#e0e0e0]">
           <Button 
             variant="secondary" 
             fullWidth 
@@ -154,9 +138,9 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
           >
             Download Report
           </Button>
-        </Footer>
+        </div>
       )}
-    </Container>
+    </div> // Corrected closing tag for Container
   );
 };
 

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_supabase_user # Changed import
 from app.models.case import Case
 from app.models.user import User
 from app.schemas.case import WorkflowStageProcess, WorkflowStageResponse
@@ -17,10 +17,10 @@ from app.services.diagnosis_service import DiagnosisService
 router = APIRouter()
 
 @router.post("/{case_id}/workflow/start", response_model=WorkflowStageResponse)
-def start_workflow(
+async def start_workflow( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Start the diagnosis workflow for a case
@@ -68,12 +68,12 @@ def start_workflow(
     }
 
 @router.post("/{case_id}/workflow/stages/{stage_name}/process", response_model=WorkflowStageResponse)
-def process_stage(
+async def process_stage( # Changed to async
     case_id: UUID,
     stage_name: str,
     stage_data: WorkflowStageProcess,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Process a specific stage in the diagnosis workflow
@@ -122,11 +122,11 @@ def process_stage(
     }
 
 @router.post("/{case_id}/workflow/stages/{stage_name}/approve", response_model=WorkflowStageResponse)
-def approve_stage(
+async def approve_stage( # Changed to async
     case_id: UUID,
     stage_name: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Approve a stage and move to the next stage
@@ -174,10 +174,10 @@ def approve_stage(
     }
 
 @router.post("/{case_id}/generate-note")
-def generate_note(
+async def generate_note( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Dict[str, str]:
     """
     Generate a clinical note for a completed case

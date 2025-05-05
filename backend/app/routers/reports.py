@@ -12,7 +12,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_supabase_user # Changed import
 from app.models.case import Case, Report
 from app.models.user import User
 from app.schemas.case import Report as ReportSchema
@@ -22,10 +22,10 @@ from app.services.report_service import ReportService
 router = APIRouter()
 
 @router.post("/{case_id}/reports", response_model=ReportSchema, status_code=status.HTTP_201_CREATED)
-def generate_report(
+async def generate_report( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Generate a report for a case
@@ -90,11 +90,11 @@ def generate_report(
     return report
 
 @router.get("/{case_id}/reports/{report_id}")
-def get_report(
+async def get_report( # Changed to async
     case_id: UUID,
     report_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Get a report by ID
@@ -175,10 +175,10 @@ def get_report(
         )
 
 @router.post("/{case_id}/notes", response_model=ReportSchema, status_code=status.HTTP_201_CREATED)
-def generate_note(
+async def generate_note( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Generate a clinical note for a case
@@ -243,11 +243,11 @@ def generate_note(
     return report
 
 @router.get("/{case_id}/notes/{note_id}")
-def get_note(
+async def get_note( # Changed to async
     case_id: UUID,
     note_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Get a note by ID

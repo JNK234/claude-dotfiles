@@ -9,7 +9,7 @@ from sqlalchemy import desc # Add this import
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_supabase_user # Changed import
 from app.models.case import Case, Message, StageResult # Added Message, StageResult
 from app.models.user import User
 from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList, CaseDetails, CaseUpdate # Added CaseUpdate
@@ -18,11 +18,11 @@ from sqlalchemy.orm import joinedload # To eagerly load relationships
 router = APIRouter()
 
 @router.get("", response_model=CaseList)
-def list_cases(
+async def list_cases( # Changed to async
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     List cases for the current user
@@ -43,10 +43,10 @@ def list_cases(
     return {"cases": cases, "total": total}
 
 @router.post("", response_model=CaseSchema, status_code=status.HTTP_201_CREATED)
-def create_case(
+async def create_case( # Changed to async
     case_in: CaseCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Create a new case
@@ -74,11 +74,11 @@ def create_case(
     return case
 
 @router.get("/{case_id}", response_model=CaseSchema)
-def get_case(
+async def get_case( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-) -> Any: 
+    current_user: User = Depends(get_supabase_user) # Changed dependency
+) -> Any:
     """
     Get a case by ID
     
@@ -115,10 +115,10 @@ def get_case(
 
 # Add the new endpoint function
 @router.get("/{case_id}/details", response_model=CaseDetails)
-def get_case_details(
+async def get_case_details( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Get detailed information for a specific case, including messages and stage results.
@@ -178,10 +178,10 @@ def get_case_details(
 
 
 @router.delete("/{case_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-def delete_case(
+async def delete_case( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> None:
     """
     Delete a case
@@ -220,11 +220,11 @@ def delete_case(
     return None
 
 @router.patch("/{case_id}", response_model=CaseSchema)
-def update_case(
+async def update_case( # Changed to async
     case_id: UUID,
     case_in: CaseUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_supabase_user) # Changed dependency
 ) -> Any:
     """
     Update a case
