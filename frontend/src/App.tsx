@@ -16,6 +16,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ProfilePage from './pages/ProfilePage'; // Import the new ProfilePage
+// import EmailConfirmedPage from './pages/EmailConfirmedPage'; // No longer needed for this flow
+import EmailConfirmedLoginPage from './pages/EmailConfirmedLoginPage'; // Import the new confirmation page
 import PrivateRoute from './components/auth/PrivateRoute';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { WorkflowProvider, useWorkflow } from './contexts/WorkflowContext';
@@ -572,6 +574,9 @@ const App: React.FC = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
+          {/* Add route for the new email confirmation page that requires login */}
+          <Route path="/email-confirmed-login" element={<EmailConfirmedLoginPage />} />
+          {/* <Route path="/email-confirmed" element={<EmailConfirmedPage />} /> */} {/* Removed old route */}
 
           {/* Protected App Routes */}
           <Route element={<PrivateRoute />}>

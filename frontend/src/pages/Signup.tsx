@@ -150,6 +150,7 @@ const Signup: React.FC = () => {
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false); // State for confirmation message
   const navigate = useNavigate();
   const { signUp, signInWithGoogle } = useAuth();
 
@@ -178,9 +179,12 @@ const Signup: React.FC = () => {
         formData.firstName,
         formData.lastName
       );
-      navigate('/login');
+      // On successful signup, show the confirmation message instead of navigating
+      setShowConfirmationMessage(true); 
+      setError(null); // Clear any previous errors
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
+      setShowConfirmationMessage(false); // Ensure confirmation message is hidden on error
     } finally {
       setIsLoading(false);
     }
@@ -205,12 +209,31 @@ const Signup: React.FC = () => {
         <LogoImage src="/favicon/android-chrome-192x192.png" alt="Medhastra Logo" />
         <LogoText>Medhastra AI</LogoText>
       </LogoContainer>
-      <AuthForm onSubmit={handleSubmit}>
-        <FormTitle>Create Your Account</FormTitle>
-        
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        
-        <FormGroup>
+
+      {/* Conditionally render confirmation message or signup form */}
+      {showConfirmationMessage ? (
+        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+          </svg>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Account Created!</h2>
+          <p className="text-gray-600 mb-4">
+            Please check your email (<span className="font-medium">{formData.email}</span>) to confirm your account.
+          </p>
+          <p className="text-sm text-gray-500">
+            Didn't receive an email? Check your spam folder or <button className="text-blue-600 hover:underline focus:outline-none" onClick={() => alert('Resend functionality not yet implemented.')}>resend confirmation</button>.
+          </p>
+           <LinkText>
+             <Link to="/login">Go to Login</Link>
+           </LinkText>
+        </div>
+      ) : (
+        <AuthForm onSubmit={handleSubmit}>
+          <FormTitle>Create Your Account</FormTitle>
+          
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          
+          <FormGroup>
           <Label htmlFor="firstName">First Name</Label>
           <Input
             id="firstName"
@@ -289,11 +312,13 @@ const Signup: React.FC = () => {
         </LinkText>
 
         <LinkText>
-          By continuing, you agree to our{' '}
-          <Link to="/terms">Terms of Service</Link> and{' '}
-          <Link to="/privacy">Privacy Policy</Link>
-        </LinkText>
-      </AuthForm>
+            By continuing, you agree to our{' '}
+            <Link to="/terms">Terms of Service</Link> and{' '}
+            <Link to="/privacy">Privacy Policy</Link>
+          </LinkText>
+        </AuthForm>
+      )} 
+      {/* End conditional rendering */}
     </SignupContainer>
   );
 };

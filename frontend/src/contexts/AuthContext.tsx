@@ -3,6 +3,13 @@ import { supabase } from '../lib/supabase';
 import type { User, UserProfile } from '../lib/supabase';
 import { UserService } from '../services/UserService';
 
+// Combined type for profile updates, allowing fields from both User and UserProfile
+type ProfileUpdateData = Partial<UserProfile> & {
+  first_name?: string;
+  last_name?: string;
+  // Add other User fields here if they might be updated via profile form
+};
+
 type AuthContextType = {
   user: User | null;
   profile: UserProfile | null;
@@ -12,7 +19,8 @@ type AuthContextType = {
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  // Update signature to use the combined type
+  updateProfile: (updates: ProfileUpdateData) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -194,7 +202,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: 'user',
             is_onboarded: false
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // Redirect to a page that prompts login after email confirmation
+          emailRedirectTo: `${window.location.origin}/email-confirmed-login`, 
         },
       });
 
@@ -251,8 +260,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update user profile
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  // Update user profile (handles both 'profiles' table and auth.users metadata)
+  const updateProfile = async (updates: ProfileUpdateData) => {
     if (!user) {
       console.error('[AuthContext] Cannot update profile: No user logged in');
       throw new Error('No user logged in');
@@ -260,37 +269,104 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       console.log(`[AuthContext] Updating profile for user: ${user.id}`);
-      
-      // Update profile in Supabase directly
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-        
-      if (error) {
-        console.error(`[AuthContext] Profile update error:`, error);
-        throw error;
+
+      // 1. Prepare updates for auth.users metadata (User fields like first_name, last_name)
+      const userMetadataUpdates: { first_name?: string; last_name?: string } = {};
+      if ('first_name' in updates && updates.first_name !== undefined) {
+        userMetadataUpdates.first_name = updates.first_name;
       }
-      
-      console.log(`[AuthContext] Profile updated successfully:`, data);
-      setProfile(data);
-      
-      // Update user metadata if needed
-      if (updates.first_name || updates.last_name) {
-        await supabase.auth.updateUser({
-          data: {
-            first_name: updates.first_name || user.first_name,
-            last_name: updates.last_name || user.last_name
-          }
-        });
+      if ('last_name' in updates && updates.last_name !== undefined) {
+        userMetadataUpdates.last_name = updates.last_name;
       }
+      // Add checks for other User fields here if needed (e.g., role, if updatable)
+
+      // 2. Prepare updates for the 'profiles' table (UserProfile fields)
+      // We explicitly pick only the keys belonging to UserProfile from the input 'updates'
+      const profileTableUpdates: Partial<UserProfile> = {};
+      const userProfileKeys: Array<keyof UserProfile> = [
+        'phone_number', 'company_name', 'job_title', 'country',
+        'timezone', 'language', 'avatar_url', 'profile_metadata'
+        // Add any other keys defined in the UserProfile interface
+      ];
+
+      for (const key of userProfileKeys) {
+        if (key in updates && updates[key] !== undefined) {
+          // Type assertion needed because updates[key] could be from the User part of ProfileUpdateData
+          profileTableUpdates[key] = updates[key] as any;
+        }
+      }
+
+      // 3. Execute update for auth metadata (if needed)
+      if (Object.keys(userMetadataUpdates).length > 0) {
+        console.log('[AuthContext] Updating auth user metadata with:', userMetadataUpdates);
+        const { data: updatedUserData, error: userMetadataError } = await supabase.auth.updateUser({
+           data: userMetadataUpdates // Supabase merges this with existing metadata
+         });
+
+         if (userMetadataError) {
+            console.error(`[AuthContext] User metadata update error:`, userMetadataError);
+            throw userMetadataError; // Rethrow or handle as appropriate
+         }
+         console.log(`[AuthContext] User metadata updated successfully:`, updatedUserData);
+
+         // Update local user state to immediately reflect metadata changes
+         // Note: onAuthStateChange might also trigger an update, but this ensures immediate UI consistency
+         if (updatedUserData?.user) {
+            setUser(prevUser => {
+                if (!prevUser) return null;
+                const newMeta = updatedUserData.user?.user_metadata;
+                // Create a new user object reflecting the changes
+                const updatedUserObject: User = {
+                    ...prevUser,
+                    // Update fields based on what was returned in updatedUserData
+                    first_name: newMeta?.first_name ?? prevUser.first_name,
+                    last_name: newMeta?.last_name ?? prevUser.last_name,
+                    // Ensure other fields from updatedUserData.user are mapped if necessary
+                    // For example, if email could change (unlikely via metadata):
+                    // email: updatedUserData.user.email ?? prevUser.email,
+                    updated_at: updatedUserData.user.updated_at ?? prevUser.updated_at,
+                };
+                return updatedUserObject;
+            });
+         }
+      } else {
+          console.log(`[AuthContext] No User fields to update in auth metadata.`);
+      }
+
+      // 4. Execute update for 'profiles' table (if needed)
+      if (Object.keys(profileTableUpdates).length > 0) {
+        console.log('[AuthContext] Updating profiles table with:', profileTableUpdates);
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .update(profileTableUpdates) // Pass the correctly filtered object
+          .eq('id', user.id) // Ensure this matches your profiles table primary key column name
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error(`[AuthContext] Profile table update error:`, profileError);
+          throw profileError;
+        }
+        console.log(`[AuthContext] Profile table updated successfully:`, profileData);
+        // Ensure profileData matches UserProfile structure before setting
+        if (profileData && typeof profileData === 'object' && 'user_id' in profileData) {
+             setProfile(profileData as UserProfile); // Cast if confident in structure
+        } else {
+             console.warn('[AuthContext] Received unexpected data structure after profile update:', profileData);
+             // Optionally refetch profile here if update response is unreliable
+             // await fetchProfile(user.id);
+        }
+      } else {
+         console.log(`[AuthContext] No UserProfile fields to update in 'profiles' table.`);
+      }
+
     } catch (error) {
-      console.error('[AuthContext] Error updating profile:', error);
-      throw error;
+      // Catch errors from either update operation
+      console.error('[AuthContext] Error during updateProfile:', error);
+      throw error; // Rethrow the caught error so the caller can handle it
     }
   };
+
 
   const value = {
     user,

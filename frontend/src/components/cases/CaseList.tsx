@@ -148,14 +148,16 @@ export const CaseList: React.FC<CaseListProps> = ({
  
        {/* Replaced ButtonContainer with div and Tailwind classes */}
        <div className="flex flex-col gap-2 mt-auto pt-4 border-t border-borderColor"> {/* Reduced gap */}
-         {/* Add View Profile Button */}
+         {/* Add View Profile Button - Temporarily hidden for MVPv1 */}
+         {/* 
          <Button 
            variant="secondary" // Or another appropriate variant
            fullWidth
            onClick={() => navigate('/app/profile')} // Navigate to profile page
          >
            View Profile
-         </Button>
+         </Button> 
+         */}
          <Button 
            variant="secondary"
           fullWidth
