@@ -107,19 +107,14 @@ export type Database = {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Check for environment variables and provide fallbacks for development
+// Check for environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    'Supabase environment variables are missing. Authentication will not work properly. ' +
-    'Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.'
+  throw new Error(
+    'Supabase environment variables are missing. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.'
   );
 }
 
-// Use empty strings as fallbacks to prevent crashes during development
-const finalSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co';
-const finalSupabaseAnonKey = supabaseAnonKey || 'placeholder-key';
-
-export const supabase = createClient<Database>(finalSupabaseUrl, finalSupabaseAnonKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
