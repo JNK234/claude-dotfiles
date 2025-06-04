@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     Application configuration settings
     """
     # General info
-    PROJECT_NAME: str = "InferenceMD API"
+    PROJECT_NAME: str = "Medhastra AI API"
     PROJECT_DESCRIPTION: str = "Medical diagnosis system using causal inference with LLMs"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/api"
@@ -21,19 +21,39 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
-    ALGORITHM: str = "HS256" # Note: Supabase JWTs use RS256, this might be for legacy tokens if any remain.
+    SUPABASE_JWT_ALGORITHMS: List[str] = ["HS256"] # Switching to HS256
 
     # Supabase Configuration (for JWT Validation)
-    SUPABASE_URL: Optional[str] = os.getenv("SUPABASE_URL")
+    SUPABASE_URL: Optional[str] = os.getenv("SUPABASE_URL") # Still useful for issuer
+
+    # Shared secret for HS256 validation - THIS MUST BE SET IN YOUR ENVIRONMENT
+    SUPABASE_JWT_SECRET: Optional[str] = os.getenv("SUPABASE_JWT_SECRET")
+
     # Default audience for Supabase JWTs
     SUPABASE_JWT_AUDIENCE: str = os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated")
+
     # Issuer is typically the Supabase project URL + /auth/v1
-    SUPABASE_ISSUER: Optional[str] = f"{SUPABASE_URL}/auth/v1" if SUPABASE_URL else None
+    # Ensure SUPABASE_URL is set in your .env file
+    SUPABASE_ISSUER: Optional[str] = None # Will be set in model_validator
+
     # Supabase service key for admin operations
     SUPABASE_SERVICE_KEY: Optional[str] = os.getenv("SUPABASE_SERVICE_KEY")
 
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./medhastra.db")
+
+    # Async database URL for PostgresSaver (LangGraph checkpointing)
+    # Convert to asyncpg format for PostgreSQL connections
+    @property
+    def DATABASE_URL_PSYCOPG(self) -> str:
+        """Convert DATABASE_URL to asyncpg format for PostgresSaver."""
+        if self.DATABASE_URL.startswith("postgresql://"):
+            return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif self.DATABASE_URL.startswith("postgres://"):
+            return self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+        else:
+            # For non-PostgreSQL databases, return as-is (though PostgresSaver requires PostgreSQL)
+            return self.DATABASE_URL
 
     # CORS - Renamed field to avoid auto-parsing conflicts
     # Default CORS origins (used if RENDER_FRONTEND_URL is not set)
@@ -47,7 +67,7 @@ class Settings(BaseSettings):
     def set_allowed_cors_origins(self) -> 'Settings': # Use string literal for forward reference
         """
         Constructs the ALLOWED_CORS_ORIGINS list based on Render-provided
-        and custom URLs from environment variables.
+        and custom URLs from environment variables. Also sets Supabase derived URLs.
         """
         origins = set() # Use a set to avoid duplicates
         
@@ -70,8 +90,19 @@ class Settings(BaseSettings):
         if origins:
             self.ALLOWED_CORS_ORIGINS = list(origins)
         # If neither RENDER_FRONTEND_URL nor CUSTOM_FRONTEND_URL were set, 
-        # ALLOWED_CORS_ORIGINS will retain its class-level default ["http://localhost:3000"]
+        # ALLOWED_CORS_ORIGINS will retain its class-level default ["http://localhost:5173"]
             
+        # Set Supabase derived URLs
+        if self.SUPABASE_URL:
+            self.SUPABASE_ISSUER = f"{self.SUPABASE_URL}/auth/v1"
+            # self.SUPABASE_JWKS_URI = f"{self.SUPABASE_URL}/auth/v1/.well-known/jwks.json" # Not needed for HS256
+        else:
+            # Handle cases where SUPABASE_URL might not be set for issuer
+            print("Warning: SUPABASE_URL is not set. JWT issuer validation might be affected.")
+
+        if not self.SUPABASE_JWT_SECRET:
+            print("CRITICAL WARNING: SUPABASE_JWT_SECRET is not set in the environment. HS256 JWT validation will FAIL.")
+        
         return self
 
     # LLM Service
@@ -82,9 +113,9 @@ class Settings(BaseSettings):
     AZURE_OPENAI_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "") # Specific deployment for Azure
 
     # --- New Multi-Provider LLM Configuration ---
-    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "azure").lower() # 'azure', 'openai', 'gemini', 'deepseek'
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "gemini").lower() # 'azure', 'openai', 'gemini', 'deepseek'
     # LLM_MODEL_NAME is used for non-Azure providers. Azure uses AZURE_OPENAI_DEPLOYMENT_NAME.
-    LLM_MODEL_NAME: str = os.getenv("LLM_MODEL_NAME", "gpt-4") # e.g., "gpt-4", "gemini-pro", "deepseek-chat"
+    LLM_MODEL_NAME: str = os.getenv("LLM_MODEL_NAME", "gemini-2.5-pro-preview-03-25") # e.g., "gpt-4", "gemini-pro", "deepseek-chat"
 
     # --- Provider Specific API Keys & Settings ---
     # OpenAI

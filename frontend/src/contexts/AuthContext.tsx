@@ -115,20 +115,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) {
         if (error.code === 'PGRST116') {
-          console.log(`[AuthContext] Profile not found for user: ${userId}, will create one`);
-          // Profile doesn't exist yet, create it
+          console.log(`[AuthContext] Profile not found for user: ${userId}, attempting to create one (frontend fallback).`);
+          // Profile doesn't exist yet, try to create it via frontend.
+          // The DB trigger should ideally handle this for new users. This is a fallback.
           await createProfile(userId);
-          return;
+          return; // Return after attempting to create profile
         }
         
-        console.error(`[AuthContext] Error fetching profile:`, error);
-        return;
+        // For other errors, log and propagate
+        console.error(`[AuthContext] Error fetching profile (code: ${error.code}):`, error.message);
+        throw error; // Propagate error to be caught by handleAuthChange's main catch
       }
       
       console.log(`[AuthContext] Profile fetched successfully:`, data);
       setProfile(data);
     } catch (error) {
       console.error(`[AuthContext] Unexpected error fetching profile:`, error);
+      throw error; // Re-throw to ensure handleAuthChange catches it
     }
   };
 

@@ -15,6 +15,9 @@ pydantic[email]
 email-validator
 fastapi-mail>=1.4.1 # For sending emails
 
+# Supabase integration
+supabase>=2.7.0 # Supabase Python client
+
 # LLM Service dependencies
 langchain-openai>=0.0.5 # For Azure OpenAI, OpenAI, and potentially DeepSeek
 langchain-google-genai>=0.0.4 # For Google Gemini

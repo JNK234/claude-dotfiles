@@ -17,7 +17,7 @@ export interface User {
 }
 
 export interface UserProfile {
-  user_id: string;
+  id: string;
   phone_number?: string;
   company_name?: string;
   job_title?: string;
@@ -70,6 +70,42 @@ export interface BillingHistory {
   updated_at: string;
 }
 
+// Medical Case Types
+export interface Case {
+  id: string;
+  user_id: string;
+  case_text: string;
+  current_stage: string;
+  is_complete: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StageResult {
+  id: string;
+  case_id: string;
+  stage_name: string;
+  result: Record<string, any>;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: string;
+  case_id: string;
+  role: string; // 'user' or 'assistant'
+  content: string;
+  created_at: string;
+}
+
+export interface Report {
+  id: string;
+  case_id: string;
+  file_path: string;
+  created_at: string;
+}
+
 // Database schema
 export type Database = {
   public: {
@@ -82,7 +118,7 @@ export type Database = {
       user_profiles: {
         Row: UserProfile;
         Insert: Omit<UserProfile, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<UserProfile, 'user_id' | 'created_at' | 'updated_at'>>;
+        Update: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>;
       };
       subscriptions: {
         Row: Subscription;
@@ -98,6 +134,27 @@ export type Database = {
         Row: BillingHistory;
         Insert: Omit<BillingHistory, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<BillingHistory, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      // Medical case tables
+      cases: {
+        Row: Case;
+        Insert: Omit<Case, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Case, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      stage_results: {
+        Row: StageResult;
+        Insert: Omit<StageResult, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<StageResult, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      messages: {
+        Row: Message;
+        Insert: Omit<Message, 'id' | 'created_at'>;
+        Update: Partial<Omit<Message, 'id' | 'created_at'>>;
+      };
+      reports: {
+        Row: Report;
+        Insert: Omit<Report, 'id' | 'created_at'>;
+        Update: Partial<Omit<Report, 'id' | 'created_at'>>;
       };
     };
   };

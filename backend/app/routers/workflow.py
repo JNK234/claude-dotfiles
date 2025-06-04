@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_supabase_user # Changed import
+from app.core.security import get_current_local_user # Changed import
 from app.models.case import Case
 from app.models.user import User
 from app.schemas.case import WorkflowStageProcess, WorkflowStageResponse
@@ -20,7 +20,7 @@ router = APIRouter()
 async def start_workflow( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_supabase_user) # Changed dependency
+    current_user: User = Depends(get_current_local_user) # Changed dependency
 ) -> Any:
     """
     Start the diagnosis workflow for a case
@@ -73,7 +73,7 @@ async def process_stage( # Changed to async
     stage_name: str,
     stage_data: WorkflowStageProcess,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_supabase_user) # Changed dependency
+    current_user: User = Depends(get_current_local_user) # Changed dependency
 ) -> Any:
     """
     Process a specific stage in the diagnosis workflow
@@ -126,7 +126,7 @@ async def approve_stage( # Changed to async
     case_id: UUID,
     stage_name: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_supabase_user) # Changed dependency
+    current_user: User = Depends(get_current_local_user) # Changed dependency
 ) -> Any:
     """
     Approve a stage and move to the next stage
@@ -177,7 +177,7 @@ async def approve_stage( # Changed to async
 async def generate_note( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_supabase_user) # Changed dependency
+    current_user: User = Depends(get_current_local_user) # Changed dependency
 ) -> Dict[str, str]:
     """
     Generate a clinical note for a completed case

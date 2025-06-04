@@ -1,5 +1,5 @@
 import ApiService from './ApiService';
-import { User } from './AuthService';
+import { User } from '../lib/supabase';
 
 export interface Case {
   id: string;
