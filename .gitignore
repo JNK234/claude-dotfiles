@@ -9,5 +9,4 @@ node_modules
 *.log
 .pytest_cache
 
-.claude
 CLAUDE.md
