@@ -8,3 +8,5 @@ node_modules
 *.pdf
 *.log
 .pytest_cache
+
+.claude
