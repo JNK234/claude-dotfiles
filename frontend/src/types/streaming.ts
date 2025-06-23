@@ -10,10 +10,11 @@ export type StreamEventType = 'chunk' | 'start' | 'end' | 'error' | 'metadata';
  * Core streaming event interface
  */
 export interface StreamEvent {
-  id: string;
+  id?: string;
   type: StreamEventType;
   timestamp: number;
   data: any;
+  retry?: number;
 }
 
 /**

@@ -8,6 +8,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+# Set test environment variables before importing app modules
+os.environ.update({
+    "SUPABASE_URL": "https://test.supabase.co",
+    "SUPABASE_ANON_KEY": "dummy_anon_key_for_testing",
+    "SUPABASE_SERVICE_ROLE_KEY": "dummy_service_role_key_for_testing", 
+    "SUPABASE_JWT_SECRET": "dummy_jwt_secret_for_testing",
+    "SECRET_KEY": "test_secret_key_for_testing_only",
+    "LLM_PROVIDER": "test",
+    "LLM_MODEL_NAME": "test-model",
+    "DEBUG": "true"
+})
+
 from app.core.database import Base, get_db
 from app.core.security import get_password_hash
 from app.models.user import User
