@@ -26,9 +26,39 @@ def get_supabase_client(use_service_role: bool = False) -> Client:
     key = settings.supabase_service_role_key if use_service_role else settings.supabase_anon_key
     return create_client(settings.supabase_url, key)
 
-# Default clients
-supabase_anon = get_supabase_client(use_service_role=False)
-supabase_service = get_supabase_client(use_service_role=True)
+# Lazy client initialization
+_supabase_anon = None
+_supabase_service = None
+
+def get_supabase_anon() -> Client:
+    """Get anonymous Supabase client (lazy initialization)"""
+    global _supabase_anon
+    if _supabase_anon is None:
+        _supabase_anon = get_supabase_client(use_service_role=False)
+    return _supabase_anon
+
+def get_supabase_service() -> Client:
+    """Get service role Supabase client (lazy initialization)"""
+    global _supabase_service
+    if _supabase_service is None:
+        _supabase_service = get_supabase_client(use_service_role=True)
+    return _supabase_service
+
+# Backward compatibility - module-level client access
+class _LazyClient:
+    """Lazy client wrapper for backward compatibility"""
+    def __init__(self, use_service_role: bool):
+        self._use_service_role = use_service_role
+        self._client = None
+    
+    def __getattr__(self, name):
+        if self._client is None:
+            self._client = get_supabase_client(use_service_role=self._use_service_role)
+        return getattr(self._client, name)
+
+# Create lazy clients that behave like the original global clients
+supabase_anon = _LazyClient(use_service_role=False)
+supabase_service = _LazyClient(use_service_role=True)
 
 
 class SupabaseService:

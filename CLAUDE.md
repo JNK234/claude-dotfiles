@@ -38,6 +38,14 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 - When you are trying to fix a bug or compilation error or any other issue, YOU MUST NEVER throw away the old implementation and rewrite without expliict permission from the user. If you are going to do this, YOU MUST STOP and get explicit permission from the user.
 - NEVER name things as 'improved' or 'new' or 'enhanced', etc. Code naming should be evergreen. What is new today will be "old" someday.
 
+# Task Management
+
+- **CRITICAL: SINGLE TASK FOCUS** - Always tackle ONE task at a time. Complete the current task fully before thinking about or moving to other tasks.
+- When you have a task at hand, tackle that first and ONLY that. Do not get distracted by other issues or optimizations.
+- After completing any implementation, ALWAYS reflect: "Did I take shortcuts? Was this approach correct or bad?" Then correct course of action if needed.
+- Use todo lists to track tasks, but only work on ONE task marked as "in_progress" at any time.
+- If you notice other issues while working on a task, document them for later but DO NOT fix them immediately.
+
 # Getting help
 
 - ALWAYS ask for clarification rather than making assumptions.

@@ -2,7 +2,7 @@
 Authentication and security utilities for Supabase integration
 """
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 from fastapi import Depends, HTTPException, status
@@ -61,7 +61,7 @@ def verify_supabase_jwt(token: str) -> Optional[Dict[str, Any]]:
         
         # Check if token is expired
         exp = payload.get("exp")
-        if exp and datetime.utcnow().timestamp() > exp:
+        if exp and datetime.now(timezone.utc).timestamp() > exp:
             logger.warning("Token has expired")
             return None
         
@@ -226,9 +226,9 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     to_encode = data.copy()
     
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
     
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.supabase_jwt_secret, algorithm="HS256")
