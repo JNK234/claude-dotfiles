@@ -1,0 +1,180 @@
+{
+  "timestamp": "2025-06-25T00:56:19.751205",
+  "environment_checks": [
+    {
+      "name": "SUPABASE_URL",
+      "status": "pass",
+      "value": "https://...",
+      "message": "Supabase project URL is set",
+      "recommendation": null
+    },
+    {
+      "name": "SUPABASE_ANON_KEY",
+      "status": "pass",
+      "value": "eyJhbGci...",
+      "message": "Supabase anonymous key is set",
+      "recommendation": null
+    },
+    {
+      "name": "SUPABASE_SERVICE_ROLE_KEY",
+      "status": "pass",
+      "value": "eyJhbGci...",
+      "message": "Supabase service role key is set",
+      "recommendation": null
+    },
+    {
+      "name": "SUPABASE_JWT_SECRET",
+      "status": "pass",
+      "value": "/RzhE7lb...",
+      "message": "Supabase JWT secret is set",
+      "recommendation": null
+    },
+    {
+      "name": "SUPABASE_DATABASE_URL",
+      "status": "warning",
+      "value": null,
+      "message": "Direct database connection URL is not set (optional)",
+      "recommendation": "Consider setting SUPABASE_DATABASE_URL for direct database access"
+    },
+    {
+      "name": "SUPABASE_DB_HOST",
+      "status": "warning",
+      "value": null,
+      "message": "Database host is not set (optional)",
+      "recommendation": "Consider setting SUPABASE_DB_HOST for direct database access"
+    },
+    {
+      "name": "SUPABASE_DB_PORT",
+      "status": "warning",
+      "value": null,
+      "message": "Database port is not set (optional)",
+      "recommendation": "Consider setting SUPABASE_DB_PORT for direct database access"
+    },
+    {
+      "name": "SUPABASE_DB_NAME",
+      "status": "warning",
+      "value": null,
+      "message": "Database name is not set (optional)",
+      "recommendation": "Consider setting SUPABASE_DB_NAME for direct database access"
+    },
+    {
+      "name": "SUPABASE_DB_USER",
+      "status": "warning",
+      "value": null,
+      "message": "Database user is not set (optional)",
+      "recommendation": "Consider setting SUPABASE_DB_USER for direct database access"
+    },
+    {
+      "name": "SUPABASE_DB_PASSWORD",
+      "status": "warning",
+      "value": null,
+      "message": "Database password is not set (optional)",
+      "recommendation": "Consider setting SUPABASE_DB_PASSWORD for direct database access"
+    }
+  ],
+  "configuration_checks": [
+    {
+      "name": "Environment Loading",
+      "status": "pass",
+      "value": "Success",
+      "message": "Environment variables can be loaded",
+      "recommendation": null
+    },
+    {
+      "name": "Settings Class",
+      "status": "pass",
+      "value": "Success",
+      "message": "Settings class can be instantiated",
+      "recommendation": null
+    },
+    {
+      "name": "Settings.supabase_url",
+      "status": "pass",
+      "value": "Set",
+      "message": "Configuration field supabase_url is available",
+      "recommendation": null
+    },
+    {
+      "name": "Settings.supabase_anon_key",
+      "status": "pass",
+      "value": "Set",
+      "message": "Configuration field supabase_anon_key is available",
+      "recommendation": null
+    },
+    {
+      "name": "Settings.supabase_service_role_key",
+      "status": "pass",
+      "value": "Set",
+      "message": "Configuration field supabase_service_role_key is available",
+      "recommendation": null
+    },
+    {
+      "name": "Settings.supabase_jwt_secret",
+      "status": "pass",
+      "value": "Set",
+      "message": "Configuration field supabase_jwt_secret is available",
+      "recommendation": null
+    },
+    {
+      "name": "Import app.core.config",
+      "status": "pass",
+      "value": "Success",
+      "message": "Configuration module can be imported",
+      "recommendation": null
+    },
+    {
+      "name": "Import app.utils.sse",
+      "status": "pass",
+      "value": "Success",
+      "message": "SSE utilities can be imported",
+      "recommendation": null
+    },
+    {
+      "name": "Import app.core.supabase",
+      "status": "warning",
+      "value": "Success",
+      "message": "Supabase module imported (may have triggered connection)",
+      "recommendation": "Consider lazy initialization to avoid connection on import"
+    }
+  ],
+  "supabase_checks": [
+    {
+      "name": "Supabase URL Format",
+      "status": "pass",
+      "value": "Valid",
+      "message": "Supabase URL has correct format",
+      "recommendation": null
+    },
+    {
+      "name": "Anon Key Length",
+      "status": "pass",
+      "value": "208 chars",
+      "message": "Anonymous key length appears valid",
+      "recommendation": null
+    },
+    {
+      "name": "Service Key Length",
+      "status": "pass",
+      "value": "219 chars",
+      "message": "Service role key length appears valid",
+      "recommendation": null
+    }
+  ],
+  "summary": {
+    "total_checks": 22,
+    "passed": 15,
+    "failed": 0,
+    "warnings": 7,
+    "critical_issues": [],
+    "recommendations": [
+      "Consider setting SUPABASE_DATABASE_URL for direct database access",
+      "Consider setting SUPABASE_DB_NAME for direct database access",
+      "Consider lazy initialization to avoid connection on import",
+      "Consider setting SUPABASE_DB_USER for direct database access",
+      "Consider setting SUPABASE_DB_PASSWORD for direct database access",
+      "Consider setting SUPABASE_DB_HOST for direct database access",
+      "Consider setting SUPABASE_DB_PORT for direct database access"
+    ],
+    "overall_status": "HEALTHY"
+  }
+}
