@@ -12,7 +12,7 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_local_user # Changed import
+from app.core.security import get_current_user, SupabaseUser
 from app.models.case import Case, Report
 from app.models.user import User
 from app.schemas.case import Report as ReportSchema
@@ -24,7 +24,7 @@ router = APIRouter()
 async def generate_report( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Generate a report for a case
@@ -93,7 +93,7 @@ async def get_report( # Changed to async
     case_id: UUID,
     report_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Get a report by ID
@@ -177,7 +177,7 @@ async def get_report( # Changed to async
 async def generate_note( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Generate a clinical note for a case
@@ -246,7 +246,7 @@ async def get_note( # Changed to async
     case_id: UUID,
     note_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Get a note by ID

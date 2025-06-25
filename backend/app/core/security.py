@@ -235,14 +235,6 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     return encoded_jwt
 
 
-# Legacy compatibility functions (deprecated - use Supabase functions instead)
-def get_supabase_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> SupabaseUser:
-    """
-    Legacy function for backward compatibility
-    Use get_current_user instead
-    """
-    import asyncio
-    return asyncio.run(get_current_user(credentials))
 
 
 # Health check function

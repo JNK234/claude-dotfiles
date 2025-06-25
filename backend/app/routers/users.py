@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_local_user # Use the same dependency as auth.py
+from app.core.security import get_current_user, SupabaseUser
 from app.models.user import User as UserModel
 from app.schemas.user import UserProfileResponse, ProfileUpdate, UserStats
 from app.services.user_service import user_service # Import the service instance
@@ -13,12 +13,12 @@ from app.services.user_service import user_service # Import the service instance
 router = APIRouter(
     prefix="/users", # Set a prefix for all routes in this router
     tags=["Users"], # Tag for API documentation
-    # dependencies=[Depends(get_current_local_user)] # Optional: Apply dependency to all routes
+    # dependencies=[Depends(get_current_user)] # Optional: Apply dependency to all routes
 )
 
 @router.get("/me", response_model=UserProfileResponse)
 async def read_users_me(
-    current_user: UserModel = Depends(get_current_local_user),
+    current_user: SupabaseUser = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -38,7 +38,7 @@ async def read_users_me(
 @router.put("/me", response_model=UserProfileResponse)
 async def update_users_me(
     profile_update: ProfileUpdate,
-    current_user: UserModel = Depends(get_current_local_user),
+    current_user: SupabaseUser = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -62,7 +62,7 @@ async def update_users_me(
 
 @router.get("/me/stats", response_model=UserStats)
 async def read_users_me_stats(
-    current_user: UserModel = Depends(get_current_local_user),
+    current_user: SupabaseUser = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """

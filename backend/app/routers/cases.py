@@ -9,7 +9,7 @@ from sqlalchemy import desc # Add this import
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_local_user # Changed import
+from app.core.security import get_current_user, SupabaseUser
 from app.models.case import Case, Message, StageResult # Added Message, StageResult
 from app.models.user import User
 from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList, CaseDetails, CaseUpdate # Added CaseUpdate
@@ -22,7 +22,7 @@ async def list_cases( # Changed to async
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     List cases for the current user
@@ -46,7 +46,7 @@ async def list_cases( # Changed to async
 async def create_case( # Changed to async
     case_in: CaseCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Create a new case
@@ -77,7 +77,7 @@ async def create_case( # Changed to async
 async def get_case( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Get a case by ID
@@ -118,7 +118,7 @@ async def get_case( # Changed to async
 async def get_case_details( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Get detailed information for a specific case, including messages and stage results.
@@ -181,7 +181,7 @@ async def get_case_details( # Changed to async
 async def delete_case( # Changed to async
     case_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> None:
     """
     Delete a case
@@ -224,7 +224,7 @@ async def update_case( # Changed to async
     case_id: UUID,
     case_in: CaseUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_local_user) # Changed dependency
+    current_user: SupabaseUser = Depends(get_current_user) # Changed dependency
 ) -> Any:
     """
     Update a case
