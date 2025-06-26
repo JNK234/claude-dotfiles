@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user, SupabaseUser
+from app.core.auth_helpers import verify_case_access
 from app.models.case import Case, Report
 from app.models.user import User
 from app.schemas.case import Report as ReportSchema
@@ -51,19 +52,8 @@ async def generate_report( # Changed to async
     # Get case
     case = db.query(Case).filter(Case.id == case_id).first()
     
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    # Verify case exists and user has access
+    verify_case_access(case, current_user, case_id)
     
     # Initialize report service
     report_service = ReportService(db)
@@ -113,19 +103,8 @@ async def get_report( # Changed to async
     # Get case
     case = db.query(Case).filter(Case.id == case_id).first()
     
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    # Verify case exists and user has access
+    verify_case_access(case, current_user, case_id)
     
     # Get report
     report = db.query(Report).filter(
@@ -204,19 +183,8 @@ async def generate_note( # Changed to async
     # Get case
     case = db.query(Case).filter(Case.id == case_id).first()
     
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    # Verify case exists and user has access
+    verify_case_access(case, current_user, case_id)
     
     # Initialize report service
     report_service = ReportService(db)
@@ -266,19 +234,8 @@ async def get_note( # Changed to async
     # Get case
     case = db.query(Case).filter(Case.id == case_id).first()
     
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    # Verify case exists and user has access
+    verify_case_access(case, current_user, case_id)
     
     # Get note
     note = db.query(Report).filter(

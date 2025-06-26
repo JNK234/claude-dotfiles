@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user, SupabaseUser
+from app.core.auth_helpers import verify_case_access
 from app.models.case import Case, Message, StageResult # Added Message, StageResult
 from app.models.user import User
 from app.schemas.case import Case as CaseSchema, CaseCreate, CaseList, CaseDetails, CaseUpdate # Added CaseUpdate
@@ -96,19 +97,8 @@ async def get_case( # Changed to async
     # Get case by ID
     case = db.query(Case).filter(Case.id == case_id).first()
     
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    # Verify case exists and user has access
+    verify_case_access(case, current_user, case_id)
     
     return case
 
@@ -155,12 +145,8 @@ async def get_case_details( # Changed to async
             detail=f"Case with ID {case_id} not found"
         )
 
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    # Verify user has access to case
+    verify_case_access(case, current_user, case_id)
 
     # Sort messages and stage results in Python if needed (SQLAlchemy might handle order)
     # Pydantic will automatically serialize the loaded relationships
@@ -204,12 +190,8 @@ async def delete_case( # Changed to async
             detail=f"Case with ID {case_id} not found"
         )
     
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this case"
-        )
+    # Verify user has access to case
+    verify_case_access(case, current_user, case_id)
     
     # Delete case
     db.delete(case)
@@ -251,12 +233,8 @@ async def update_case( # Changed to async
             detail=f"Case with ID {case_id} not found"
         )
     
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this case"
-        )
+    # Verify user has access to case
+    verify_case_access(case, current_user, case_id)
     
     # Update case fields
     update_data = case_in.dict(exclude_unset=True)

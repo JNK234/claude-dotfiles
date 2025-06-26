@@ -1,14 +1,18 @@
 """
 Message endpoints for handling chat messages
 """
+import logging
 from typing import Any, List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+logger = logging.getLogger(__name__)
+
 from app.core.database import get_db
 from app.core.security import get_current_user, SupabaseUser
+from app.core.auth_helpers import verify_case_access
 from app.models.case import Case, Message
 from app.models.user import User
 from app.schemas.case import Message as MessageSchema, MessageCreate, MessageList
@@ -40,22 +44,9 @@ async def list_messages( # Changed to async
     Raises:
         HTTPException: If case not found or not owned by current user
     """
-    # Get case
+    # Get case and verify access
     case = db.query(Case).filter(Case.id == case_id).first()
-    
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    verify_case_access(case, current_user, case_id)
     
     # Get messages
     messages = db.query(Message).filter(
@@ -106,20 +97,7 @@ async def create_message( # Changed to async
             )
             
     case = db.query(Case).filter(Case.id == case_id).first()
-        
-    # Check if case exists
-    if not case:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case with ID {case_id} not found"
-        )
-    
-    # Check if case belongs to current user
-    if case.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access this case"
-        )
+    verify_case_access(case, current_user, case_id)
     
     # Initialize diagnosis service
     diagnosis_service = DiagnosisService(db)
