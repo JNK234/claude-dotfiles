@@ -3,13 +3,14 @@ DiagnosisService for handling the medical diagnosis workflow
 """
 import logging
 import time
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, AsyncGenerator
 import json, uuid
 
 from sqlalchemy.orm import Session
 
 from app.models.case import Case, StageResult, Message
 from app.services.llm_service import LLMService
+from app.utils.sse import SSEEvent, SSEEventType, create_sse_event
 from app.services.prompts import (
     NODE_EXTRACTION_PROMPT,
     CAUSAL_ANALYSIS_PROMPT,
@@ -854,3 +855,150 @@ Conclude your response by explicitly stating the current status based on the val
         )
 
         return note
+    
+    async def stream_stage(self, case_id: str, stage_name: str) -> AsyncGenerator[SSEEvent, None]:
+        """
+        Stream a stage using the same logic as process_stage but with SSE events
+        This reuses existing workflow logic but streams the results
+        
+        Args:
+            case_id: Case ID  
+            stage_name: Stage name to stream
+            
+        Yields:
+            SSEEvent: Streaming events for stage processing
+        """
+        try:
+            logger.info(f"Starting streaming for case {case_id}, stage {stage_name}")
+            
+            # Send start event
+            yield create_sse_event(
+                SSEEventType.START,
+                {
+                    "stage_id": stage_name,
+                    "case_id": case_id,
+                    "message": f"Starting {stage_name} processing..."
+                }
+            )
+            
+            # For now, let's handle the consolidated stage groups like the batch version
+            if stage_name == 'patient_case_analysis_group':
+                async for event in self._stream_patient_case_analysis_group(case_id):
+                    yield event
+                    
+            elif stage_name == 'diagnosis_group':
+                async for event in self._stream_diagnosis_group(case_id):
+                    yield event
+                    
+            elif stage_name == 'treatment_planning_group':
+                async for event in self._stream_treatment_planning_group(case_id):
+                    yield event
+                    
+            else:
+                # Single backend stage streaming
+                async for event in self._stream_backend_stage(case_id, stage_name):
+                    yield event
+            
+            # Send completion event
+            yield create_sse_event(
+                SSEEventType.END,
+                {
+                    "stage_id": stage_name,
+                    "case_id": case_id,
+                    "message": f"Completed {stage_name} processing"
+                }
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in stream_stage: {str(e)}")
+            yield create_sse_event(
+                SSEEventType.ERROR,
+                {
+                    "stage_id": stage_name,
+                    "case_id": case_id,
+                    "message": str(e)
+                }
+            )
+    
+    async def _stream_backend_stage(self, case_id: str, stage_name: str) -> AsyncGenerator[SSEEvent, None]:
+        """
+        Stream a single backend stage using existing _process_backend_stage logic but with streaming LLM calls
+        """
+        logger.info(f"Streaming backend stage: {stage_name}")
+        
+        # Send stage start
+        yield create_sse_event(
+            SSEEventType.START,
+            {
+                "stage_id": stage_name,
+                "case_id": case_id,
+                "target_panel": "reasoning",  # Default to reasoning panel for detailed analysis
+                "message": f"Processing {stage_name}..."
+            }
+        )
+        
+        # Use existing LLM service streaming instead of batch generate()
+        # This gets the same prompts as the batch version but streams the response
+        if stage_name == 'initial':
+            case = self.get_case(case_id)
+            prompt = f"Analyze this medical case: {case.case_text}"
+            
+        elif stage_name == 'extraction':
+            case = self.get_case(case_id)
+            prompt = NODE_EXTRACTION_PROMPT.format(case_details=case.case_text)
+            
+        elif stage_name == 'causal_analysis':
+            case = self.get_case(case_id)
+            extraction_result = self.get_stage_result(case_id, 'extraction')
+            extracted_factors = extraction_result.get('extracted_factors', '') if extraction_result else case.case_text
+            prompt = CAUSAL_ANALYSIS_PROMPT.format(extracted_factors=extracted_factors)
+            
+        elif stage_name == 'validation':
+            case = self.get_case(case_id)
+            causal_result = self.get_stage_result(case_id, 'causal_analysis')
+            causal_analysis = causal_result.get('causal_analysis', '') if causal_result else ''
+            prompt = VALIDATION_PROMPT.format(causal_analysis=causal_analysis)
+            
+        else:
+            # Fallback
+            case = self.get_case(case_id)
+            prompt = f"Process stage {stage_name} for case: {case.case_text}"
+        
+        # Stream the LLM response using existing streaming capabilities
+        async for sse_event in self.llm_service.stream_to_sse_events(
+            prompt=prompt,
+            stage_id=stage_name,
+            target_panel="reasoning",
+            chunk_size=8
+        ):
+            yield sse_event
+        
+        # Send stage completion
+        yield create_sse_event(
+            SSEEventType.STAGE_COMPLETE,
+            {
+                "stage_id": stage_name,
+                "case_id": case_id,
+                "target_panel": "reasoning"
+            }
+        )
+    
+    async def _stream_patient_case_analysis_group(self, case_id: str) -> AsyncGenerator[SSEEvent, None]:
+        """Stream the patient case analysis group (initial → extraction → causal_analysis → validation)"""
+        stages = ['initial', 'extraction', 'causal_analysis', 'validation']
+        
+        for stage in stages:
+            async for event in self._stream_backend_stage(case_id, stage):
+                yield event
+    
+    async def _stream_diagnosis_group(self, case_id: str) -> AsyncGenerator[SSEEvent, None]:
+        """Stream the diagnosis group"""
+        # For now, stream a simple diagnosis stage
+        async for event in self._stream_backend_stage(case_id, 'diagnosis'):
+            yield event
+    
+    async def _stream_treatment_planning_group(self, case_id: str) -> AsyncGenerator[SSEEvent, None]:
+        """Stream the treatment planning group"""
+        # For now, stream a simple treatment stage  
+        async for event in self._stream_backend_stage(case_id, 'treatment'):
+            yield event

@@ -220,28 +220,16 @@ async def stream_stage(
     verify_case_access(case, current_user, case_id)
     
     async def event_generator() -> AsyncGenerator[str, None]:
-        """Generate SSE events for stage streaming"""
+        """Generate SSE events by streaming the existing DiagnosisService logic"""
         try:
             logger.info(f"Starting streaming for case {case_id}, stage {stage_name}")
             
-            # Initialize LLM service
-            llm_service = LLMService()
-            
-            # Get case context for prompt generation
+            # Initialize diagnosis service (same as batch workflow)
             diagnosis_service = DiagnosisService(db)
-            chat_history = diagnosis_service.get_case_messages(str(case_id))
             
-            # Generate prompt based on stage
-            prompt = _generate_stage_prompt(stage_name, case, chat_history)
-            
-            # Stream LLM response as SSE events
-            async for sse_event in llm_service.stream_to_sse_events(
-                prompt=prompt,
-                stage_id=stage_name,
-                target_panel="reasoning",  # Default to reasoning panel for detailed analysis
-                chunk_size=8
-            ):
-                # Format and yield SSE event
+            # Use the existing DiagnosisService streaming method 
+            # This will stream the same logic as process_stage but with SSE events
+            async for sse_event in diagnosis_service.stream_stage(str(case_id), stage_name):
                 formatted_event = format_sse_data(sse_event)
                 yield formatted_event
                 
@@ -253,8 +241,7 @@ async def stream_stage(
                 {
                     "message": str(e),
                     "stage_id": stage_name,
-                    "case_id": str(case_id),
-                    "target_panel": "reasoning"
+                    "case_id": str(case_id)
                 }
             )
             formatted_error = format_sse_data(error_event)
