@@ -6,9 +6,12 @@
  */
 export enum StreamingErrorCode {
   CONNECTION_FAILED = 'CONNECTION_FAILED',
+  CONNECTION_ERROR = 'CONNECTION_ERROR',
   STREAM_TIMEOUT = 'STREAM_TIMEOUT',
+  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
   INVALID_EVENT = 'INVALID_EVENT',
   PARSING_ERROR = 'PARSING_ERROR',
+  PARSE_ERROR = 'PARSE_ERROR',
   AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
   CHUNK_SEQUENCE_ERROR = 'CHUNK_SEQUENCE_ERROR',
@@ -52,6 +55,7 @@ export interface StreamingError {
   message: string;
   timestamp: number;
   recoverable: boolean;
+  suggestion?: string;
   context?: Record<string, any>;
   metadata?: Record<string, any>;
 }
@@ -72,9 +76,12 @@ export interface RecoveryStrategy {
  */
 const ERROR_CODE_TO_TYPE_MAP: Record<StreamingErrorCode, StreamingErrorType> = {
   [StreamingErrorCode.CONNECTION_FAILED]: StreamingErrorType.NETWORK,
+  [StreamingErrorCode.CONNECTION_ERROR]: StreamingErrorType.NETWORK,
   [StreamingErrorCode.STREAM_TIMEOUT]: StreamingErrorType.TIMEOUT,
+  [StreamingErrorCode.TIMEOUT_ERROR]: StreamingErrorType.TIMEOUT,
   [StreamingErrorCode.INVALID_EVENT]: StreamingErrorType.PARSING,
   [StreamingErrorCode.PARSING_ERROR]: StreamingErrorType.PARSING,
+  [StreamingErrorCode.PARSE_ERROR]: StreamingErrorType.PARSING,
   [StreamingErrorCode.AUTHENTICATION_ERROR]: StreamingErrorType.AUTHENTICATION,
   [StreamingErrorCode.RATE_LIMIT_EXCEEDED]: StreamingErrorType.RATE_LIMIT,
   [StreamingErrorCode.CHUNK_SEQUENCE_ERROR]: StreamingErrorType.CLIENT,
@@ -88,7 +95,9 @@ const ERROR_CODE_TO_TYPE_MAP: Record<StreamingErrorCode, StreamingErrorType> = {
  */
 const RECOVERABLE_ERRORS = new Set([
   StreamingErrorCode.CONNECTION_FAILED,
+  StreamingErrorCode.CONNECTION_ERROR,
   StreamingErrorCode.STREAM_TIMEOUT,
+  StreamingErrorCode.TIMEOUT_ERROR,
   StreamingErrorCode.NETWORK_ERROR,
   StreamingErrorCode.RATE_LIMIT_EXCEEDED,
   StreamingErrorCode.SERVER_ERROR
@@ -100,17 +109,18 @@ const RECOVERABLE_ERRORS = new Set([
 export function createStreamingError(
   code: StreamingErrorCode,
   message: string,
-  context?: Record<string, any>,
-  metadata?: Record<string, any>
+  recoverable?: boolean,
+  suggestion?: string
 ): StreamingError {
   return {
     code,
     type: ERROR_CODE_TO_TYPE_MAP[code],
     message,
     timestamp: Date.now(),
-    recoverable: RECOVERABLE_ERRORS.has(code),
-    context,
-    metadata
+    recoverable: recoverable ?? RECOVERABLE_ERRORS.has(code),
+    suggestion,
+    context: undefined,
+    metadata: undefined
   };
 }
 

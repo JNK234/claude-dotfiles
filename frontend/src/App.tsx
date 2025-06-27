@@ -192,6 +192,15 @@ const MainApp: React.FC = () => {
   
   // Render center panel
   const renderCenterPanel = () => {
+    // Debug logging for UI state
+    console.log('🎨 UI State:', {
+      isPhiAcknowledged,
+      selectedCaseId,
+      isProcessing,
+      currentStage,
+      messagesCount: messages.length
+    });
+    
     return (
       // Replaced ContentContainer with div and Tailwind classes
       <div className="flex-1 flex flex-col"> 
@@ -213,13 +222,13 @@ const MainApp: React.FC = () => {
           </div>
         )}
         
-        {isPhiAcknowledged && (!currentStage || currentStage === 'initial' || currentStage === 'patient_case_analysis_group') && !selectedCaseId && (
+        {isPhiAcknowledged && !selectedCaseId && !isProcessing && (
           <div style={{ padding: '1rem' }}> {/* Keep padding for now */}
             <CaseInput onSubmit={handleCaseSubmit} />
           </div>
         )}
         
-        {isPhiAcknowledged && selectedCaseId && (
+        {isPhiAcknowledged && (selectedCaseId || isProcessing) && (
           <>
             {/* Ensure ChatContainer takes remaining space */}
             <div className="flex-1 overflow-hidden"> 

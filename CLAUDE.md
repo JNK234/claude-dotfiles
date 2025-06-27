@@ -59,6 +59,49 @@ Whenever you build out a new project and specifically start a new Claude.md - yo
 - If the logs are supposed to contain errors, capture and test it.
 - NO EXCEPTIONS POLICY: Under no circumstances should you mark any test type as "not applicable". Every project, regardless of size or complexity, MUST have unit tests, integration tests, AND end-to-end tests. If you believe a test type doesn't apply, you need the human to say exactly "I AUTHORIZE YOU TO SKIP WRITING TESTS THIS TIME"
 
+## UI Testing Requirements - CRITICAL
+
+**MANDATORY**: Any frontend changes MUST be testable on the actual UI by Doctor Biz.
+
+### Frontend Change Protocol:
+1. **Before implementing any UI/frontend changes**, clearly explain what will be visible/testable in the browser
+2. **After implementing changes**, provide specific testing instructions:
+   - Which page/component to navigate to
+   - What actions to take (clicks, inputs, etc.)
+   - What visual changes or behaviors to expect
+   - What streaming functionality should be observable
+3. **Always ask Doctor Biz to test** frontend changes in the browser after implementation
+4. **Include debugging steps** if streaming isn't working (console logs, network tab, etc.)
+
+### Streaming Implementation Testing:
+- **CRITICAL**: Since we're implementing streaming, Doctor Biz needs to see:
+  - Real-time text appearing character by character
+  - Typing animations in ReasoningPanel and ChatContainer
+  - Connection status indicators
+  - Error handling and retry behavior
+  - SSE events in browser dev tools
+
+### Example Testing Instructions Format:
+```
+🧪 **TESTING REQUIRED - Doctor Biz**
+
+**What to test**: StreamingService integration with WorkflowContext
+**Where**: Navigate to case workflow page 
+**Actions**: 
+1. Start a new case workflow
+2. Watch for streaming text in ReasoningPanel
+3. Check browser console for SSE connection logs
+
+**Expected behavior**: 
+- Text should appear character by character
+- Console should show "StreamingService connected" 
+- Network tab should show EventSource connection
+
+**If not working**: Check console for errors, verify backend is running
+```
+
+**NEVER** implement frontend functionality without providing clear testing instructions for Doctor Biz.
+
 ## We practice TDD. That means:
 
 - Write tests before writing the implementation code

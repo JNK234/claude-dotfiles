@@ -1,9 +1,12 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react'; // Added useCallback
+import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react'; // Added useRef
 import WorkflowService, { StageResult as WorkflowStageResult } from '../services/WorkflowService'; // Renamed StageResult import
 import MessageService from '../services/MessageService';
 import CaseService, { CaseDetails, Message as CaseMessage, StageResult as CaseStageResult } from '../services/CaseService'; // Import new types
 import ReportService from '../services/ReportService';
 import { useAuth } from './AuthContext';
+import StreamingService from '../services/StreamingService';
+import { StreamEvent, StreamStatus } from '../types/streaming';
+import { StreamingError, createStreamingError, StreamingErrorCode } from '../types/errors';
 
 // Define the shape of the reasoning content
 export interface ReasoningContent {
@@ -26,6 +29,22 @@ export interface UIMessage {
   content: string;
   sender: 'doctor' | 'assistant';
   timestamp: string;
+}
+
+// Define streaming state interface
+export interface StreamingState {
+  status: StreamStatus;
+  currentStageId: string | null;
+  reasoningContent: string;
+  chatContent: string;
+  error: StreamingError | null;
+  isStreaming: boolean;
+}
+
+// Define streaming content accumulator
+export interface StreamingContentAccumulator {
+  reasoning: string;
+  chat: string;
 }
 
 // Define the context data
@@ -66,6 +85,12 @@ interface WorkflowContextData {
   // Completion functions
   isCaseCompleted: () => boolean;
   markCaseAsCompleted: () => void;
+  
+  // Streaming state
+  streamingState: StreamingState;
+  startStreaming: (stageId: string) => Promise<void>;
+  stopStreaming: () => void;
+  clearStreamingContent: () => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextData>({} as WorkflowContextData);
@@ -74,12 +99,19 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Auth context
   const { isAuthenticated } = useAuth();
   
-  // Case state
-  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
+  // Case state - initialize from sessionStorage
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(() => {
+    // Restore selected case from session storage
+    const sessionCaseId = sessionStorage.getItem('medhastra_selected_case_id');
+    return sessionCaseId || null;
+  });
   const [caseStatus, setCaseStatus] = useState<CaseStatus>('in_progress');
   
-  // Stage state
-  const [currentStage, setCurrentStage] = useState<string>('patient_case_analysis_group');
+  // Stage state - initialize from sessionStorage  
+  const [currentStage, setCurrentStage] = useState<string>(() => {
+    const sessionCurrentStage = sessionStorage.getItem('medhastra_current_stage');
+    return sessionCurrentStage || 'patient_case_analysis_group';
+  });
   const [stages, setStages] = useState<Stage[]>(WorkflowService.getStagesInOrder().map(stage => ({
     id: stage,
     name: WorkflowService.mapStageToUI(stage).name,
@@ -87,15 +119,72 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     reasoningContent: '',
   })));
 
-  // Message state
-  const [messages, setMessages] = useState<UIMessage[]>([]); // Use UIMessage
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  // Message state - initialize from sessionStorage
+  const [messages, setMessages] = useState<UIMessage[]>(() => {
+    // Restore messages from session storage
+    const sessionMessages = sessionStorage.getItem('medhastra_messages');
+    if (sessionMessages) {
+      try {
+        return JSON.parse(sessionMessages);
+      } catch (error) {
+        console.error('Failed to parse messages from sessionStorage:', error);
+        return [];
+      }
+    }
+    return [];
+  });
+  const [isProcessing, setIsProcessing] = useState<boolean>(() => {
+    // Check if we're in the middle of processing from sessionStorage
+    const sessionProcessing = sessionStorage.getItem('medhastra_is_processing');
+    return sessionProcessing === 'true';
+  });
 
   // Reasoning state
   const [reasoningContent, setReasoningContent] = useState<string>('');
   
-  // PHI disclaimer state
-  const [isPhiAcknowledged, setIsPhiAcknowledged] = useState<boolean>(false);
+  // PHI disclaimer state - initialize from sessionStorage
+  const [isPhiAcknowledged, setIsPhiAcknowledged] = useState<boolean>(() => {
+    // Check if PHI was already acknowledged in this session
+    const sessionPhiAcknowledged = sessionStorage.getItem('medhastra_phi_acknowledged');
+    return sessionPhiAcknowledged === 'true';
+  });
+  
+  // Streaming state
+  const [streamingState, setStreamingState] = useState<StreamingState>({
+    status: StreamStatus.IDLE,
+    currentStageId: null,
+    reasoningContent: '',
+    chatContent: '',
+    error: null,
+    isStreaming: false,
+  });
+  
+  // StreamingService instance ref
+  const streamingServiceRef = useRef<StreamingService | null>(null);
+  const contentAccumulatorRef = useRef<StreamingContentAccumulator>({
+    reasoning: '',
+    chat: ''
+  });
+
+  // Helper function to persist messages to sessionStorage
+  const persistMessages = useCallback((messagesToPersist: UIMessage[]) => {
+    try {
+      sessionStorage.setItem('medhastra_messages', JSON.stringify(messagesToPersist));
+      console.log('💾 Persisted', messagesToPersist.length, 'messages to sessionStorage');
+    } catch (error) {
+      console.error('Failed to persist messages to sessionStorage:', error);
+    }
+  }, []);
+
+  // Helper function to persist processing state
+  const persistProcessingState = useCallback((processing: boolean) => {
+    try {
+      sessionStorage.setItem('medhastra_is_processing', processing.toString());
+      console.log('💾 Persisted processing state:', processing);
+    } catch (error) {
+      console.error('Failed to persist processing state:', error);
+    }
+  }, []);
   
   // Error state
   const [error, setError] = useState<string | null>(null);
@@ -240,10 +329,9 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       setError(null);
       setIsProcessing(true);
-      console.log(`Starting to load case details for ${caseId}`);
+      console.log(`🔄 Starting to load case details for ${caseId}`);
 
-      // Reset existing data
-      setMessages([]);
+      // Reset existing data  
       setReasoningContent('');
       // Reset reasoning content for all stages before loading new data
       setStages(prevStages => prevStages.map(stage => ({
@@ -258,6 +346,16 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Set basic case info
       setSelectedCaseId(caseId);
       setCurrentStage(caseDetails.current_stage);
+      
+      // Persist selected case and current stage to sessionStorage
+      sessionStorage.setItem('medhastra_selected_case_id', caseId);
+      sessionStorage.setItem('medhastra_current_stage', caseDetails.current_stage);
+      
+      // Automatically acknowledge PHI for existing cases
+      if (!isPhiAcknowledged) {
+        setIsPhiAcknowledged(true);
+        sessionStorage.setItem('medhastra_phi_acknowledged', 'true');
+      }
 
       // Set case status
       if (caseDetails.is_complete) { // Use is_complete directly from details
@@ -266,17 +364,42 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setCaseStatus('in_progress');
       }
 
-      // Set messages from the response
+      // Set messages from the response (but preserve persisted messages if they're more recent)
       if (caseDetails.messages && Array.isArray(caseDetails.messages)) {
         // Format messages using the existing MessageService formatter
-        const formattedMessages = caseDetails.messages.map(
-          MessageService.formatMessageForUI // Assuming this formatter works with the Message interface
+        const apiMessages = caseDetails.messages.map(
+          MessageService.formatMessageForUI
         );
-        console.log(`Successfully loaded ${formattedMessages.length} messages for case ${caseId}`);
-        setMessages(formattedMessages);
+        
+        // Check if we have persisted messages that might be more recent
+        const sessionMessages = sessionStorage.getItem('medhastra_messages');
+        let shouldUseApiMessages = true;
+        
+        if (sessionMessages) {
+          try {
+            const persistedMessages = JSON.parse(sessionMessages);
+            // If persisted messages are longer than API messages, they're more recent
+            if (persistedMessages.length > apiMessages.length) {
+              console.log('🔄 Using persisted messages (more recent than API):', persistedMessages.length, 'vs', apiMessages.length);
+              setMessages(persistedMessages);
+              shouldUseApiMessages = false;
+            }
+          } catch (error) {
+            console.error('Failed to parse persisted messages:', error);
+          }
+        }
+        
+        if (shouldUseApiMessages) {
+          console.log(`Successfully loaded ${apiMessages.length} messages for case ${caseId}`);
+          setMessages(apiMessages);
+        }
       } else {
         console.warn('CaseDetails response format unexpected or missing messages:', caseDetails);
-        setMessages([]); // Clear messages if response is not as expected
+        // Only clear messages if we don't have persisted ones
+        const sessionMessages = sessionStorage.getItem('medhastra_messages');
+        if (!sessionMessages) {
+          setMessages([]);
+        }
       }
 
       // Process stage results from the response to populate reasoning content
@@ -302,7 +425,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 
       setIsProcessing(false);
-      console.log(`Finished loading case ${caseId}`);
+      console.log(`✅ Finished loading case ${caseId}`);
     } catch (error) {
       console.error('Error selecting case:', error);
       setError('Failed to load case data. Please try again.');
@@ -330,6 +453,46 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   }, [stages]); // Dependency: run whenever the stages array changes
 
+  // Automatically acknowledge PHI if there's an existing case (handles page refresh/return to app)
+  useEffect(() => {
+    if (selectedCaseId && !isPhiAcknowledged) {
+      console.log('Auto-acknowledging PHI for existing case:', selectedCaseId);
+      setIsPhiAcknowledged(true);
+      sessionStorage.setItem('medhastra_phi_acknowledged', 'true');
+    }
+  }, [selectedCaseId, isPhiAcknowledged]);
+
+  // Persist messages whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      persistMessages(messages);
+    }
+  }, [messages, persistMessages]);
+
+  // Persist processing state whenever it changes
+  useEffect(() => {
+    persistProcessingState(isProcessing);
+  }, [isProcessing, persistProcessingState]);
+
+  // Auto-restore case state on app initialization
+  useEffect(() => {
+    const restoreCaseState = async () => {
+      const sessionCaseId = sessionStorage.getItem('medhastra_selected_case_id');
+      if (sessionCaseId && sessionCaseId !== selectedCaseId && isAuthenticated) {
+        console.log('🔄 Restoring case state from session:', sessionCaseId);
+        try {
+          // Load the case details to restore state
+          await selectCase(sessionCaseId);
+        } catch (error) {
+          console.error('Failed to restore case state:', error);
+          // If restoration fails, clear the invalid session data
+          sessionStorage.removeItem('medhastra_selected_case_id');
+        }
+      }
+    };
+
+    restoreCaseState();
+  }, [isAuthenticated]); // Only run once when auth is ready
 
   // Function to create a new case
   const createNewCase = async (caseText: string) => {
@@ -343,6 +506,10 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Set the selected case ID first to trigger the case list refresh
       setSelectedCaseId(newCase.id);
       setCurrentStage(newCase.current_stage);
+      
+      // Persist selected case and current stage to sessionStorage
+      sessionStorage.setItem('medhastra_selected_case_id', newCase.id);
+      sessionStorage.setItem('medhastra_current_stage', newCase.current_stage);
       
       // Add initial patient case as a message
       const patientCaseMessage = await MessageService.createMessage(newCase.id, {
@@ -379,14 +546,20 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Function to reset the case state
+  // Function to reset the case state (only for new case creation)
   const resetCase = () => {
     setSelectedCaseId(null);
     setCurrentStage('patient_case_analysis_group');
     setMessages([]);
     setReasoningContent('');
     setCaseStatus('in_progress');
-    setIsPhiAcknowledged(false); // Reset PHI acknowledgment for new cases
+    // Only reset PHI acknowledgment when explicitly creating new cases
+    setIsPhiAcknowledged(false);
+    sessionStorage.removeItem('medhastra_phi_acknowledged');
+    sessionStorage.removeItem('medhastra_selected_case_id');
+    sessionStorage.removeItem('medhastra_messages');
+    sessionStorage.removeItem('medhastra_current_stage');
+    sessionStorage.removeItem('medhastra_is_processing');
 
     // Also reset each stage's reasoning content
     setStages(prevStages => prevStages.map(stage => ({
@@ -444,6 +617,7 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
         setMessages(prev => [...prev, MessageService.formatMessageForUI(assistantMessage)]);
         setCurrentStage(approvalResult.next_stage);
+        sessionStorage.setItem('medhastra_current_stage', approvalResult.next_stage);
       }
       
       setIsProcessing(false);
@@ -518,6 +692,8 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Function to acknowledge the PHI disclaimer
   const acknowledgePhiDisclaimer = () => {
     setIsPhiAcknowledged(true);
+    // Persist acknowledgment for the session
+    sessionStorage.setItem('medhastra_phi_acknowledged', 'true');
   };
 
   // Helper function to check if a stage is completed
@@ -563,6 +739,154 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Initialize StreamingService
+  useEffect(() => {
+    if (!streamingServiceRef.current) {
+      streamingServiceRef.current = new StreamingService();
+      console.log('🚀 StreamingService initialized');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (streamingServiceRef.current) {
+        streamingServiceRef.current.disconnect();
+        streamingServiceRef.current = null;
+        console.log('🔌 StreamingService disconnected and cleaned up');
+      }
+    };
+  }, []);
+
+  // Streaming content accumulation handler
+  const handleStreamingEvent = useCallback((event: StreamEvent) => {
+    console.log('📡 Received streaming event:', event.type, event.data);
+    
+    // Accumulate content based on target panel
+    if (event.type === 'chunk' && event.data?.content) {
+      const targetPanel = event.data.target_panel || 'reasoning';
+      
+      if (targetPanel === 'reasoning') {
+        contentAccumulatorRef.current.reasoning += event.data.content;
+        setStreamingState(prev => ({
+          ...prev,
+          reasoningContent: contentAccumulatorRef.current.reasoning
+        }));
+      } else if (targetPanel === 'chat') {
+        contentAccumulatorRef.current.chat += event.data.content;
+        setStreamingState(prev => ({
+          ...prev,
+          chatContent: contentAccumulatorRef.current.chat
+        }));
+      }
+    }
+    
+    // Handle stage completion
+    if (event.type === 'end' || event.type === 'stage_complete') {
+      console.log('✅ Stage streaming completed');
+      setStreamingState(prev => ({
+        ...prev,
+        status: StreamStatus.COMPLETED,
+        isStreaming: false
+      }));
+    }
+  }, []);
+
+  // Streaming error handler
+  const handleStreamingError = useCallback((error: StreamingError) => {
+    console.error('❌ Streaming error:', error);
+    setStreamingState(prev => ({
+      ...prev,
+      status: StreamStatus.ERROR,
+      error,
+      isStreaming: false
+    }));
+    setError(`Streaming error: ${error.message}`);
+  }, []);
+
+  // Start streaming for a stage
+  const startStreaming = useCallback(async (stageId: string) => {
+    if (!selectedCaseId || !streamingServiceRef.current) {
+      console.error('Cannot start streaming: missing case ID or service');
+      return;
+    }
+
+    try {
+      console.log(`🔄 Starting streaming for stage: ${stageId}`);
+      
+      // Clear previous content
+      contentAccumulatorRef.current = { reasoning: '', chat: '' };
+      
+      // Update streaming state
+      setStreamingState(prev => ({
+        ...prev,
+        status: StreamStatus.CONNECTING,
+        currentStageId: stageId,
+        reasoningContent: '',
+        chatContent: '',
+        error: null,
+        isStreaming: true
+      }));
+
+      // Get auth token (assuming it's available from auth context)
+      const authToken = localStorage.getItem('authToken') || '';
+      
+      // Set up event listeners
+      const service = streamingServiceRef.current;
+      service.onEvent(handleStreamingEvent);
+      service.onError(handleStreamingError);
+      service.onStatusChange((status) => {
+        console.log('📊 Streaming status changed:', status);
+        setStreamingState(prev => ({
+          ...prev,
+          status,
+          isStreaming: status === StreamStatus.STREAMING
+        }));
+      });
+
+      // Connect to streaming endpoint
+      service.connect(selectedCaseId, stageId, authToken);
+      
+    } catch (error) {
+      console.error('Failed to start streaming:', error);
+      setStreamingState(prev => ({
+        ...prev,
+        status: StreamStatus.ERROR,
+        error: createStreamingError(
+          StreamingErrorCode.CONNECTION_ERROR,
+          `Failed to start streaming: ${error}`,
+          true,
+          'Try again or check connection'
+        ),
+        isStreaming: false
+      }));
+    }
+  }, [selectedCaseId, handleStreamingEvent, handleStreamingError]);
+
+  // Stop streaming
+  const stopStreaming = useCallback(() => {
+    if (streamingServiceRef.current) {
+      console.log('⏹️ Stopping streaming');
+      streamingServiceRef.current.disconnect();
+      setStreamingState(prev => ({
+        ...prev,
+        status: StreamStatus.IDLE,
+        currentStageId: null,
+        isStreaming: false
+      }));
+    }
+  }, []);
+
+  // Clear streaming content
+  const clearStreamingContent = useCallback(() => {
+    console.log('🧹 Clearing streaming content');
+    contentAccumulatorRef.current = { reasoning: '', chat: '' };
+    setStreamingState(prev => ({
+      ...prev,
+      reasoningContent: '',
+      chatContent: '',
+      error: null
+    }));
+  }, []);
+
   return (
     <WorkflowContext.Provider
       value={{
@@ -587,6 +911,10 @@ export const WorkflowProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         generateNote,
         isCaseCompleted,
         markCaseAsCompleted,
+        streamingState,
+        startStreaming,
+        stopStreaming,
+        clearStreamingContent,
       }}
     >
       {children}

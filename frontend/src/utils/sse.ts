@@ -71,9 +71,227 @@ export class SSEEventBuffer {
 }
 
 /**
+ * SSE Event Parser for parsing incoming server-sent events
+ */
+export class SSEEventParser implements SSEParser {
+  parse(rawEvent: string): StreamEvent | null {
+    try {
+      // Parse SSE format: event: type\ndata: json\n\n
+      const lines = rawEvent.trim().split('\n');
+      let eventType = 'message'; // default
+      let data = '';
+      let id = '';
+      
+      for (const line of lines) {
+        if (line.startsWith('event:')) {
+          eventType = line.substring(6).trim();
+        } else if (line.startsWith('data:')) {
+          data = line.substring(5).trim();
+        } else if (line.startsWith('id:')) {
+          id = line.substring(3).trim();
+        }
+      }
+      
+      if (!data) {
+        return null;
+      }
+      
+      // Parse JSON data
+      const parsedData = JSON.parse(data);
+      
+      return {
+        id: id || undefined,
+        type: eventType as StreamEventType,
+        timestamp: Date.now(),
+        data: parsedData
+      };
+    } catch (error) {
+      throw new Error(`Failed to parse SSE event: ${error}`);
+    }
+  }
+}
+
+/**
+ * SSE Connection Manager configuration
+ */
+export interface SSEConnectionManagerOptions {
+  timeout?: number;
+  maxRetries?: number;
+  retryDelay?: number;
+  backoffMultiplier?: number;
+  maxRetryDelay?: number;
+  onEvent?: (rawData: string) => void;
+  onError?: (error: StreamingError) => void;
+  onStatusChange?: (connected: boolean) => void;
+}
+
+/**
  * SSE Connection Manager for handling EventSource connections
  */
 export class SSEConnectionManager {
+  public eventSource: EventSource | null = null;
+  private url: string = '';
+  private options: Required<SSEConnectionManagerOptions>;
+  private reconnectionAttempts = 0;
+  private isReconnecting = false;
+  private connectionTimeout: NodeJS.Timeout | null = null;
+
+  constructor(url: string, options: SSEConnectionManagerOptions = {}) {
+    this.url = url;
+    this.options = {
+      timeout: 30000,
+      maxRetries: 3,
+      retryDelay: 1000,
+      backoffMultiplier: 2,
+      maxRetryDelay: 10000,
+      onEvent: () => {},
+      onError: () => {},
+      onStatusChange: () => {},
+      ...options
+    };
+  }
+
+  get isConnected(): boolean {
+    return this.eventSource !== null && this.eventSource.readyState === 1; // EventSource.OPEN
+  }
+
+  get connectionState(): string {
+    if (!this.eventSource) return 'disconnected';
+    if (this.isReconnecting) return 'reconnecting';
+    
+    switch (this.eventSource.readyState) {
+      case 0: return 'connecting'; // EventSource.CONNECTING
+      case 1: return 'connected';  // EventSource.OPEN
+      case 2: return 'disconnected'; // EventSource.CLOSED
+      default: return 'unknown';
+    }
+  }
+
+  connect(): void {
+    this.disconnect(); // Clean up any existing connection
+    
+    try {
+      this.eventSource = new EventSource(this.url);
+      
+      this.eventSource.onopen = () => {
+        this.clearConnectionTimeout();
+        this.reconnectionAttempts = 0;
+        this.isReconnecting = false;
+        this.options.onStatusChange(true);
+      };
+      
+      this.eventSource.onmessage = (event) => {
+        this.clearConnectionTimeout();
+        
+        // Reconstruct SSE format for parser
+        const sseData = `event: message
+data: ${event.data}
+
+`;
+        this.options.onEvent(sseData);
+      };
+      
+      // Handle custom events by adding listeners for each event type
+      ['chunk', 'start', 'end', 'error', 'metadata', 'heartbeat', 'progress', 'stage_complete'].forEach(eventType => {
+        this.eventSource!.addEventListener(eventType, (event: any) => {
+          this.clearConnectionTimeout();
+          
+          // Reconstruct SSE format for parser
+          const sseData = `event: ${eventType}
+data: ${event.data}
+
+`;
+          this.options.onEvent(sseData);
+        });
+      });
+      
+      this.eventSource.onerror = () => {
+        this.clearConnectionTimeout();
+        this.options.onStatusChange(false);
+        
+        const error = createStreamingError(
+          StreamingErrorCode.CONNECTION_ERROR,
+          'Connection failed or lost',
+          true,
+          'Will attempt to reconnect automatically'
+        );
+        
+        this.options.onError(error);
+        this.handleReconnection();
+      };
+      
+      // Set connection timeout
+      this.setConnectionTimeout();
+      
+    } catch (error) {
+      const connectionError = createStreamingError(
+        StreamingErrorCode.CONNECTION_ERROR,
+        `Failed to create EventSource: ${error}`,
+        true,
+        'Check network connectivity and try again'
+      );
+      this.options.onError(connectionError);
+    }
+  }
+
+  disconnect(): void {
+    this.clearConnectionTimeout();
+    
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
+    
+    this.isReconnecting = false;
+    this.reconnectionAttempts = 0;
+    this.options.onStatusChange(false);
+  }
+
+  private setConnectionTimeout(): void {
+    this.connectionTimeout = setTimeout(() => {
+      const timeoutError = createStreamingError(
+        StreamingErrorCode.TIMEOUT_ERROR,
+        `Connection timeout after ${this.options.timeout}ms`,
+        true,
+        'Will attempt to reconnect'
+      );
+      this.options.onError(timeoutError);
+      this.handleReconnection();
+    }, this.options.timeout);
+  }
+
+  private clearConnectionTimeout(): void {
+    if (this.connectionTimeout) {
+      clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = null;
+    }
+  }
+
+  private handleReconnection(): void {
+    if (this.isReconnecting || this.reconnectionAttempts >= this.options.maxRetries) {
+      return;
+    }
+    
+    this.isReconnecting = true;
+    this.reconnectionAttempts++;
+    
+    const delay = Math.min(
+      this.options.retryDelay * Math.pow(this.options.backoffMultiplier, this.reconnectionAttempts - 1),
+      this.options.maxRetryDelay
+    );
+    
+    setTimeout(() => {
+      if (this.isReconnecting) {
+        this.connect();
+      }
+    }, delay);
+  }
+}
+
+/**
+ * Legacy SSE Connection Manager for backward compatibility
+ */
+export class LegacySSEConnectionManager {
   public eventSource: EventSource | null = null;
   private reconnectionStrategy: SSEReconnectionStrategy | null = null;
   private eventListeners: ((event: StreamEvent) => void)[] = [];

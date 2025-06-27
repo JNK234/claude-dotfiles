@@ -4,7 +4,7 @@
 /**
  * Types of streaming events that can be emitted during streaming
  */
-export type StreamEventType = 'chunk' | 'start' | 'end' | 'error' | 'metadata';
+export type StreamEventType = 'chunk' | 'start' | 'end' | 'error' | 'metadata' | 'stage_complete' | 'heartbeat' | 'progress';
 
 /**
  * Core streaming event interface
