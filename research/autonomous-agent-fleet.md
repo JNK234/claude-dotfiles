@@ -427,7 +427,7 @@ Four gates at L1; fewer as the dial opens. Clarify before building (few sharp qu
 A non-trivial fleet job = `planner(strong) + N·implementer + N·tester + critic(s) + integrator + docs`, each looping up to ~3×, plus re-review after rebase and possible replans.
 - **Multiplier:** **~30–100× a single-agent call**, concentrated in strong-model critic work (which is why §10 makes 1 critic the default and reserves voting for high-risk).
 - **Worked envelope (illustrative — calibrate on your repo):** a single strong agentic pass ≈ $0.50–$3; a fleet job with ~3 workers + testers + critique + integrator + retries lands roughly **$15–$300** per non-trivial job. The 30–100× multiplier and the dollar range are two independent lenses on the same cost — measure yours.
-- **The bootstrap arithmetic (the thing round-1 said was missing):** let **N** = parallel independent frontier, **V** = job value, **H** = human gate-review cost per job, **F** = fleet token cost per job, **S** = one-interactive-agent cost. At **L1**, fleet net = `V − F − H`; interactive net = `V − S − H_review`. Since `F ≈ 30–100·S` and human cost is paid in *both*, **the fleet only wins at L1 when it buys wall-clock you value** — i.e. when `N ≥ ~3` *and* the value of finishing ~N× faster exceeds `F − S`. **At L1 the fleet is never a cost saver; it's a latency buyer.** It becomes a cost saver only past **L2**, where gates drop and `H → ~0` — which requires your eval to clear the §18 catch-rate thresholds.
+- **The bootstrap arithmetic (the thing round-1 said was missing):** let **N** = parallel independent frontier, **V** = job value, **H** = human gate-review cost per job, **F** = fleet token cost per job, **S** = one-interactive-agent cost. At **L1**, fleet net = `V − F − H`; interactive net = `V − S − H_review` (and `H_review ≤ H` — reviewing one agent's diff is no costlier than gating a whole fleet job). Since `F ≈ 30–100·S` and human cost is paid in *both*, **the fleet only wins at L1 when it buys wall-clock you value** — i.e. when `N ≥ ~3` *and* the value of finishing ~N× faster exceeds `F − S`. **At L1 the fleet is never a cost saver; it's a latency buyer.** It becomes a cost saver only past **L2**, where gates drop and `H → ~0` — which requires your eval to clear the §18 catch-rate thresholds.
 - **The bootstrap path:** V0 proves *safety* on a throwaway repo (zero business value, but it's where you measure critic catch-rate cheaply) → as catch-rate clears the L2 threshold on your real repos' eval, open the dial → `H` falls → the economics turn positive. **Until then, only run the fleet on high-value, genuinely-parallel work; everything else is negative ROI — use one interactive agent.**
 > **GO/NO-GO:** run the fleet when the task is **parallel (N ≥ ~3) + well-specified + high-value**, enforced by **per-job and global (daily/monthly) budget ceilings** at the proxy (hard-stop + alert). Otherwise, one interactive agent.
 
@@ -475,7 +475,7 @@ Cost-aware/bidding routing (D) · event-driven choreography at scale (F) · sche
 
 **Tailored to your context (CLAUDE.md):** you work in **Scala/SBT** (you compile SBT yourself — **the fleet must not run `sbt compile`**; model your compile/verify as a first-class "external verifier" node the fleet waits on) and **Python + `uv`** (workers get the full CI gate: pytest via `uv`, ruff, mypy). Your **TDD-first, real-data-no-mocks** rules map directly onto "tester writes contract tests first" and the "no mock mode" gate.
 
-**Roadmap:** V0 (days) prove correctness (L1) + unattended-safety (L3-lite) on the throwaway repo → V1 (~3–6 wks) single-vendor fleet + eval harness → V2 (~2–3 mo) vendor-agnostic + durable + risk-tiered + secured → V3 ongoing. **The critique-improve loop goes in at V0 and never leaves.**
+**Roadmap:** V0 (days–2 wks) prove correctness (L1) + unattended-safety (L3-lite) on the throwaway repo → V1 (~3–6 wks) single-vendor fleet + eval harness → V2 (~2–3 mo) vendor-agnostic + durable + risk-tiered + secured → V3 ongoing. **The critique-improve loop goes in at V0 and never leaves.**
 
 ---
 
@@ -492,7 +492,7 @@ Cost-aware/bidding routing (D) · event-driven choreography at scale (F) · sche
 | Escalation unanswered | Safe-state: park, snapshot, notify, free claim; never auto-merge past a gate |
 | Bad merge reaches main | Post-merge CI/canary → auto `git revert` → new task |
 | Vendor lock-in | LiteLLM + MCP + worker interface; no provider hardcoded |
-| Immature components on critical path | Online replan + "learning" KB = research spikes with kill criteria |
+| Immature components on critical path | Online replan + "learning" KB = research spikes with kill criteria (§14) |
 | Model version drift | Pin versions; re-run held-out eval before adopting a new snapshot |
 | Data/IP leakage | Classify repos; route sensitive to local/self-hosted models |
 
@@ -532,6 +532,7 @@ submit(task_record, repo_ref, budget_usd, dial_level, allowed_tools) -> WorkerRe
  "cost_usd":1.87,"trace_ref":"otel://job-7/task-123",
  "self_reported_confidence":0.62,"notes":"..."}
 ```
+*(`self_reported_confidence` is **advisory only — never gate-load-bearing**; §4.6's poor-uncertainty-signaling means a confident agent is not a correct one.)*
 **`trace.json` (Definition of Done)**
 ```json
 {"job_id":"job-7","spec_hash":"sha256:...",

@@ -1,0 +1,567 @@
+<title>Autonomous Agent Fleet — Architecture Blueprint</title>
+<style>
+  :root {
+    --ground: #EEF1F5;
+    --surface: #FBFCFD;
+    --surface-2: #E7ECF3;
+    --ink: #141A26;
+    --ink-soft: #37425A;
+    --muted: #5A6A82;
+    --hair: #D2DAE6;
+    --line: #3E5C8A;      /* blueprint structural ink */
+    --signal: #C9791A;    /* instrument amber — the human / gates / attention */
+    --signal-soft: #E0912B;
+    --pass: #2E7D5B;
+    --gate: #C08420;
+    --crit: #B8423C;
+    --grid: rgba(62, 92, 138, 0.06);
+    --shadow: 0 1px 2px rgba(20,26,38,.06), 0 8px 24px rgba(20,26,38,.05);
+
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    --maxw: 1140px;
+    --step: clamp(.85rem, .5rem + .4vw, .95rem);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0C111B;
+      --surface: #141B29;
+      --surface-2: #1B2536;
+      --ink: #DCE4F0;
+      --ink-soft: #AEBAD0;
+      --muted: #8290A8;
+      --hair: #26314A;
+      --line: #5E82C0;
+      --signal: #F0AE52;
+      --signal-soft: #F0AE52;
+      --pass: #46B487;
+      --gate: #E0A64A;
+      --crit: #E06A63;
+      --grid: rgba(94, 130, 192, 0.08);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --ground:#EEF1F5;--surface:#FBFCFD;--surface-2:#E7ECF3;--ink:#141A26;--ink-soft:#37425A;
+    --muted:#5A6A82;--hair:#D2DAE6;--line:#3E5C8A;--signal:#C9791A;--signal-soft:#E0912B;
+    --pass:#2E7D5B;--gate:#C08420;--crit:#B8423C;--grid:rgba(62,92,138,.06);
+    --shadow:0 1px 2px rgba(20,26,38,.06),0 8px 24px rgba(20,26,38,.05);
+  }
+  :root[data-theme="dark"] {
+    --ground:#0C111B;--surface:#141B29;--surface-2:#1B2536;--ink:#DCE4F0;--ink-soft:#AEBAD0;
+    --muted:#8290A8;--hair:#26314A;--line:#5E82C0;--signal:#F0AE52;--signal-soft:#F0AE52;
+    --pass:#46B487;--gate:#E0A64A;--crit:#E06A63;--grid:rgba(94,130,192,.08);
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 34px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 34px 100%,
+      var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(1rem, 3vw, 2.4rem); }
+  section { padding: clamp(2.6rem, 5vw, 4.4rem) 0; border-top: 1px solid var(--hair); }
+  section:first-of-type { border-top: 0; }
+
+  h1,h2,h3 { text-wrap: balance; margin: 0; }
+  .eyebrow {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--signal); font-weight: 600; display: flex; align-items: center; gap: .6rem;
+  }
+  .eyebrow::before { content: ""; width: 26px; height: 1px; background: var(--signal); opacity:.7; }
+  h2 { font-family: var(--mono); font-weight: 700; font-size: clamp(1.35rem, 1rem + 1.6vw, 2rem);
+       letter-spacing: -.01em; line-height: 1.12; margin: .7rem 0 .5rem; }
+  .lede { color: var(--ink-soft); max-width: 62ch; }
+  p { margin: .5rem 0; }
+
+  /* ---------- HERO ---------- */
+  .hero { padding-top: clamp(2.4rem, 6vw, 4.6rem); }
+  .hero .kicker {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .hero h1 {
+    font-family: var(--mono); font-weight: 700; letter-spacing: -.02em;
+    font-size: clamp(2.1rem, 1.2rem + 4.4vw, 4.1rem); line-height: 1.02; margin: .8rem 0 0;
+  }
+  .hero h1 .amber { color: var(--signal); }
+  .hero .sub { margin-top: 1.3rem; font-size: clamp(1rem, .9rem + .5vw, 1.2rem);
+               color: var(--ink-soft); max-width: 60ch; }
+  .metaline { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .chip {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .04em;
+    border: 1px solid var(--hair); background: var(--surface); color: var(--ink-soft);
+    padding: .34rem .7rem; border-radius: 2px;
+  }
+  .chip b { color: var(--signal); font-weight: 600; }
+  .anim { opacity: 0; transform: translateY(10px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .anim.d1 { animation-delay: .06s; } .anim.d2 { animation-delay: .14s; }
+  .anim.d3 { animation-delay: .22s; } .anim.d4 { animation-delay: .3s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .anim { animation: none; opacity: 1; transform: none; } }
+
+  /* ---------- TL;DR ---------- */
+  .tldr { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+          background: var(--hair); border: 1px solid var(--hair); border-radius: 4px; overflow: hidden; }
+  .tldr > div { background: var(--surface); padding: 1.25rem 1.15rem; }
+  .tldr .n { font-family: var(--mono); font-size: .72rem; color: var(--signal); letter-spacing: .1em; }
+  .tldr h3 { font-family: var(--mono); font-size: .95rem; margin: .45rem 0 .35rem; letter-spacing: -.01em; }
+  .tldr p { font-size: .84rem; color: var(--muted); margin: 0; }
+  @media (max-width: 820px){ .tldr { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 480px){ .tldr { grid-template-columns: 1fr; } }
+
+  /* ---------- CALLOUT ---------- */
+  .callout {
+    border-left: 3px solid var(--signal); background: var(--surface);
+    padding: 1.2rem 1.4rem; border-radius: 0 4px 4px 0; box-shadow: var(--shadow);
+  }
+  .callout .tag { font-family: var(--mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--signal); }
+  .callout p { margin: .5rem 0 0; color: var(--ink-soft); font-size: 1.02rem; }
+  .callout strong { color: var(--ink); }
+
+  /* ---------- NODE DIAGRAM ---------- */
+  .diagram { background: var(--surface); border: 1px solid var(--hair); border-radius: 6px;
+             padding: clamp(1.1rem, 3vw, 2rem); box-shadow: var(--shadow); overflow-x: auto; }
+  .layer { display: grid; gap: .7rem; margin: 0 0 .35rem; }
+  .layer + .connector { height: 26px; position: relative; }
+  .connector::before { content:""; position:absolute; left:50%; top:0; bottom:0; width:1px;
+                       background: linear-gradient(var(--line), transparent); opacity:.5; }
+  .band-label { font-family: var(--mono); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+                color: var(--muted); margin-bottom: .5rem; }
+  .row { display: grid; gap: .7rem; }
+  .row.c3 { grid-template-columns: repeat(3,1fr); }
+  .row.c4 { grid-template-columns: repeat(4,1fr); }
+  .row.c2 { grid-template-columns: repeat(2,1fr); }
+  .node {
+    border: 1px solid var(--hair); background: var(--ground); border-radius: 4px;
+    padding: .7rem .8rem; min-height: 100%;
+  }
+  .node .t { font-family: var(--mono); font-weight: 600; font-size: .82rem; letter-spacing: -.01em; }
+  .node .d { font-size: .74rem; color: var(--muted); margin-top: .2rem; line-height: 1.4; }
+  .node.accent { border-color: var(--signal); box-shadow: inset 0 0 0 1px rgba(201,121,26,.15); }
+  .node.accent .t { color: var(--signal); }
+  .node.line { border-color: color-mix(in srgb, var(--line) 45%, var(--hair)); }
+  .panel-band { border: 1px dashed var(--hair); border-radius: 6px; padding: 1rem; }
+  .panel-band + .panel-band { margin-top: .7rem; }
+  @media (max-width: 720px){ .row.c4 { grid-template-columns: repeat(2,1fr);} .row.c3{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width: 460px){ .row.c4,.row.c3,.row.c2 { grid-template-columns: 1fr; } }
+
+  /* ---------- AUTONOMY DIAL ---------- */
+  .dial { background: var(--surface); border: 1px solid var(--hair); border-radius: 6px;
+          padding: clamp(1.2rem,3vw,2rem); box-shadow: var(--shadow); }
+  .track { position: relative; height: 6px; border-radius: 6px; margin: 2.6rem 0 0;
+           background: linear-gradient(90deg, var(--pass) 0%, var(--gate) 55%, var(--crit) 100%); opacity:.85; }
+  .stops { display: grid; grid-template-columns: repeat(5,1fr); margin-top: -3px; }
+  .stop { position: relative; text-align: center; }
+  .stop .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--surface);
+               border: 2px solid var(--line); margin: 0 auto; position: relative; z-index: 2; }
+  .stop.here .dot { border-color: var(--signal); background: var(--signal); box-shadow: 0 0 0 4px rgba(201,121,26,.18); }
+  .stop .lv { font-family: var(--mono); font-weight: 700; font-size: .85rem; margin-top: .5rem; }
+  .stop .nm { font-size: .72rem; color: var(--muted); }
+  .stop .gates { font-family: var(--mono); font-size: .66rem; color: var(--ink-soft); margin-top: .3rem; }
+  .stop.here .lv { color: var(--signal); }
+  .dial .note { margin-top: 1.6rem; font-size: .82rem; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 1rem; }
+  .dial .note b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 680px){
+    .stops { grid-template-columns: 1fr; gap: .5rem; }
+    .track { display:none; }
+    .stop { text-align: left; display:flex; align-items:baseline; gap:.6rem; border-left:2px solid var(--line); padding-left:.7rem; }
+    .stop .dot { display:none; }
+  }
+
+  /* ---------- STYLE MATRIX ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--hair); border-radius: 6px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 760px; background: var(--surface); font-size: .84rem; }
+  th, td { text-align: left; padding: .7rem .85rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  thead th { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+             color: var(--muted); background: var(--surface-2); position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: color-mix(in srgb, var(--signal) 6%, var(--surface)); }
+  td .code { font-family: var(--mono); font-weight: 700; color: var(--signal); }
+  td.def { font-weight: 600; }
+  .pill { font-family: var(--mono); font-size: .68rem; padding: .12rem .45rem; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; }
+  .pill.lo { color: var(--pass); background: color-mix(in srgb, var(--pass) 15%, transparent); }
+  .pill.md { color: var(--gate); background: color-mix(in srgb, var(--gate) 16%, transparent); }
+  .pill.hi { color: var(--crit); background: color-mix(in srgb, var(--crit) 15%, transparent); }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  /* ---------- LOOP ---------- */
+  .loop { display: grid; grid-template-columns: 1.1fr .9fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 780px){ .loop { grid-template-columns: 1fr; } }
+  .loopflow { display: flex; flex-direction: column; gap: .55rem; }
+  .lstep { display: grid; grid-template-columns: auto 1fr; gap: .8rem; align-items: start;
+           border: 1px solid var(--hair); background: var(--surface); border-radius: 4px; padding: .7rem .85rem; }
+  .lstep .ix { font-family: var(--mono); font-weight: 700; color: var(--signal); font-size: .8rem; }
+  .lstep .lt { font-family: var(--mono); font-size: .82rem; font-weight: 600; }
+  .lstep .ld { font-size: .76rem; color: var(--muted); }
+  .rounds { display: flex; flex-direction: column; gap: .6rem; }
+  .round { border: 1px solid var(--hair); border-left: 3px solid var(--line); background: var(--surface);
+           border-radius: 0 4px 4px 0; padding: .8rem 1rem; }
+  .round.r0 { border-left-color: var(--muted); }
+  .round.r1 { border-left-color: var(--crit); }
+  .round.r2 { border-left-color: var(--gate); }
+  .round.r3 { border-left-color: var(--pass); }
+  .round .rh { font-family: var(--mono); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); display:flex; justify-content:space-between; gap:.5rem;}
+  .round .rb { font-size: .8rem; color: var(--muted); margin-top: .35rem; }
+  .round .verdict { font-family: var(--mono); font-size: .72rem; }
+  .round.r1 .verdict { color: var(--crit); } .round.r2 .verdict { color: var(--gate); } .round.r3 .verdict { color: var(--pass); }
+
+  /* ---------- ECON ---------- */
+  .econ { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--hair);
+          border: 1px solid var(--hair); border-radius: 6px; overflow: hidden; }
+  .econ > div { background: var(--surface); padding: 1.3rem 1.2rem; }
+  .econ .big { font-family: var(--mono); font-weight: 700; font-size: 1.9rem; letter-spacing: -.02em; color: var(--ink); }
+  .econ .big .u { font-size: .9rem; color: var(--muted); }
+  .econ .lb { font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--signal); }
+  .econ .ds { font-size: .78rem; color: var(--muted); margin-top: .4rem; }
+  @media (max-width: 680px){ .econ { grid-template-columns: 1fr; } }
+  .go { margin-top: 1.2rem; border: 1px solid var(--hair); border-radius: 6px; background: var(--surface); padding: 1.1rem 1.3rem; box-shadow: var(--shadow); }
+  .go .lb { font-family: var(--mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--signal); }
+  .go p { margin: .4rem 0 0; color: var(--ink-soft); }
+  .go code { font-family: var(--mono); background: var(--surface-2); padding: .05rem .35rem; border-radius: 3px; font-size: .82rem; color: var(--ink); }
+
+  /* ---------- ROADMAP ---------- */
+  .road { display: grid; grid-template-columns: repeat(4,1fr); gap: .8rem; }
+  @media (max-width: 820px){ .road { grid-template-columns: repeat(2,1fr); } }
+  @media (max-width: 460px){ .road { grid-template-columns: 1fr; } }
+  .stage { border: 1px solid var(--hair); background: var(--surface); border-radius: 6px; padding: 1.1rem 1rem; position: relative; box-shadow: var(--shadow); }
+  .stage .v { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; color: var(--signal); }
+  .stage .when { font-family: var(--mono); font-size: .68rem; color: var(--muted); letter-spacing: .05em; }
+  .stage h3 { font-family: var(--mono); font-size: .9rem; margin: .5rem 0 .4rem; }
+  .stage ul { margin: .4rem 0 0; padding-left: 1rem; }
+  .stage li { font-size: .77rem; color: var(--muted); margin: .2rem 0; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+  @media (max-width: 760px){ .two { grid-template-columns: 1fr; } }
+  .card { border: 1px solid var(--hair); background: var(--surface); border-radius: 6px; padding: 1.2rem 1.3rem; box-shadow: var(--shadow); }
+  .card h3 { font-family: var(--mono); font-size: .95rem; margin-bottom: .5rem; }
+  .card ul { margin: .3rem 0 0; padding-left: 1.1rem; }
+  .card li { margin: .35rem 0; color: var(--ink-soft); font-size: .85rem; }
+  .card li b { color: var(--ink); }
+  .keyline { color: var(--signal); font-weight: 600; }
+
+  footer { border-top: 1px solid var(--hair); padding: 2.4rem 0 3rem; color: var(--muted); font-size: .78rem; }
+  footer .mono { font-family: var(--mono); }
+  a { color: var(--signal); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--signal) 40%, transparent); }
+  a:focus-visible, .stop:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: .4rem; }
+  .legend i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+</style>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="kicker anim">Architecture Blueprint · Companion to the design doc</div>
+    <h1 class="anim d1">A vendor-agnostic<br>engineering fleet<span class="amber">.</span></h1>
+    <p class="sub anim d2">A design catalog for a self-organizing team of AI agents that plans, builds, tests, reviews, and ships software from a natural-language request — built to run on Claude, Codex, or local models, and to be <em>as autonomous as verification can safely support</em>.</p>
+    <div class="metaline anim d3">
+      <span class="chip"><b>8</b>&nbsp;architecture styles</span>
+      <span class="chip"><b>V0→V3</b>&nbsp;staged build</span>
+      <span class="chip"><b>2</b>&nbsp;adversarial critique rounds</span>
+      <span class="chip">supervised autonomy on a&nbsp;<b>dial</b></span>
+    </div>
+  </section>
+
+  <!-- TL;DR -->
+  <section>
+    <div class="eyebrow">The short version</div>
+    <h2>If you read nothing else</h2>
+    <div class="tldr" style="margin-top:1.4rem">
+      <div>
+        <div class="n">BUILD FIRST</div>
+        <h3>V0 in days</h3>
+        <p>One headless worker → branch → tests → PR, gated by an independent critic + tester + a hard CI gate + a 3-try cap. Prove it on a throwaway repo.</p>
+      </div>
+      <div>
+        <div class="n">ARCHITECTURE</div>
+        <h3>Orchestrator + overlays</h3>
+        <p>Orchestrator–Worker spine, a supervisor-tree reliability overlay, an ensemble verification overlay. Event choreography at scale; hierarchy only for big jobs.</p>
+      </div>
+      <div>
+        <div class="n">VENDOR-AGNOSTIC</div>
+        <h3>Three seams</h3>
+        <p>Models behind LiteLLM (real config swap) · tools behind MCP · workers behind a common adapter interface (real work, not config).</p>
+      </div>
+      <div>
+        <div class="n">THE CAVEAT</div>
+        <h3>Supervised, not lights-out</h3>
+        <p>Run the fleet only when work is parallel + well-specified + high-value. Otherwise one interactive agent is cheaper. The dial opens as your eval earns trust.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISCIPLINING TRUTH -->
+  <section>
+    <div class="eyebrow">The one truth that shapes everything</div>
+    <h2>This is not a swarm</h2>
+    <div class="callout" style="margin-top:1.3rem">
+      <div class="tag">Empirical, load-bearing</div>
+      <p>Software engineering is a <strong>poor fit for naive breadth-first parallelism</strong>. Coding has fewer truly parallel tasks than research, agents still coordinate poorly in real time, and multi-agent systems burn <strong>~15× the tokens</strong> of a chat interaction. So the winning shape is a <strong>thin deterministic control plane</strong> driving a <strong>small number of strongly-isolated, single-threaded workers</strong>, coordinated by the dependency structure of the work and by git isolation — not twenty agents loose on a repo.</p>
+    </div>
+  </section>
+
+  <!-- TOPOLOGY -->
+  <section>
+    <div class="eyebrow">System topology</div>
+    <h2>The control plane &amp; the fleet</h2>
+    <p class="lede">Every architecture below is assembled from the same parts. The control plane decides <em>what</em> and <em>which model</em>; durable state is the "living" memory; workers are interchangeable runtimes behind one interface; tools are portable via MCP.</p>
+
+    <div class="diagram" style="margin-top:1.5rem">
+      <div class="band-label">Control plane — decides what, and which model</div>
+      <div class="row c4">
+        <div class="node accent"><div class="t">Orchestrator / Planner</div><div class="d">Decompose request → task DAG</div></div>
+        <div class="node"><div class="t">Router · LiteLLM</div><div class="d">Claude / Codex / local per task</div></div>
+        <div class="node"><div class="t">Durability engine</div><div class="d">One only — Temporal <em>or</em> LangGraph</div></div>
+        <div class="node accent"><div class="t">Risk classifier</div><div class="d">Sets the autonomy dial per task</div></div>
+      </div>
+
+      <div class="connector"></div>
+      <div class="band-label">Durable state — the team that persists between runs</div>
+      <div class="row c4">
+        <div class="node line"><div class="t">Task DAG + claims</div><div class="d">Atomic claims, lease TTL, reclamation</div></div>
+        <div class="node line"><div class="t">Knowledge base</div><div class="d">Repo map, ADRs, conventions</div></div>
+        <div class="node line"><div class="t">Artifact store</div><div class="d">PRs, docs, trace.json</div></div>
+        <div class="node line"><div class="t">Audit log</div><div class="d">Append-only, secret-redacted</div></div>
+      </div>
+
+      <div class="connector"></div>
+      <div class="band-label">Worker runtimes — behind one common adapter interface</div>
+      <div class="row c3">
+        <div class="node"><div class="t">Claude adapter</div><div class="d">Agent SDK / headless, own worktree</div></div>
+        <div class="node"><div class="t">Codex adapter</div><div class="d">CLI / Cloud, own worktree</div></div>
+        <div class="node"><div class="t">Local adapter</div><div class="d">Mechanical / docs roles</div></div>
+      </div>
+
+      <div class="connector"></div>
+      <div class="band-label">Portable tools — MCP · plus the safety spine</div>
+      <div class="row c4">
+        <div class="node"><div class="t">Git / GitHub</div><div class="d">Branches, PRs, merge queue</div></div>
+        <div class="node"><div class="t">CI / tests</div><div class="d">The hard gate</div></div>
+        <div class="node"><div class="t">Secrets broker</div><div class="d">Short-lived scoped tokens</div></div>
+        <div class="node accent"><div class="t">Event bus</div><div class="d">Progress · failures · escalation</div></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--signal)"></i>decision / attention point</span>
+        <span><i style="background:color-mix(in srgb,var(--line) 45%,var(--hair))"></i>durable state</span>
+        <span><i style="background:var(--hair)"></i>runtime / tool</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTONOMY DIAL -->
+  <section>
+    <div class="eyebrow">The honest answer to "fully autonomous"</div>
+    <h2>Autonomy is a dial, not a switch</h2>
+    <p class="lede">The same fleet runs at different positions for different work. You open the dial as your own held-out eval proves the critics actually catch bugs — start gated, earn your way to unattended.</p>
+
+    <div class="dial" style="margin-top:1.5rem">
+      <div class="track" aria-hidden="true"></div>
+      <div class="stops">
+        <div class="stop"><div class="dot"></div><div class="lv">L0</div><div class="nm">Assisted</div><div class="gates">human drives</div></div>
+        <div class="stop here"><div class="dot"></div><div class="lv">L1</div><div class="nm">Gated</div><div class="gates">4 gates · START HERE</div></div>
+        <div class="stop"><div class="dot"></div><div class="lv">L2</div><div class="nm">Supervised</div><div class="gates">gates on risk only</div></div>
+        <div class="stop"><div class="dot"></div><div class="lv">L3</div><div class="nm">Unattended</div><div class="gates">no gates · auto-revert</div></div>
+        <div class="stop"><div class="dot"></div><div class="lv">L4</div><div class="nm">Lights-out</div><div class="gates">self-directed</div></div>
+      </div>
+      <div class="note"><b>The 3am rule:</b> if an escalation fires and no human answers within the gate SLA, the job reaches a <b>safe state</b> — park the branch, snapshot for resume, notify, free the claim. Never block a worker forever; never auto-merge past an unanswered gate. &nbsp;·&nbsp; <b>L3-lite:</b> on a throwaway repo you can run unattended early with just auto-revert + a budget hard-stop; the kernel sandbox &amp; egress denylist wait until you point the fleet at a real repo.</div>
+    </div>
+  </section>
+
+  <!-- STYLE MATRIX -->
+  <section>
+    <div class="eyebrow">The design catalog</div>
+    <h2>Eight architecture styles</h2>
+    <p class="lede">Every viable topology, with its real trade-offs. The recommendation composes a few of them — a default spine plus overlays — rather than betting on one.</p>
+
+    <div class="tablewrap" style="margin-top:1.4rem">
+      <table>
+        <thead>
+          <tr><th>Style</th><th>How it works</th><th>Best for</th><th>Cost</th><th>Signature failure mode</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="def"><span class="code">A</span> Orchestrator–Worker</td><td>One planner fans out to parallel workers, verifies, integrates</td><td class="def">The default</td><td><span class="pill lo">low</span></td><td>Bad decomposition cascades; orchestrator bottleneck</td></tr>
+          <tr><td class="def"><span class="code">B</span> Hierarchical</td><td>Manager → leads → workers; recursion of A</td><td>Big multi-subsystem jobs</td><td><span class="pill hi">high</span></td><td>Telephone-game drift; error compounding per tier</td></tr>
+          <tr><td class="def"><span class="code">C</span> Blackboard</td><td>Agents read/write shared state; a controller picks next</td><td>Exploration — facts only</td><td><span class="pill md">med</span></td><td>Contention, overwrites, non-convergence</td></tr>
+          <tr><td class="def"><span class="code">D</span> Market / bidding</td><td>Tasks auctioned; best bid (cost/capability) wins</td><td>Heterogeneous, cost-first</td><td><span class="pill md">med-hi</span></td><td>Overconfident bids win bad work; auction overhead</td></tr>
+          <tr><td class="def"><span class="code">E</span> Peer-to-peer</td><td>No boss; agents hand off directly to peers</td><td>Small, open-ended</td><td><span class="pill md">variable</span></td><td>Infinite handoffs; no owner of "done"</td></tr>
+          <tr><td class="def"><span class="code">F</span> Event-driven</td><td>Agents react to bus events and emit new ones</td><td>Large async fleets</td><td><span class="pill md">med-hi</span></td><td>Event storms; lost/duplicated events</td></tr>
+          <tr><td class="def"><span class="code">G</span> Supervisor trees</td><td>Supervisors own restart strategies for crashed agents</td><td class="def">Reliability overlay</td><td><span class="pill md">med</span></td><td>Restart loops on an always-crashing task</td></tr>
+          <tr><td class="def"><span class="code">H</span> Ensemble / debate</td><td>N agents solve/judge the same task, reconcile</td><td class="def">Verification overlay</td><td><span class="pill hi">high</span></td><td>False confidence from correlated agreement</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout" style="margin-top:1.4rem">
+      <div class="tag">The composition</div>
+      <p><strong>A</strong> (default spine) <span style="color:var(--muted)">+</span> <strong>G</strong> (reliability, always at L3+) <span style="color:var(--muted)">+</span> <strong>H</strong> (verification, high-risk only) <span style="color:var(--muted)">+</span> <strong>F</strong> (choreography at scale) <span style="color:var(--muted)">+</span> <strong>B</strong> (big multi-subsystem only). Everything else is rejected as a <em>primary</em> control model — P2P can't bound cost, blackboard-as-control drives conflicts, bidding's overhead waits.</p>
+    </div>
+  </section>
+
+  <!-- SAFE PARALLELISM -->
+  <section>
+    <div class="eyebrow">Many agents, one repo</div>
+    <h2>Isolation in, serialization out</h2>
+    <p class="lede">The biggest operational risk is agents clobbering each other. Fan out in isolation; funnel through a single serialized gate. And know the honest limit: the merge queue stops <em>textual</em> conflicts — <em>semantic</em> ones need their own handling.</p>
+
+    <div class="diagram" style="margin-top:1.5rem">
+      <div class="band-label">Parallel — each worker fully isolated</div>
+      <div class="row c3">
+        <div class="node line"><div class="t">Worker A · worktree</div><div class="d">Own branch, own filesystem</div></div>
+        <div class="node line"><div class="t">Worker B · worktree</div><div class="d">Own branch, own filesystem</div></div>
+        <div class="node accent"><div class="t">Serial single-writer</div><div class="d">Migrations · shared interfaces · deps</div></div>
+      </div>
+      <div class="connector"></div>
+      <div class="band-label">Serial — one gate, textual + test-covered correctness only</div>
+      <div class="panel-band">
+        <div class="node accent" style="border-style:solid"><div class="t">Integrator · FIFO merge queue</div><div class="d">Rebase + full CI + re-review each branch, one at a time · conflict ladder: auto-rebase → auto-resolve mechanical → bounce to author → escalate</div></div>
+      </div>
+      <div class="connector"></div>
+      <div class="row c2">
+        <div class="node"><div class="t">Integration branch → PR</div><div class="d">Delivered to the client with trace.json</div></div>
+        <div class="node" style="border-color:var(--crit)"><div class="t" style="color:var(--crit)">Post-merge auto-revert</div><div class="d">Canary fails → git revert → new task</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CRITIQUE-IMPROVE LOOP (meta) -->
+  <section>
+    <div class="eyebrow">The trust backbone — and this document's own process</div>
+    <h2>The critique-improve loop</h2>
+    <p class="lede">Autonomy is only as safe as verification is strong. Every worker's output is gated; the loop below runs inside the fleet <em>and</em> is exactly how this design was hardened — draft, attack, revise, until it stops getting better.</p>
+
+    <div class="loop" style="margin-top:1.5rem">
+      <div>
+        <div class="loopflow">
+          <div class="lstep"><span class="ix">1</span><span><span class="lt">Automated gates first</span><br><span class="ld">Tests, lint, types, build, security. Cheap, objective, fail-closed.</span></span></div>
+          <div class="lstep"><span class="ix">2</span><span><span class="lt">Structural independence</span><br><span class="ld">Maker ≠ checker ≠ tester. No shared history. The critic sees the contract, not the code's reasoning.</span></span></div>
+          <div class="lstep"><span class="ix">3</span><span><span class="lt">One critic by default</span><br><span class="ld">A single diverse-lens critic + the hard test gate. Reserve N-way voting for high-risk — it's the biggest cost driver.</span></span></div>
+          <div class="lstep"><span class="ix">4</span><span><span class="lt">Know the ceiling</span><br><span class="ld">Same-family critics have correlated errors; voting helps less than it looks. False-negatives on subtle bugs run 20–40% — which is why humans stay at the gates.</span></span></div>
+          <div class="lstep"><span class="ix">5</span><span><span class="lt">Cap at ~3, then escalate</span><br><span class="ld">Debugging effectiveness decays fast; the cap kills both wrong output and runaway loops.</span></span></div>
+          <div class="lstep"><span class="ix">6</span><span><span class="lt">Loop until dry</span><br><span class="ld">Keep critiquing until rounds surface nothing material — then stop.</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="band-label">This document, loop-until-dry</div>
+        <div class="rounds">
+          <div class="round r0"><div class="rh"><span>Draft 2</span><span>first synthesis</span></div><div class="rb">Confident, research-grounded — and quietly overselling autonomy.</div></div>
+          <div class="round r1"><div class="rh"><span>Round 1 · 3 critics</span><span class="verdict">REJECTED</span></div><div class="rb">"Fully autonomous" contradicts the gates; verification oversold; Temporal + LangGraph fight; economics unclosed; fabricated citations.</div></div>
+          <div class="round r2"><div class="rh"><span>Round 2 · 2 critics</span><span class="verdict">CONVERGING</span></div><div class="rb">Reframe landed; but a dissolved verification section, missing schemas &amp; thresholds, no TL;DR.</div></div>
+          <div class="round r3"><div class="rh"><span>Draft 4</span><span class="verdict">CONVERGED</span></div><div class="rb">Every critical resolved. Remaining notes are polish. The loop dried up — so it stopped.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ECONOMICS -->
+  <section>
+    <div class="eyebrow">The question the design must answer</div>
+    <h2>The economics, honestly</h2>
+    <p class="lede">A fleet job is expensive and buys limited parallelism. That's not a reason to abandon it — it's the reason to be disciplined about <em>when</em> you deploy it.</p>
+
+    <div class="econ" style="margin-top:1.4rem">
+      <div><div class="lb">Cost multiplier</div><div class="big tabular">30–100<span class="u">×</span></div><div class="ds">a single-agent call, concentrated in strong-model critic work</div></div>
+      <div><div class="lb">Parallel gain</div><div class="big tabular">~3<span class="u">×</span></div><div class="ds">throughput at the DAG's independent frontier</div></div>
+      <div><div class="lb">Per non-trivial job</div><div class="big tabular">$15–300</div><div class="ds">illustrative — calibrate on your own repos</div></div>
+    </div>
+
+    <div class="go">
+      <div class="lb">The bootstrap</div>
+      <p>At <code>L1</code> you still pay human review, so the fleet is a <span class="keyline">latency buyer, not a cost saver</span> — it wins only when work genuinely parallelizes (<code>N ≥ ~3</code>) and finishing faster is worth it. It becomes a cost saver only past <code>L2</code>, where gates drop and human cost falls — which requires your eval to clear the catch-rate thresholds. <strong>GO when the task is parallel + well-specified + high-value; otherwise use one interactive agent.</strong> Enforce with per-job and global budget ceilings.</p>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section>
+    <div class="eyebrow">Prove value cheaply, then scale</div>
+    <h2>The staged build</h2>
+    <div class="road" style="margin-top:1.4rem">
+      <div class="stage">
+        <div class="v">V0</div><div class="when">~days</div>
+        <h3>Single worker + checker</h3>
+        <ul><li>Headless worker → branch → tests → PR</li><li>Independent critic + tester</li><li>CI gate + 3-try cap</li><li>Prove L1 &amp; L3-lite on a throwaway repo</li></ul>
+      </div>
+      <div class="stage">
+        <div class="v">V1</div><div class="when">~3–6 weeks</div>
+        <h3>Orchestrated fleet</h3>
+        <ul><li>Style A + worker adapter interface</li><li>Worktrees + FIFO merge queue</li><li>Supervisor-tree overlay</li><li>The held-out eval harness</li></ul>
+      </div>
+      <div class="stage">
+        <div class="v">V2</div><div class="when">~2–3 months</div>
+        <h3>Vendor-agnostic &amp; durable</h3>
+        <ul><li>LiteLLM routing + MCP tools</li><li>One durability engine (Temporal)</li><li>Risk classifier + autonomy dial</li><li>Full security hardening + auto-revert</li></ul>
+      </div>
+      <div class="stage">
+        <div class="v">V3</div><div class="when">ongoing</div>
+        <h3>Living fleet</h3>
+        <ul><li>Cost-aware / bidding routing</li><li>Event choreography at scale</li><li>Scheduled + PR-watching runs</li><li>Hierarchy for large programs</li></ul>
+      </div>
+    </div>
+    <p style="margin-top:1rem;color:var(--muted);font-size:.8rem">Research spikes kept off the dated path, each with a kill criterion: online mid-execution replanning · a "learning" knowledge base · opening the dial to L4.</p>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section>
+    <div class="eyebrow">The decisive call</div>
+    <h2>What to build</h2>
+    <div class="two" style="margin-top:1.4rem">
+      <div class="card">
+        <h3>The recommendation</h3>
+        <ul>
+          <li><b>Default:</b> Orchestrator–Worker (A), two-tier.</li>
+          <li><b>Overlays:</b> supervisor-tree (G) for reliability; ensemble/debate (H) for high-risk verification.</li>
+          <li><b>At scale:</b> event-driven choreography (F).</li>
+          <li><b>Big multi-subsystem jobs only:</b> hierarchical (B).</li>
+          <li><b>Durability:</b> pick <span class="keyline">one</span> engine — Temporal (V2+), LangGraph fine for V1.</li>
+          <li><b>Verification:</b> auto gates → one diverse-lens critic → human gate backstop.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Tailored to your stack</h3>
+        <ul>
+          <li><b>Scala / SBT:</b> the fleet <span class="keyline">must not run <code style="font-family:var(--mono)">sbt compile</code></span> — model your compile/verify as a first-class external-verifier node the fleet waits on.</li>
+          <li><b>Python / uv:</b> workers get the full CI gate — pytest via uv, ruff, mypy.</li>
+          <li><b>TDD-first, no mocks:</b> maps straight onto "tester writes contract tests first" and the no-mock gate.</li>
+          <li><b>Vendor-agnostic:</b> LiteLLM for models, MCP for tools, a common adapter for runtimes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="mono">Autonomous Agent Fleet — Architecture Blueprint · Draft 4, converged</div>
+    <p>Companion to <span class="mono">research/autonomous-agent-fleet.md</span>. Figures are directional — calibrate cost and benchmark numbers on your own repos before betting on them. Grounded on primary sources; inflated benchmark claims and fabricated citations were deliberately excluded.</p>
+  </footer>
+
+</div>
+
+<script>
+  // Reveal-on-scroll for sections, respecting reduced motion.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || !("IntersectionObserver" in window)) return;
+    var secs = document.querySelectorAll("section");
+    secs.forEach(function (s) { s.style.opacity = "0"; s.style.transform = "translateY(14px)"; s.style.transition = "opacity .6s ease, transform .6s ease"; });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.style.opacity = "1"; e.target.style.transform = "none"; io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    secs.forEach(function (s) { io.observe(s); });
+  })();
+</script>
